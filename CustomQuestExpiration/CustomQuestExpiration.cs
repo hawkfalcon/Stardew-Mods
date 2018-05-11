@@ -6,33 +6,33 @@ using StardewValley.Quests;
 using System.Linq;
 
 namespace CustomQuestExpiration {
-	public class CustomQuestExpiration : Mod {
-		private ModConfig Config;
-		private bool acceptedDailyQuest = false;
+    public class CustomQuestExpiration : Mod {
+        private ModConfig Config;
+        private bool acceptedDailyQuest = false;
        
-		public override void Entry(IModHelper helper) {
-			this.Config = Helper.ReadConfig<ModConfig>();
+        public override void Entry(IModHelper helper) {
+            this.Config = Helper.ReadConfig<ModConfig>();
 
-			MenuEvents.MenuClosed += MenuEvents_MenuClosed;
-			TimeEvents.AfterDayStarted += TimeEvents_AfterDayStarted;
+            MenuEvents.MenuClosed += MenuEvents_MenuClosed;
+            TimeEvents.AfterDayStarted += TimeEvents_AfterDayStarted;
         }
 
-		void TimeEvents_AfterDayStarted(object sender, System.EventArgs e) {
-			acceptedDailyQuest = false;
-		}
+        void TimeEvents_AfterDayStarted(object sender, System.EventArgs e) {
+            acceptedDailyQuest = false;
+        }
 
-		private void MenuEvents_MenuClosed(object sender, EventArgsClickableMenuClosed e) {
-			if (acceptedDailyQuest || !Context.IsMainPlayer) { return; }
+        private void MenuEvents_MenuClosed(object sender, EventArgsClickableMenuClosed e) {
+            if (acceptedDailyQuest || !Context.IsMainPlayer) { return; }
             // Only update days left when leaving the billboard
-			if (e.PriorMenu.GetType() != typeof(StardewValley.Menus.Billboard)) {
-				return;
-			}
+            if (e.PriorMenu.GetType() != typeof(StardewValley.Menus.Billboard)) {
+                return;
+            }
 
-			updateQuest();
-		}
+            updateQuest();
+        }
 
-		private void updateQuest() {
-			Quest currentDailyQuest = Game1.player.questLog.FirstOrDefault(quest =>
+        private void updateQuest() {
+            Quest currentDailyQuest = Game1.player.questLog.FirstOrDefault(quest =>
                 quest.dailyQuest && quest.Equals(Game1.questOfTheDay)
             );
 
@@ -48,6 +48,6 @@ namespace CustomQuestExpiration {
                 }
                 acceptedDailyQuest = true;
             }
-		}
+        }
     }
 }
