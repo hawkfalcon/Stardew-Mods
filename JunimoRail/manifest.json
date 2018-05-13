@@ -1,0 +1,10 @@
+﻿{
+  "Name": "JunimoRail",
+  "Author": "hawkfalcon",
+  "Version": "1.0.0",
+  "Description": "Place railroad tracks and have junimos ride them!",
+  "UniqueID": "hawkfalcon.JunimoRail",
+  "EntryDll": "JunimoRail.dll",
+  "MinimumApiVersion": "2.6-beta",
+  "UpdateKeys": []
+}
