@@ -22,16 +22,16 @@ namespace CustomQuestExpiration {
         }
 
         private void updateQuest() {
-			Quest currentDailyQuest = Game1.player.questLog.FirstOrDefault(quest =>
+            Quest currentDailyQuest = Game1.player.questLog.FirstOrDefault(quest =>
                 quest.dailyQuest && quest.Equals(Game1.questOfTheDay));
-			if (currentDailyQuest != null) {             
-				if (Config.NeverExpires) {
-					currentDailyQuest.dailyQuest = false;
-				}
-				else {
-					currentDailyQuest.daysLeft = Config.DaysToExpiration;
-				}
-			}
+            if (currentDailyQuest != null) {             
+                if (Config.NeverExpires) {
+                    currentDailyQuest.dailyQuest.Value = false;
+                }
+                else {
+                    currentDailyQuest.daysLeft.Value = Config.DaysToExpiration;
+                }
+            }
         }
     }
 }
