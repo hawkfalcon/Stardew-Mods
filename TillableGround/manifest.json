@@ -1,10 +1,10 @@
 ﻿{
   "Name": "TillableGround",
   "Author": "hawkfalcon",
-  "Version": "1.0.0",
-  "Description": "Make any tile tillable by pressing H (so you can use your hoe on it)",
+  "Version": "1.1.0",
+  "Description": "Make any tile tillable (so you can use your hoe on it)",
   "UniqueID": "hawkfalcon.TillableGround",
   "EntryDll": "TillableGround.dll",
   "MinimumApiVersion": "2.6-beta",
-  "UpdateKeys": []
+  "UpdateKeys": [ "Nexus:2175" ]
 }
