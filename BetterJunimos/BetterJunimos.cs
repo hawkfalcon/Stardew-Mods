@@ -13,13 +13,15 @@ using System.Reflection;
 
 namespace BetterJunimos {
     public class BetterJunimos : Mod {
-        public static Mod instance;
+        internal static BetterJunimos instance;
+        internal ModConfig Config;
 
 		public override void Entry(IModHelper helper) {
             instance = this;
+            Config = Helper.ReadConfig<ModConfig>();
             InputEvents.ButtonPressed += InputEvents_ButtonPressed;
 
-            var harmony = HarmonyInstance.Create("com.hawkfalcon.BetterJunimos");
+            HarmonyInstance harmony = HarmonyInstance.Create("com.hawkfalcon.BetterJunimos");
 
             // Thank you to Cat (danvolchek) for this harmony setup implementation
             // https://github.com/danvolchek/StardewMods/blob/master/BetterGardenPots/BetterGardenPots/BetterGardenPotsMod.cs#L29
