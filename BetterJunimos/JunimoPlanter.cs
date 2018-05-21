@@ -1,5 +1,4 @@
-﻿using Harmony;
-using Netcode;
+﻿using Netcode;
 using System.Linq;
 using StardewValley;
 using Microsoft.Xna.Framework;
@@ -44,17 +43,15 @@ namespace BetterJunimos {
         }
     }
 
-    [HarmonyPatch(typeof(JunimoHarvester))]
-    [HarmonyPatch("foundCropEndFunction")]
-    public class PatchFinding {
+    // JunimoHarvester - foundCropEndFunction
+    public class PatchFindingCropEnd {
         static void Postfix(ref PathNode currentNode, ref GameLocation location, ref bool __result) {
             __result = __result || JunimoPlanter.IsPlantable(new Vector2(currentNode.x, currentNode.y));
         }
     }
 
-    [HarmonyPatch(typeof(JunimoHarvester))]
-    [HarmonyPatch("tryToHarvestHere")]
-    public class PatchHarvestAttempt {
+    // JunimoHarvester - tryToHarvestHere
+    public class PatchHarvestAttemptToCustom {
         static void Postfix(JunimoHarvester __instance) {
             //BetterJunimos.instance.Monitor.Log("Any tilled dirt (set plant timer)");
             Vector2 pos = __instance.getTileLocation();
@@ -69,16 +66,14 @@ namespace BetterJunimos {
         }
     }
 
-    /*[HarmonyPatch(typeof(JunimoHarvester))]
-    [HarmonyPatch("update")]
+    /* JunimoHarvester - update
     [HarmonyPatch(new Type[] { typeof(GameTime), typeof(GameLocation) })]
     public class PatchUpdateAndPlant {
         static void Postfix(JunimoHarvester __instance) {
         }
     }*/
 
-    [HarmonyPatch(typeof(JunimoHut))]
-    [HarmonyPatch("areThereMatureCropsWithinRadius")]
+    // JunimoHut - areThereMatureCropsWithinRadius
     public class PatchPathfindHut {
         static void Postfix(JunimoHut __instance, ref bool __result) {
             if (__instance.lastKnownCropLocation.Equals(Point.Zero)) {
