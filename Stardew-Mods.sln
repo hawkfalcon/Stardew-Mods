@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomQuestExpiration", "CustomQuestExpiration\CustomQuestExpiration.csproj", "{20DE9FF4-5C8F-44FE-981B-118BEDDF0162}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JunimoRail", "JunimoRail\JunimoRail.csproj", "{0F382ADA-3DBB-4309-A020-8CF5326E8709}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BetterJunimos", "BetterJunimos\BetterJunimos.csproj", "{0F382ADA-3DBB-4309-A020-8CF5326E8709}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TillableGround", "TillableGround\TillableGround.csproj", "{56FA8642-1605-4653-BD87-E94270E2D03C}"
 EndProject
