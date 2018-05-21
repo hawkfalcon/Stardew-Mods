@@ -26,11 +26,15 @@ namespace BetterJunimos {
             // Thank you to Cat (danvolchek) for this harmony setup implementation
             // https://github.com/danvolchek/StardewMods/blob/master/BetterGardenPots/BetterGardenPots/BetterGardenPotsMod.cs#L29
             Type junimoType = GetSDVType("Characters.JunimoHarvester");
+            Type junimoHutType = GetSDVType("Buildings.JunimoHut");
             IList<Tuple<string, Type, Type>> replacements = new List<Tuple<string, Type, Type>>();
 
             Add(replacements, "foundCropEndFunction", junimoType, typeof(PatchFindingCropEnd));
             Add(replacements, "tryToHarvestHere", junimoType, typeof(PatchHarvestAttemptToCustom));
-            Add(replacements, "areThereMatureCropsWithinRadius", GetSDVType("Buildings.JunimoHut"), typeof(PatchPathfindHut));
+            Add(replacements, "areThereMatureCropsWithinRadius", junimoHutType, typeof(PatchPathfindHut));
+            if (Config.WorkInRain) {
+                Add(replacements, "Update", junimoHutType, typeof(PatchJunimosInRain));
+            }
 
             foreach (Tuple<string, Type, Type> replacement in replacements) {
                 MethodInfo original = replacement.Item2.GetMethods(BindingFlags.Instance | BindingFlags.Public).ToList().Find(m => m.Name == replacement.Item1);
@@ -64,14 +68,30 @@ namespace BetterJunimos {
             }
         }
 
-        void spawnJunimo() {
+        public void spawnJunimoAtHut(JunimoHut hut) {
+            if (hut == null) return;
+            Farm farm = Game1.getFarm();
+            JunimoHarvester junimoHarvester = new JunimoHarvester(new Vector2((float)((int)((NetFieldBase<int, NetInt>)hut.tileX) + 1), (float)((int)((NetFieldBase<int, NetInt>)hut.tileY) + 1)) * 64f + new Vector2(0.0f, 32f), hut, hut.myJunimos.Count + 1);
+
+            farm.characters.Add((NPC)junimoHarvester);
+            hut.myJunimos.Add(junimoHarvester);
+            if (Game1.isRaining) {
+                var alpha = this.Helper.Reflection.GetField<float>(junimoHarvester, "alpha");
+                alpha.SetValue(0.4f);
+            }
+            if (!Utility.isOnScreen(Utility.Vector2ToPoint(new Vector2((float)((int)((NetFieldBase<int, NetInt>)hut.tileX) + 1), (float)((int)((NetFieldBase<int, NetInt>)hut.tileY) + 1))), 64, farm))
+                return;
+            try {
+                Game1.getFarm().playSound("junimoMeep1");
+            }
+            catch (Exception _) {
+            }
+        }
+
+        public void spawnJunimo() {
             Farm farm = Game1.getFarm();
             JunimoHut hut = farm.buildings.FirstOrDefault(building => building is JunimoHut) as JunimoHut;
-            if (hut == null) return;
-            JunimoHarvester junimoHarvester = new JunimoHarvester(new Vector2((float)((int)((NetFieldBase<int, NetInt>)hut.tileX) + 1), (float)((int)((NetFieldBase<int, NetInt>)hut.tileY) + 1)) * 64f + new Vector2(0.0f, 32f), hut, hut.myJunimos.Count + 1);
-            hut.myJunimos.Add(junimoHarvester);
-            farm.characters.Add((NPC)junimoHarvester);
-            farm.playSound("junimoMeep1");
+            spawnJunimoAtHut(hut);
         }
 	}
 }
