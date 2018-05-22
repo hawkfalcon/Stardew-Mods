@@ -31,6 +31,7 @@ namespace BetterJunimos {
 
             Add(replacements, "foundCropEndFunction", junimoType, typeof(PatchFindingCropEnd));
             Add(replacements, "tryToHarvestHere", junimoType, typeof(PatchHarvestAttemptToCustom));
+            Add(replacements, "update", junimoType, typeof(PatchJunimoShake));
             Add(replacements, "areThereMatureCropsWithinRadius", junimoHutType, typeof(PatchPathfindHut));
             if (Config.WorkInRain) {
                 Add(replacements, "Update", junimoHutType, typeof(PatchJunimosInRain));

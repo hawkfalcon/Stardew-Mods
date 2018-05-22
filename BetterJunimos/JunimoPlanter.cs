@@ -9,10 +9,10 @@ using SObject = StardewValley.Object;
 
 namespace BetterJunimos {
     public class JunimoPlanter {
-        public static bool IsPlantable(Vector2 pos, JunimoHut hut) {
+        public static bool IsPlantable(Vector2 pos) {
             Farm farm = Game1.getFarm();
             return farm.terrainFeatures.ContainsKey(pos) && farm.terrainFeatures[pos] is HoeDirt hd &&
-                hd.crop == null && !farm.objects.ContainsKey(pos) && AreThereSeeds(hut);
+                hd.crop == null && !farm.objects.ContainsKey(pos);
         }
 
         public static bool AreThereSeeds(JunimoHut hut) {
@@ -35,14 +35,53 @@ namespace BetterJunimos {
 
             if (farm.terrainFeatures[pos] is HoeDirt hd && BetterJunimos.instance.Config.FertilizeCrops) {
                 if (fertilizer != null && hd.fertilizer.Value <= 0) {
-                    hd.plant(fertilizer.ParentSheetIndex, (int)pos.X, (int)pos.Y, Game1.player, true, farm);
-                    ReduceItemCount(chest, fertilizer);
+                    if (Fertilize(pos, fertilizer.ParentSheetIndex)) {
+                        ReduceItemCount(chest, fertilizer);
+                    }
                 }
                 else if (seeds != null && BetterJunimos.instance.Config.PlantCrops) {
-                    hd.plant(seeds.ParentSheetIndex, (int)pos.X, (int)pos.Y, Game1.player, false, farm);
-                    ReduceItemCount(chest, seeds);
+                    if (Plant(pos, seeds.ParentSheetIndex)) {
+                        ReduceItemCount(chest, seeds);
+                    }
                 }
             }
+        }
+
+        private static bool Fertilize(Vector2 pos, int index) {
+            Farm farm = Game1.getFarm();
+            if (farm.terrainFeatures[pos] is HoeDirt hd) {
+                if (hd.fertilizer.Value != 0)
+                    return false;
+                
+                hd.fertilizer.Value = index;
+                if (Utility.isOnScreen(pos.ToPoint(), 64, farm)) {
+                    farm.playSound("dirtyHit");
+                }
+            }
+            return true;
+        }
+
+        private static bool Plant(Vector2 pos, int index) {
+            Crop crop = new Crop(index, (int)pos.X, (int)pos.Y);
+            if (crop.seasonsToGrowIn.Count == 0)
+                return false;
+
+            if (!crop.seasonsToGrowIn.Contains(Game1.currentSeason))
+                return false;
+
+            Farm farm = Game1.getFarm();
+            if (farm.terrainFeatures[pos] is HoeDirt hd) {
+                hd.crop = crop;
+                if (Utility.isOnScreen(pos.ToPoint(), 64, farm)) {
+                    if (crop.raisedSeeds)
+                        farm.playSound("stoneStep");
+                    farm.playSound("dirtyHit");
+                }
+
+                ++Game1.stats.SeedsSown;
+            }
+            return true;
+
         }
 
         private static void ReduceItemCount(NetObjectList<Item> chest, Item item) {
@@ -56,9 +95,9 @@ namespace BetterJunimos {
 
     // JunimoHarvester - foundCropEndFunction
     public class PatchFindingCropEnd {
-        public static void Postfix(ref PathNode currentNode, ref GameLocation location, JunimoHarvester __instance, ref bool __result) {
+        public static void Postfix(ref PathNode currentNode, JunimoHarvester __instance, ref bool __result) {
             JunimoHut hut = JunimoPlanter.GetHutFromJunimo(__instance);
-            __result = __result || JunimoPlanter.IsPlantable(new Vector2(currentNode.x, currentNode.y), hut);
+            __result = __result || (JunimoPlanter.IsPlantable(new Vector2(currentNode.x, currentNode.y)) && JunimoPlanter.AreThereSeeds(hut));
         }
     }
 
@@ -67,20 +106,25 @@ namespace BetterJunimos {
         public static void Postfix(JunimoHarvester __instance) {
             Vector2 pos = __instance.getTileLocation();
             JunimoHut hut = JunimoPlanter.GetHutFromJunimo(__instance);
-            if (JunimoPlanter.IsPlantable(pos, hut)) {
+            if (JunimoPlanter.IsPlantable(pos) && JunimoPlanter.AreThereSeeds(hut)) {
                 var harvestTimer = BetterJunimos.instance.Helper.Reflection.GetField<int>(__instance, "harvestTimer");
-                harvestTimer.SetValue(2000);
+                harvestTimer.SetValue(999);
                 JunimoPlanter.UseItemFromHut(hut, pos);
             }
         }
     }
 
-    /* JunimoHarvester - update
-    [HarmonyPatch(new Type[] { typeof(GameTime), typeof(GameLocation) })]
-    public class PatchUpdateAndPlant {
-        static void Postfix(JunimoHarvester __instance) {
+    // JunimoHarvester - update
+    public class PatchJunimoShake {
+        public static void Postfix(JunimoHarvester __instance) {
+            var harvestTimer = BetterJunimos.instance.Helper.Reflection.GetField<int>(__instance, "harvestTimer").GetValue();
+            if (harvestTimer > 500 && harvestTimer < 1000) {
+                var netAnimationEvent = BetterJunimos.instance.Helper.Reflection.GetField<NetEvent1Field<int, NetInt>>(__instance, "netAnimationEvent");
+                netAnimationEvent.GetValue().Fire(4);
+                __instance.shake(50);
+            }
         }
-    }*/
+    }
 
     // JunimoHut - areThereMatureCropsWithinRadius
     public class PatchPathfindHut {
@@ -94,7 +138,7 @@ namespace BetterJunimos {
             for (int index1 = (int)((NetFieldBase<int, NetInt>)hut.tileX) + 1 - 8; index1 < (int)((NetFieldBase<int, NetInt>)hut.tileX) + 2 + 8; ++index1) {
                 for (int index2 = (int)((NetFieldBase<int, NetInt>)hut.tileY) - 8 + 1; index2 < (int)((NetFieldBase<int, NetInt>)hut.tileY) + 2 + 8; ++index2) {
                     Vector2 pos = new Vector2((float)index1, (float)index2);
-                    if (JunimoPlanter.IsPlantable(pos, hut)) {
+                    if (JunimoPlanter.IsPlantable(pos) && JunimoPlanter.AreThereSeeds(hut)) {
                         hut.lastKnownCropLocation = new Point(index1, index2);
                         return true;
                     }
