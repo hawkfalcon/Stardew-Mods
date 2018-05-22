@@ -41,7 +41,7 @@ namespace CustomQuestExpiration {
                 quest.dailyQuest && quest.Equals(Game1.questOfTheDay)
             );
             if (currentDailyQuest != null) {
-                int daysLeft = Config.NeverExpires ? InfiniteDays : Config.DaysToExpiration;
+                int daysLeft = getDaysLeft(currentDailyQuest);
                 currentDailyQuest.daysLeft.Value = daysLeft;
             }
         }
@@ -61,6 +61,28 @@ namespace CustomQuestExpiration {
                 quest.dailyQuest.Value = true;
             }
             dailyQuests.Clear();
+        }
+
+        private int getDaysLeft(Quest quest) {
+            if (Config.NeverExpires)
+                return InfiniteDays;
+            if (!Config.UsesQuestCategoryExpiration)
+                return Config.DaysToExpiration;
+
+            // daily quest types
+            // https://stardewvalleywiki.com/Quests#Types
+            switch (quest.questType) {
+            case Quest.type_itemDelivery:
+                return Config.CategoryExpiration.ItemDelivery;
+            case Quest.type_resource:
+                return Config.CategoryExpiration.Gathering;
+            case Quest.type_fishing:
+                return Config.CategoryExpiration.Fishing;
+            case Quest.type_monster:
+                return Config.CategoryExpiration.SlayMonsters;
+            default:
+                return Config.DaysToExpiration;
+            }
         }
     }
 }
