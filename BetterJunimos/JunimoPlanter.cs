@@ -21,11 +21,6 @@ namespace BetterJunimos {
             return chest.Any(item => item.category == SObject.SeedsCategory);
         }
 
-        public static JunimoHut GetHutFromJunimo(JunimoHarvester junimo) {
-            NetGuid netHome = BetterJunimos.instance.Helper.Reflection.GetField<NetGuid>(junimo, "netHome").GetValue();
-            return Game1.getFarm().buildings[netHome.Value] as JunimoHut;
-        }
-
         public static void UseItemFromHut(JunimoHut hut, Vector2 pos) {
             Farm farm = Game1.getFarm();
             NetObjectList<Item> chest = hut.output.Value.items;
@@ -56,20 +51,19 @@ namespace BetterJunimos {
 
     // JunimoHarvester - foundCropEndFunction
     public class PatchFindingCropEnd {
-        public static void Postfix(ref PathNode currentNode, ref GameLocation location, JunimoHarvester __instance, ref bool __result) {
-            JunimoHut hut = JunimoPlanter.GetHutFromJunimo(__instance);
+        public static void Postfix(ref PathNode currentNode, NetGuid ___netHome, ref bool __result) {
+            JunimoHut hut = Game1.getFarm().buildings[___netHome.Value] as JunimoHut;
             __result = __result || JunimoPlanter.IsPlantable(new Vector2(currentNode.x, currentNode.y), hut);
         }
     }
 
     // JunimoHarvester - tryToHarvestHere
     public class PatchHarvestAttemptToCustom {
-        public static void Postfix(JunimoHarvester __instance) {
+        public static void Postfix(JunimoHarvester __instance, NetGuid ___netHome, ref int ___harvestTimer) {
             Vector2 pos = __instance.getTileLocation();
-            JunimoHut hut = JunimoPlanter.GetHutFromJunimo(__instance);
+            JunimoHut hut = Game1.getFarm().buildings[___netHome.Value] as JunimoHut;
             if (JunimoPlanter.IsPlantable(pos, hut)) {
-                var harvestTimer = BetterJunimos.instance.Helper.Reflection.GetField<int>(__instance, "harvestTimer");
-                harvestTimer.SetValue(2000);
+                ___harvestTimer = 2000;
                 JunimoPlanter.UseItemFromHut(hut, pos);
             }
         }
@@ -105,11 +99,10 @@ namespace BetterJunimos {
     }
 
     public class PatchJunimosInRain {
-        public static void Postfix(JunimoHut __instance) {
-            var junimoSendOutTimer = BetterJunimos.instance.Helper.Reflection.GetField<int>(__instance, "junimoSendOutTimer");
-            if (junimoSendOutTimer.GetValue() > 0 || __instance.myJunimos.Count<JunimoHarvester>() >= 3 || Game1.IsWinter || (!__instance.areThereMatureCropsWithinRadius() || Game1.farmEvent != null)) 
+        public static void Postfix(JunimoHut __instance, ref int ___junimoSendOutTimer) {
+            if (___junimoSendOutTimer > 0 || __instance.myJunimos.Count<JunimoHarvester>() >= 3 || Game1.IsWinter || (!__instance.areThereMatureCropsWithinRadius() || Game1.farmEvent != null)) 
                 return;
-            junimoSendOutTimer.SetValue(5000);
+            ___junimoSendOutTimer = 5000;
             BetterJunimos.instance.spawnJunimoAtHut(__instance);
         }
     }
