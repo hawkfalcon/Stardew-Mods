@@ -26,15 +26,20 @@ namespace BetterJunimos {
 
             // Thank you to Cat (danvolchek) for this harmony setup implementation
             // https://github.com/danvolchek/StardewMods/blob/master/BetterGardenPots/BetterGardenPots/BetterGardenPotsMod.cs#L29
-            Type junimoType = GetSDVType("Characters.JunimoHarvester");
-            Type junimoHutType = GetSDVType("Buildings.JunimoHut");
             IList<Tuple<string, Type, Type>> replacements = new List<Tuple<string, Type, Type>>();
 
+            Type junimoType = GetSDVType("Characters.JunimoHarvester");
             Add(replacements, "foundCropEndFunction", junimoType, typeof(PatchFindingCropEnd));
             Add(replacements, "tryToHarvestHere", junimoType, typeof(PatchHarvestAttemptToCustom));
             Add(replacements, "update", junimoType, typeof(PatchJunimoShake));
-            Add(replacements, "areThereMatureCropsWithinRadius", junimoHutType, typeof(PatchPathfindHut));
-            if (Config.WorkInRain) {
+            if (Config.JunimoImprovements.WorkRangeRadius > Util.DefaultRange) {
+                Add(replacements, "pathfindToRandomSpotAroundHut", junimoType, typeof(PatchPathfind));
+                Add(replacements, "pathFindToNewCrop_doWork", junimoType, typeof(PatchPathfindDoWork));
+            }
+
+            Type junimoHutType = GetSDVType("Buildings.JunimoHut");
+            Add(replacements, "areThereMatureCropsWithinRadius", junimoHutType, typeof(PatchSearchAroundHut));
+            if (Config.JunimoImprovements.CanWorkInRain) {
                 Add(replacements, "Update", junimoHutType, typeof(PatchJunimosInRain));
             }
 

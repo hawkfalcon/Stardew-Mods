@@ -28,13 +28,13 @@ namespace BetterJunimos.Patches {
             Item fertilizer = chest.FirstOrDefault(item => item.Category == SObject.fertilizerCategory);
             Item seeds = chest.FirstOrDefault(item => item.Category == SObject.SeedsCategory);
 
-            if (farm.terrainFeatures[pos] is HoeDirt hd && BetterJunimos.instance.Config.FertilizeCrops) {
+            if (farm.terrainFeatures[pos] is HoeDirt hd && BetterJunimos.instance.Config.JunimoCapabilities.FertilizeCrops) {
                 if (fertilizer != null && hd.fertilizer.Value <= 0) {
                     if (Fertilize(pos, fertilizer.ParentSheetIndex)) {
                         Util.ReduceItemCount(chest, fertilizer);
                     }
                 }
-                else if (seeds != null && BetterJunimos.instance.Config.PlantCrops) {
+                else if (seeds != null && BetterJunimos.instance.Config.JunimoCapabilities.PlantCrops) {
                     if (Plant(pos, seeds.ParentSheetIndex)) {
                         Util.ReduceItemCount(chest, seeds);
                     }

@@ -1,25 +1,48 @@
-﻿using Netcode;
-using System.Linq;
+﻿using System.Linq;
 using StardewValley;
 using Microsoft.Xna.Framework;
 using StardewValley.Buildings;
 using StardewValley.Characters;
+using StardewValley.TerrainFeatures;
 
 namespace BetterJunimos.Patches {
-    // JunimoHut - areThereMatureCropsWithinRadius
-    internal class PatchPathfindHut {
+    // areThereMatureCropsWithinRadius
+    internal class PatchSearchAroundHut {
         public static void Postfix(JunimoHut __instance, ref bool __result) {
+            if (__result)
+                return;
+            
+            int range = BetterJunimos.instance.Config.JunimoImprovements.WorkRangeRadius;
+            if (range > Util.DefaultRange) {
+                __result = pathFindExtraHarvestableDirt(__instance, range);
+            }
+
             if (__instance.lastKnownCropLocation.Equals(Point.Zero)) {
-                __result = pathFindTilledDirt(__instance);
+                __result = pathFindTilledDirt(__instance, range);
             }
         }
 
-        internal static bool pathFindTilledDirt(JunimoHut hut) {
-            for (int index1 = (int)((NetFieldBase<int, NetInt>)hut.tileX) + 1 - 8; index1 < (int)((NetFieldBase<int, NetInt>)hut.tileX) + 2 + 8; ++index1) {
-                for (int index2 = (int)((NetFieldBase<int, NetInt>)hut.tileY) - 8 + 1; index2 < (int)((NetFieldBase<int, NetInt>)hut.tileY) + 2 + 8; ++index2) {
-                    Vector2 pos = new Vector2((float)index1, (float)index2);
+        internal static bool pathFindExtraHarvestableDirt(JunimoHut hut, int range) {
+            Farm farm = Game1.getFarm();
+            for (int x = hut.tileX.Value + 1 - range + Util.DefaultRange; x < hut.tileX.Value + 2 + range; ++x) {
+                for (int y = hut.tileY.Value + 1 - range + Util.DefaultRange; y < hut.tileY.Value + 2 + range; ++y) {
+                    if (farm.isCropAtTile(x, y) && (farm.terrainFeatures[new Vector2((float)x, (float)y)] as HoeDirt).readyForHarvest()) {
+                        hut.lastKnownCropLocation = new Point(x, y);
+                        return true;
+                    }
+                }
+            }
+            hut.lastKnownCropLocation = Point.Zero;
+            return false;
+        }
+
+
+        internal static bool pathFindTilledDirt(JunimoHut hut, int range) {
+            for (int x = hut.tileX.Value + 1 - range; x < hut.tileX.Value + 2 + range; ++x) {
+                for (int y = hut.tileY.Value + 1 - range; y < hut.tileY.Value + 2 + range; ++y) {
+                    Vector2 pos = new Vector2((float)x, (float)y);
                     if (JunimoPlanter.IsPlantable(pos) && JunimoPlanter.AreThereSeeds(hut)) {
-                        hut.lastKnownCropLocation = new Point(index1, index2);
+                        hut.lastKnownCropLocation = new Point(x, y);
                         return true;
                     }
                 }
@@ -28,6 +51,7 @@ namespace BetterJunimos.Patches {
         }
     }
 
+    // Update
     internal class PatchJunimosInRain {
         public static void Postfix(JunimoHut __instance) {
             var junimoSendOutTimer = BetterJunimos.instance.Helper.Reflection.GetField<int>(__instance, "junimoSendOutTimer");
