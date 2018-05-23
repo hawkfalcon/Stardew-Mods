@@ -78,7 +78,7 @@ namespace BetterJunimos {
         public void spawnJunimoAtHut(JunimoHut hut) {
             if (hut == null) return;
             Farm farm = Game1.getFarm();
-            JunimoHarvester junimoHarvester = new JunimoHarvester(new Vector2((float)((int)((NetFieldBase<int, NetInt>)hut.tileX) + 1), (float)((int)((NetFieldBase<int, NetInt>)hut.tileY) + 1)) * 64f + new Vector2(0.0f, 32f), hut, hut.myJunimos.Count + 1);
+            JunimoHarvester junimoHarvester = new JunimoHarvester(new Vector2((float)hut.tileX.Value + 1, (float)hut.tileY.Value + 1) * 64f + new Vector2(0.0f, 32f), hut, hut.myJunimos.Count + 1);
 
             farm.characters.Add((NPC)junimoHarvester);
             hut.myJunimos.Add(junimoHarvester);
@@ -87,7 +87,7 @@ namespace BetterJunimos {
                 var alpha = this.Helper.Reflection.GetField<float>(junimoHarvester, "alpha");
                 alpha.SetValue(0.4f);
             }
-            if (!Utility.isOnScreen(Utility.Vector2ToPoint(new Vector2((float)((int)((NetFieldBase<int, NetInt>)hut.tileX) + 1), (float)((int)((NetFieldBase<int, NetInt>)hut.tileY) + 1))), 64, farm))
+            if (!Utility.isOnScreen(Utility.Vector2ToPoint(new Vector2((float)hut.tileX.Value + 1, (float)hut.tileY.Value + 1)), 64, farm))
                 return;
             farm.playSound("junimoMeep1");
         }

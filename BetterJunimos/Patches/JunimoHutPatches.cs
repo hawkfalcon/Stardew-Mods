@@ -2,17 +2,20 @@
 using StardewValley;
 using Microsoft.Xna.Framework;
 using StardewValley.Buildings;
-using StardewValley.Characters;
 using StardewValley.TerrainFeatures;
 
 namespace BetterJunimos.Patches {
     // areThereMatureCropsWithinRadius
     internal class PatchSearchAroundHut {
         public static void Postfix(JunimoHut __instance, ref bool __result) {
+            if (Util.Config.JunimoPayment.WorkForWages) {
+                __result = false;
+                return;
+            }
             if (__result)
                 return;
             
-            int range = BetterJunimos.instance.Config.JunimoImprovements.WorkRangeRadius;
+            int range = Util.Config.JunimoImprovements.WorkRangeRadius;
             if (range > Util.DefaultRange) {
                 __result = pathFindExtraHarvestableDirt(__instance, range);
             }
@@ -55,7 +58,7 @@ namespace BetterJunimos.Patches {
     internal class PatchJunimosInRain {
         public static void Postfix(JunimoHut __instance) {
             var junimoSendOutTimer = BetterJunimos.instance.Helper.Reflection.GetField<int>(__instance, "junimoSendOutTimer");
-            if (junimoSendOutTimer.GetValue() > 0 || __instance.myJunimos.Count<JunimoHarvester>() >= 3 || Game1.IsWinter || (!__instance.areThereMatureCropsWithinRadius() || Game1.farmEvent != null))
+            if (junimoSendOutTimer.GetValue() > 0 || __instance.myJunimos.Count() >= 3 || Game1.IsWinter || Game1.farmEvent != null || !__instance.areThereMatureCropsWithinRadius())
                 return;
             junimoSendOutTimer.SetValue(5000);
             BetterJunimos.instance.spawnJunimoAtHut(__instance);

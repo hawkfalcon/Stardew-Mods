@@ -6,6 +6,7 @@ using StardewValley.Characters;
 namespace BetterJunimos.Patches {
     public class Util {
         public const int DefaultRange = 8;
+        internal static ModConfig Config = BetterJunimos.instance.Config;
 
         public static JunimoHut GetHutFromJunimo(JunimoHarvester junimo) {
             NetGuid netHome = BetterJunimos.instance.Helper.Reflection.GetField<NetGuid>(junimo, "netHome").GetValue();
@@ -13,7 +14,7 @@ namespace BetterJunimos.Patches {
         }
 
         public static void ReduceItemCount(NetObjectList<Item> chest, Item item) {
-            if (!BetterJunimos.instance.Config.JunimoImprovements.ConsumeItemsFromChest) { return; }
+            if (!Config.JunimoImprovements.ConsumeItemsFromChest) { return; }
             item.Stack--;
             if (item.Stack == 0) {
                 chest.Remove(item);

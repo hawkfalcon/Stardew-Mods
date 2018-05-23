@@ -41,8 +41,8 @@ namespace BetterJunimos.Patches {
     public class PatchPathfind {
         public static void Postfix(JunimoHarvester __instance) {
             JunimoHut hut = Util.GetHutFromJunimo(__instance);
-            int range = BetterJunimos.instance.Config.JunimoImprovements.WorkRangeRadius;
-            __instance.controller = new PathFindController((Character)__instance, __instance.currentLocation, Utility.Vector2ToPoint(
+            int range = Util.Config.JunimoImprovements.WorkRangeRadius;
+            __instance.controller = new PathFindController(__instance, __instance.currentLocation, Utility.Vector2ToPoint(
                 new Vector2((float)(hut.tileX.Value + 1 + Game1.random.Next(-range, range + 1)), (float)(hut.tileY.Value + 1 + Game1.random.Next(-range, range + 1)))),
                 -1, new PathFindController.endBehavior(__instance.reachFirstDestinationFromHut), 100);
         }
@@ -63,13 +63,13 @@ namespace BetterJunimos.Patches {
                 __instance.pathfindToRandomSpotAroundHut();
             }
             else {
-                __instance.controller = new PathFindController((Character)__instance, __instance.currentLocation, 
+                __instance.controller = new PathFindController(__instance, __instance.currentLocation, 
                     new PathFindController.isAtEnd(__instance.foundCropEndFunction), -1, false, 
                     new PathFindController.endBehavior(__instance.reachFirstDestinationFromHut), 100, Point.Zero);
                 if (__instance.controller.pathToEndPoint == null) {
                     JunimoHut hut = Util.GetHutFromJunimo(__instance);
                     if (Game1.random.NextDouble() < 0.5 && !hut.lastKnownCropLocation.Equals(Point.Zero))
-                        __instance.controller = new PathFindController((Character)__instance, __instance.currentLocation, hut.lastKnownCropLocation, -1, 
+                        __instance.controller = new PathFindController(__instance, __instance.currentLocation, hut.lastKnownCropLocation, -1, 
                             new PathFindController.endBehavior(__instance.reachFirstDestinationFromHut), 100);
                     else if (Game1.random.NextDouble() < 0.25) {
                         Util.AnimateJunimo(0, __instance);
