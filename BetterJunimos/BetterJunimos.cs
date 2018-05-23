@@ -10,13 +10,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using BetterJunimos.Patches;
 
 namespace BetterJunimos {
     public class BetterJunimos : Mod {
         internal static BetterJunimos instance;
         internal ModConfig Config;
 
-		public override void Entry(IModHelper helper) {
+        public override void Entry(IModHelper helper) {
             instance = this;
             Config = Helper.ReadConfig<ModConfig>();
             InputEvents.ButtonPressed += InputEvents_ButtonPressed;
@@ -54,14 +55,14 @@ namespace BetterJunimos {
         //Big thanks to Routine for this workaround for mac users.
         //https://github.com/Platonymous/Stardew-Valley-Mods/blob/master/PyTK/PyUtils.cs#L117
         /// <summary>Gets the correct type of the object, handling different assembly names for mac/linux users.</summary>
-        private static Type GetSDVType( string type ) {
+        private static Type GetSDVType(string type) {
             const string prefix = "StardewValley.";
             Type defaultSDV = Type.GetType(prefix + type + ", Stardew Valley");
 
             return defaultSDV ?? Type.GetType(prefix + type + ", StardewValley");
         }
 
-        void InputEvents_ButtonPressed( object sender, EventArgsInput e ) {
+        void InputEvents_ButtonPressed(object sender, EventArgsInput e) {
             if (!Context.IsWorldReady) { return; }
 
             if (e.Button == SButton.O) {
@@ -76,17 +77,14 @@ namespace BetterJunimos {
 
             farm.characters.Add((NPC)junimoHarvester);
             hut.myJunimos.Add(junimoHarvester);
+
             if (Game1.isRaining) {
                 var alpha = this.Helper.Reflection.GetField<float>(junimoHarvester, "alpha");
                 alpha.SetValue(0.4f);
             }
             if (!Utility.isOnScreen(Utility.Vector2ToPoint(new Vector2((float)((int)((NetFieldBase<int, NetInt>)hut.tileX) + 1), (float)((int)((NetFieldBase<int, NetInt>)hut.tileY) + 1))), 64, farm))
                 return;
-            try {
-                Game1.getFarm().playSound("junimoMeep1");
-            }
-            catch (Exception _) {
-            }
+            farm.playSound("junimoMeep1");
         }
 
         public void spawnJunimo() {
@@ -94,5 +92,5 @@ namespace BetterJunimos {
             JunimoHut hut = farm.buildings.FirstOrDefault(building => building is JunimoHut) as JunimoHut;
             spawnJunimoAtHut(hut);
         }
-	}
+    }
 }
