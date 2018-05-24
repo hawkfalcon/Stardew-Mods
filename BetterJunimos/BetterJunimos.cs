@@ -32,7 +32,7 @@ namespace BetterJunimos {
             Add(replacements, "foundCropEndFunction", junimoType, typeof(PatchFindingCropEnd));
             Add(replacements, "tryToHarvestHere", junimoType, typeof(PatchHarvestAttemptToCustom));
             Add(replacements, "update", junimoType, typeof(PatchJunimoShake));
-            if (Config.JunimoImprovements.WorkRangeRadius > Util.DefaultRange) {
+            if (Config.JunimoImprovements.MaxRadius > Util.DefaultRadius) {
                 Add(replacements, "pathfindToRandomSpotAroundHut", junimoType, typeof(PatchPathfind));
                 Add(replacements, "pathFindToNewCrop_doWork", junimoType, typeof(PatchPathfindDoWork));
             }

@@ -21,7 +21,7 @@ namespace BetterJunimos.Patches {
             if (JunimoPlanter.IsPlantable(pos) && JunimoPlanter.AreThereSeeds(hut)) {
                 var harvestTimer = BetterJunimos.instance.Helper.Reflection.GetField<int>(__instance, "harvestTimer");
                 harvestTimer.SetValue(999);
-                JunimoPlanter.UseItemFromHut(hut, pos);
+                JunimoPlanter.UseWorkItemFromHut(hut, pos);
             }
         }
     }
@@ -41,9 +41,9 @@ namespace BetterJunimos.Patches {
     public class PatchPathfind {
         public static void Postfix(JunimoHarvester __instance) {
             JunimoHut hut = Util.GetHutFromJunimo(__instance);
-            int range = Util.Config.JunimoImprovements.WorkRangeRadius;
+            int radius = Util.Config.JunimoImprovements.MaxRadius;
             __instance.controller = new PathFindController(__instance, __instance.currentLocation, Utility.Vector2ToPoint(
-                new Vector2((float)(hut.tileX.Value + 1 + Game1.random.Next(-range, range + 1)), (float)(hut.tileY.Value + 1 + Game1.random.Next(-range, range + 1)))),
+                new Vector2((float)(hut.tileX.Value + 1 + Game1.random.Next(-radius, radius + 1)), (float)(hut.tileY.Value + 1 + Game1.random.Next(-range, range + 1)))),
                 -1, new PathFindController.endBehavior(__instance.reachFirstDestinationFromHut), 100);
         }
     }

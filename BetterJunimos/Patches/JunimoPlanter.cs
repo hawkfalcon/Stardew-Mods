@@ -21,7 +21,7 @@ namespace BetterJunimos.Patches {
             return chest.Any(item => item.category == SObject.SeedsCategory);
         }
 
-        public static void UseItemFromHut(JunimoHut hut, Vector2 pos) {
+        public static void UseWorkItemFromHut(JunimoHut hut, Vector2 pos) {
             Farm farm = Game1.getFarm();
             NetObjectList<Item> chest = hut.output.Value.items;
 

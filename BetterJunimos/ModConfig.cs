@@ -9,14 +9,21 @@
         public JunimoImprovement JunimoImprovements { get; set; } = new JunimoImprovement();
         internal class JunimoImprovement {
             public bool CanWorkInRain { get; set; } = true;
-            public int WorkRangeRadius { get; set; } = 8;   
-            public bool ConsumeItemsFromChest { get; set; } = true;
+            public int MaxJunimos { get; set; } = 3;
+            public int MaxRadius { get; set; } = 8;
+            public bool InfiniteJunimoInventory { get; set; } = false;
         }
 
         public JunimoPayments JunimoPayment { get; set; } = new JunimoPayments();
         internal class JunimoPayments {
-            public bool WorkForWages { get; set; } = false;
-            public int ForagePaymentAmount { get; set; } = 1;
+            public bool WorkForWages { get; set; } = true;
+            public PaymentAmount DailyWage { get; set; } = new PaymentAmount();
+            internal class PaymentAmount {
+                public int ForagedItems { get; set; } = 1;
+                public int Flowers { get; set; } = 0;
+                public int Fruit { get; set; } = 0;
+                public int Wine { get; set; } = 0;
+            }
         }
     }
 }
