@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Netcode;
 using StardewValley;
 using StardewValley.Buildings;
@@ -7,9 +8,9 @@ using StardewValley.Characters;
 namespace BetterJunimos.Patches {
     public class Util {
         public static bool WereJunimosPaidToday = false;
-        public static int JunimoPaymentToday = 0;
+        public static Dictionary<string, List<int>> JunimoPaymentsToday = new Dictionary<string, List<int>>();
+
         public const int DefaultRadius = 8;
-        
         internal static ModConfig Config = BetterJunimos.instance.Config;
 
         public static JunimoHut GetHutFromJunimo(JunimoHarvester junimo) {
@@ -17,25 +18,39 @@ namespace BetterJunimos.Patches {
             return Game1.getFarm().buildings[netHome.Value] as JunimoHut;
         }
 
-        public static bool JunimoPaymentUseItem(JunimoHut hut) {
+        public static bool JunimoPaymentReceiveItems(JunimoHut hut) {
             Farm farm = Game1.getFarm();
             NetObjectList<Item> chest = hut.output.Value.items;
+            bool paidForage = ReceiveItems(chest, Util.Config.JunimoPayment.DailyWage.ForagedItems, "Forage");
+            bool paidFlowers = ReceiveItems(chest, Util.Config.JunimoPayment.DailyWage.Flowers, "Flower");
+            bool paidFruit = ReceiveItems(chest, Util.Config.JunimoPayment.DailyWage.Fruit, "Fruit");
+            bool paidWine = ReceiveItems(chest, Util.Config.JunimoPayment.DailyWage.Wine, "Artisan Goods");
 
-            int needed = Util.Config.JunimoPayment.DailyWage.ForagedItems;
-            foreach (int i in Enumerable.Range(JunimoPaymentToday, needed)) {
-                Item forage = chest.FirstOrDefault(item => item.getCategoryName().Equals("Forage"));
+            return paidForage && paidFlowers && paidFruit && paidWine;
+        }
 
-                if (forage != null) {
-                    ReduceItemCount(chest, forage);
-                    JunimoPaymentToday++;
+        public static bool ReceiveItems(NetObjectList<Item> chest, int needed, string type) {
+            if (needed == 0) return true;
+            List<int> items;
+            if (!JunimoPaymentsToday.TryGetValue(type, out items)) {
+                items = new List<int>();
+                JunimoPaymentsToday[type] = items;
+            }
+            int paidSoFar = items.Count();
+            if (paidSoFar == needed) return true;
+
+            foreach (int i in Enumerable.Range(paidSoFar, needed)) {
+                Item foundItem = chest.FirstOrDefault(item => item.getCategoryName() == type);
+                if (foundItem != null) {
+                    items.Add(foundItem.ParentSheetIndex);
+                    ReduceItemCount(chest, foundItem);
                 }
             }
-            Util.WereJunimosPaidToday = JunimoPaymentToday == needed;
-            return Util.WereJunimosPaidToday;
+            return items.Count() == needed;
         }
 
         public static void ReduceItemCount(NetObjectList<Item> chest, Item item) {
-            if (!Config.JunimoImprovements.InfiniteJunimoInventory) { return; }
+            if (Config.JunimoImprovements.InfiniteJunimoInventory) { return; }
             item.Stack--;
             if (item.Stack == 0) {
                 chest.Remove(item);

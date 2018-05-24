@@ -9,11 +9,10 @@ namespace BetterJunimos.Patches {
     internal class PatchSearchAroundHut {
         public static void Postfix(JunimoHut __instance, ref bool __result) {
             if (Util.Config.JunimoPayment.WorkForWages && !Util.WereJunimosPaidToday) {
-                if (!Util.JunimoPaymentUseItem(__instance)) {
-                    __result = false;
-                    return;
-                }
+                __result = false;
+                return;
             }
+
             if (__result)
                 return;
             
@@ -53,6 +52,22 @@ namespace BetterJunimos.Patches {
                 }
             }
             return false;
+        }
+    }
+
+    // performTenMinuteAction
+    internal class PatchJunimosSpawning {
+        public static void Postfix(JunimoHut __instance) {
+            if (Util.Config.JunimoPayment.WorkForWages && !Util.WereJunimosPaidToday) {
+                var junimoSendOutTimer = BetterJunimos.instance.Helper.Reflection.GetField<int>(__instance, "junimoSendOutTimer");
+                if (Util.JunimoPaymentReceiveItems(__instance)) {
+                    Util.WereJunimosPaidToday = true;
+                    junimoSendOutTimer.SetValue(1);
+                }
+                else {
+                    junimoSendOutTimer.SetValue(0);
+                }
+            }
         }
     }
 

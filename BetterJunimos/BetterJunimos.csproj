@@ -33,6 +33,12 @@
     <Reference Include="0Harmony">
       <HintPath>..\0Harmony.dll</HintPath>
     </Reference>
+    <Reference Include="StardewValley">
+      <HintPath>..\..\..\..\Library\Application Support\Steam\steamapps\common\Stardew Valley\Contents\MacOS\StardewValley.exe</HintPath>
+    </Reference>
+    <Reference Include="xTile">
+      <HintPath>..\..\..\..\Library\Application Support\Steam\steamapps\common\Stardew Valley\Contents\MacOS\xTile.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BetterJunimos.cs" />
@@ -42,6 +48,7 @@
     <Compile Include="Patches\JunimoHarvesterPatches.cs" />
     <Compile Include="Patches\JunimoPlanter.cs" />
     <Compile Include="Patches\Util.cs" />
+    <Compile Include="JunimoEditor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="manifest.json" />

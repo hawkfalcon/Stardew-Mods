@@ -1,6 +1,5 @@
 ﻿using Harmony;
 using Microsoft.Xna.Framework;
-using Netcode;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -21,9 +20,9 @@ namespace BetterJunimos {
             instance = this;
             Config = Helper.ReadConfig<ModConfig>();
             InputEvents.ButtonPressed += InputEvents_ButtonPressed;
+            helper.Content.AssetEditors.Add(new JunimoEditor());
 
             HarmonyInstance harmony = HarmonyInstance.Create("com.hawkfalcon.BetterJunimos");
-
             // Thank you to Cat (danvolchek) for this harmony setup implementation
             // https://github.com/danvolchek/StardewMods/blob/master/BetterGardenPots/BetterGardenPots/BetterGardenPotsMod.cs#L29
             IList<Tuple<string, Type, Type>> replacements = new List<Tuple<string, Type, Type>>();
@@ -41,6 +40,9 @@ namespace BetterJunimos {
             Add(replacements, "areThereMatureCropsWithinRadius", junimoHutType, typeof(PatchSearchAroundHut));
             if (Config.JunimoImprovements.CanWorkInRain) {
                 Add(replacements, "Update", junimoHutType, typeof(PatchJunimosInRain));
+            }
+            if (Config.JunimoPayment.WorkForWages) {
+                Add(replacements, "performTenMinuteAction", junimoHutType, typeof(PatchJunimosSpawning));
             }
 
             foreach (Tuple<string, Type, Type> replacement in replacements) {

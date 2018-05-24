@@ -43,7 +43,7 @@ namespace BetterJunimos.Patches {
             JunimoHut hut = Util.GetHutFromJunimo(__instance);
             int radius = Util.Config.JunimoImprovements.MaxRadius;
             __instance.controller = new PathFindController(__instance, __instance.currentLocation, Utility.Vector2ToPoint(
-                new Vector2((float)(hut.tileX.Value + 1 + Game1.random.Next(-radius, radius + 1)), (float)(hut.tileY.Value + 1 + Game1.random.Next(-range, range + 1)))),
+                new Vector2((float)(hut.tileX.Value + 1 + Game1.random.Next(-radius, radius + 1)), (float)(hut.tileY.Value + 1 + Game1.random.Next(-radius, radius + 1)))),
                 -1, new PathFindController.endBehavior(__instance.reachFirstDestinationFromHut), 100);
         }
     }
