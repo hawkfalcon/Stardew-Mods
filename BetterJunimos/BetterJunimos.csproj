@@ -49,6 +49,8 @@
     <Compile Include="Patches\JunimoPlanter.cs" />
     <Compile Include="Patches\Util.cs" />
     <Compile Include="JunimoEditor.cs" />
+    <Compile Include="Patches\ListExtensions.cs" />
+    <Compile Include="Patches\ChestPatches.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="manifest.json" />

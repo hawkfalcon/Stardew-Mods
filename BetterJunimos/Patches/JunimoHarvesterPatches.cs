@@ -41,7 +41,7 @@ namespace BetterJunimos.Patches {
     public class PatchPathfind {
         public static void Postfix(JunimoHarvester __instance) {
             JunimoHut hut = Util.GetHutFromJunimo(__instance);
-            int radius = Util.Config.JunimoImprovements.MaxRadius;
+            int radius = Util.MaxRadius;
             __instance.controller = new PathFindController(__instance, __instance.currentLocation, Utility.Vector2ToPoint(
                 new Vector2((float)(hut.tileX.Value + 1 + Game1.random.Next(-radius, radius + 1)), (float)(hut.tileY.Value + 1 + Game1.random.Next(-radius, radius + 1)))),
                 -1, new PathFindController.endBehavior(__instance.reachFirstDestinationFromHut), 100);
@@ -58,6 +58,15 @@ namespace BetterJunimos.Patches {
                 if (__instance.controller != null)
                     return false;
                 __instance.returnToJunimoHut(__instance.currentLocation);
+            }
+            // Prevent working when not paid
+            else if (Util.Config.JunimoPayment.WorkForWages && !Util.WereJunimosPaidToday) {
+                if (Game1.random.NextDouble() < 0.02) {
+                    __instance.pathfindToRandomSpotAroundHut();
+                }
+                else {
+                    Util.AnimateJunimo(8, __instance);
+                }
             }
             else if (Game1.random.NextDouble() < 0.035 || Util.GetHutFromJunimo(__instance).noHarvest) {
                 __instance.pathfindToRandomSpotAroundHut();

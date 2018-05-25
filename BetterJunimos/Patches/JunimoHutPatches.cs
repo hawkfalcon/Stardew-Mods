@@ -8,15 +8,16 @@ namespace BetterJunimos.Patches {
     // areThereMatureCropsWithinRadius
     internal class PatchSearchAroundHut {
         public static void Postfix(JunimoHut __instance, ref bool __result) {
+            // Prevent unnecessary searching when unpaid
             if (Util.Config.JunimoPayment.WorkForWages && !Util.WereJunimosPaidToday) {
-                __result = false;
-                return;
+                __result = true;
+                __instance.lastKnownCropLocation = Point.Zero;
             }
-
+            
             if (__result)
                 return;
             
-            int radius = Util.Config.JunimoImprovements.MaxRadius;
+            int radius = Util.MaxRadius;
             if (radius > Util.DefaultRadius) {
                 __result = pathFindExtraHarvestableDirt(__instance, radius);
             }
@@ -40,7 +41,6 @@ namespace BetterJunimos.Patches {
             return false;
         }
 
-
         internal static bool pathFindTilledDirt(JunimoHut hut, int radius) {
             for (int x = hut.tileX.Value + 1 - radius; x < hut.tileX.Value + 2 + radius; ++x) {
                 for (int y = hut.tileY.Value + 1 - radius; y < hut.tileY.Value + 2 + radius; ++y) {
@@ -58,16 +58,9 @@ namespace BetterJunimos.Patches {
     // performTenMinuteAction
     internal class PatchJunimosSpawning {
         public static void Postfix(JunimoHut __instance) {
-            if (Util.Config.JunimoPayment.WorkForWages && !Util.WereJunimosPaidToday) {
-                var junimoSendOutTimer = BetterJunimos.instance.Helper.Reflection.GetField<int>(__instance, "junimoSendOutTimer");
-                if (Util.JunimoPaymentReceiveItems(__instance)) {
-                    Util.WereJunimosPaidToday = true;
-                    junimoSendOutTimer.SetValue(1);
-                }
-                else {
-                    junimoSendOutTimer.SetValue(0);
-                }
-            }
+            //if (Util.Config.JunimoPayment.WorkForWages && !Util.WereJunimosPaidToday) {
+            //    Util.MaxRadius = 3;
+            //}
         }
     }
 

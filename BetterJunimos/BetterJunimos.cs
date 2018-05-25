@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using BetterJunimos.Patches;
+using static BetterJunimos.Patches.ListExtensions;
 
 namespace BetterJunimos {
     public class BetterJunimos : Mod {
@@ -19,31 +20,44 @@ namespace BetterJunimos {
         public override void Entry(IModHelper helper) {
             instance = this;
             Config = Helper.ReadConfig<ModConfig>();
+            Util.Config = Config;
+            Util.MaxRadius = Config.JunimoPayment.WorkForWages ? 3 : Config.JunimoImprovements.MaxRadius;
+
             InputEvents.ButtonPressed += InputEvents_ButtonPressed;
+            MenuEvents.MenuClosed += MenuEvents_MenuClosed;
             helper.Content.AssetEditors.Add(new JunimoEditor());
 
+            DoHarmonyRegistration();
+        }
+
+        private void DoHarmonyRegistration() {
             HarmonyInstance harmony = HarmonyInstance.Create("com.hawkfalcon.BetterJunimos");
             // Thank you to Cat (danvolchek) for this harmony setup implementation
             // https://github.com/danvolchek/StardewMods/blob/master/BetterGardenPots/BetterGardenPots/BetterGardenPotsMod.cs#L29
             IList<Tuple<string, Type, Type>> replacements = new List<Tuple<string, Type, Type>>();
 
-            Type junimoType = GetSDVType("Characters.JunimoHarvester");
-            Add(replacements, "foundCropEndFunction", junimoType, typeof(PatchFindingCropEnd));
-            Add(replacements, "tryToHarvestHere", junimoType, typeof(PatchHarvestAttemptToCustom));
-            Add(replacements, "update", junimoType, typeof(PatchJunimoShake));
-            if (Config.JunimoImprovements.MaxRadius > Util.DefaultRadius) {
-                Add(replacements, "pathfindToRandomSpotAroundHut", junimoType, typeof(PatchPathfind));
-                Add(replacements, "pathFindToNewCrop_doWork", junimoType, typeof(PatchPathfindDoWork));
+            Type junimoType = Util.GetSDVType("Characters.JunimoHarvester");
+            replacements.Add("foundCropEndFunction", junimoType, typeof(PatchFindingCropEnd));
+            replacements.Add("tryToHarvestHere", junimoType, typeof(PatchHarvestAttemptToCustom));
+            replacements.Add("update", junimoType, typeof(PatchJunimoShake));
+            if (Config.JunimoImprovements.MaxRadius > Util.DefaultRadius || Config.JunimoPayment.WorkForWages) {
+                replacements.Add("pathfindToRandomSpotAroundHut", junimoType, typeof(PatchPathfind));
+                replacements.Add("pathFindToNewCrop_doWork", junimoType, typeof(PatchPathfindDoWork));
             }
 
-            Type junimoHutType = GetSDVType("Buildings.JunimoHut");
-            Add(replacements, "areThereMatureCropsWithinRadius", junimoHutType, typeof(PatchSearchAroundHut));
-            if (Config.JunimoImprovements.CanWorkInRain) {
-                Add(replacements, "Update", junimoHutType, typeof(PatchJunimosInRain));
+            Type junimoHutType = Util.GetSDVType("Buildings.JunimoHut");
+            replacements.Add("areThereMatureCropsWithinRadius", junimoHutType, typeof(PatchSearchAroundHut));
+            if (Config.JunimoImprovements.CanWorkInRain || Config.JunimoPayment.WorkForWages) {
+                replacements.Add("Update", junimoHutType, typeof(PatchJunimosInRain));
             }
             if (Config.JunimoPayment.WorkForWages) {
-                Add(replacements, "performTenMinuteAction", junimoHutType, typeof(PatchJunimosSpawning));
+                replacements.Add("performTenMinuteAction", junimoHutType, typeof(PatchJunimosSpawning));
             }
+
+            // fix stupid bugs in SDV 
+            Type chestType = Util.GetSDVType("Objects.Chest");
+            replacements.Add("grabItemFromChest", chestType, typeof(ChestPatchFrom));
+            replacements.Add("grabItemFromInventory", chestType, typeof(ChestPatchTo));
 
             foreach (Tuple<string, Type, Type> replacement in replacements) {
                 MethodInfo original = replacement.Item2.GetMethods(BindingFlags.Instance | BindingFlags.Public).ToList().Find(m => m.Name == replacement.Item1);
@@ -55,25 +69,24 @@ namespace BetterJunimos {
             }
         }
 
-        public void Add<T1, T2, T3>(IList<Tuple<T1, T2, T3>> list, T1 item1, T2 item2, T3 item3) {
-            list.Add(new Tuple<T1, T2, T3>(item1, item2, item3));
-        }
-
-        //Big thanks to Routine for this workaround for mac users.
-        //https://github.com/Platonymous/Stardew-Valley-Mods/blob/master/PyTK/PyUtils.cs#L117
-        /// <summary>Gets the correct type of the object, handling different assembly names for mac/linux users.</summary>
-        private static Type GetSDVType(string type) {
-            const string prefix = "StardewValley.";
-            Type defaultSDV = Type.GetType(prefix + type + ", Stardew Valley");
-
-            return defaultSDV ?? Type.GetType(prefix + type + ", StardewValley");
-        }
-
         void InputEvents_ButtonPressed(object sender, EventArgsInput e) {
             if (!Context.IsWorldReady) { return; }
 
             if (e.Button == SButton.O) {
                 spawnJunimo();
+            }
+        }
+
+        // Closed Junimo Hut menu
+        void MenuEvents_MenuClosed(object sender, EventArgsClickableMenuClosed e) {
+            if (e.PriorMenu is StardewValley.Menus.ItemGrabMenu menu) {
+                if (menu.specialObject != null && menu.specialObject is JunimoHut hut) {
+                    if (Config.JunimoPayment.WorkForWages && !Util.WereJunimosPaidToday &&
+                        Util.JunimoPaymentReceiveItems(hut)) {
+                        Util.WereJunimosPaidToday = true;
+                        Util.MaxRadius = Config.JunimoImprovements.MaxRadius;
+                    }
+                }
             }
         }
 
