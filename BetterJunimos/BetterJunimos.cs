@@ -16,16 +16,24 @@ namespace BetterJunimos {
     public class BetterJunimos : Mod {
         internal static BetterJunimos instance;
         internal ModConfig Config;
+        JunimoEditor editor;
+        bool addedEditor = false;
 
         public override void Entry(IModHelper helper) {
             instance = this;
             Config = Helper.ReadConfig<ModConfig>();
             Util.Config = Config;
             Util.MaxRadius = Config.JunimoPayment.WorkForWages ? 3 : Config.JunimoImprovements.MaxRadius;
+            editor = new JunimoEditor();
+
+            if (Config.FunChanges.JunimosAlwaysHaveLeafUmbrellas) {
+                Helper.Content.AssetEditors.Add(editor);
+                addedEditor = true;
+            }
 
             InputEvents.ButtonPressed += InputEvents_ButtonPressed;
             MenuEvents.MenuClosed += MenuEvents_MenuClosed;
-            helper.Content.AssetEditors.Add(new JunimoEditor());
+            TimeEvents.AfterDayStarted += TimeEvents_AfterDayStarted;
 
             DoHarmonyRegistration();
         }
@@ -86,6 +94,20 @@ namespace BetterJunimos {
                         Util.WereJunimosPaidToday = true;
                         Util.MaxRadius = Config.JunimoImprovements.MaxRadius;
                     }
+                }
+            }
+        }
+
+        void TimeEvents_AfterDayStarted(object sender, EventArgs e) {
+            Util.JunimoPaymentsToday.Clear();
+            if (!Config.FunChanges.JunimosAlwaysHaveLeafUmbrellas) {
+                if (!addedEditor && Game1.isRaining) {
+                    Helper.Content.AssetEditors.Add(editor);
+                    addedEditor = true;
+                }
+                else if (addedEditor) {
+                    Helper.Content.AssetEditors.Remove(editor);
+                    addedEditor = false;
                 }
             }
         }

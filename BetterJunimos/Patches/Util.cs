@@ -52,7 +52,7 @@ namespace BetterJunimos.Patches {
         }
 
         public static void ReduceItemCount(NetObjectList<Item> chest, Item item) {
-            if (Config.JunimoImprovements.InfiniteJunimoInventory) { return; }
+            if (Config.FunChanges.InfiniteJunimoInventory) { return; }
             item.Stack--;
             if (item.Stack == 0) {
                 chest.Remove(item);

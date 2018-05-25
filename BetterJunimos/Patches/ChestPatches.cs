@@ -21,7 +21,7 @@ namespace BetterJunimos.Patches {
             __instance.clearNulls();
             Game1.activeClickableMenu = new ItemGrabMenu(__instance.items, false, true, 
                 new InventoryMenu.highlightThisItem(InventoryMenu.highlightAllItems), new ItemGrabMenu.behaviorOnItemSelect(__instance.grabItemFromInventory), 
-                                                         (string)null, new ItemGrabMenu.behaviorOnItemSelect(__instance.grabItemFromChest), false, true, true, true, true, 1, (Item)__instance, specialNum, special);
+                (string)null, new ItemGrabMenu.behaviorOnItemSelect(__instance.grabItemFromChest), false, true, true, true, true, 1, (Item)__instance, specialNum, special);
             return false;
         }
     }
