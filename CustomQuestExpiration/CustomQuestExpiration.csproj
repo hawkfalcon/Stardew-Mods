@@ -30,6 +30,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="StardewValley">
+      <HintPath>..\..\..\..\Library\Application Support\Steam\steamapps\common\Stardew Valley\Contents\MacOS\StardewValley.exe</HintPath>
+    </Reference>
+    <Reference Include="xTile">
+      <HintPath>..\..\..\..\Library\Application Support\Steam\steamapps\common\Stardew Valley\Contents\MacOS\xTile.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />

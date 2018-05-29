@@ -65,7 +65,7 @@ namespace BetterJunimos.Patches {
                     __instance.pathfindToRandomSpotAroundHut();
                 }
                 else {
-                    Util.AnimateJunimo(8, __instance);
+                    Util.AnimateJunimo(7, __instance);
                 }
             }
             else if (Game1.random.NextDouble() < 0.035 || Util.GetHutFromJunimo(__instance).noHarvest) {

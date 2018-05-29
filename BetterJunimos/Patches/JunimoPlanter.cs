@@ -49,7 +49,7 @@ namespace BetterJunimos.Patches {
                     return false;
 
                 hd.fertilizer.Value = index;
-                if (Utility.isOnScreen(pos.ToPoint(), 64, farm)) {
+                if (Utility.isOnScreen(Utility.Vector2ToPoint(pos), 64, farm)) {
                     farm.playSound("dirtyHit");
                 }
             }
@@ -67,7 +67,7 @@ namespace BetterJunimos.Patches {
             Farm farm = Game1.getFarm();
             if (farm.terrainFeatures[pos] is HoeDirt hd) {
                 hd.crop = crop;
-                if (Utility.isOnScreen(pos.ToPoint(), 64, farm)) {
+                if (Utility.isOnScreen(Utility.Vector2ToPoint(pos), 64, farm)) {
                     if (crop.raisedSeeds)
                         farm.playSound("stoneStep");
                     farm.playSound("dirtyHit");

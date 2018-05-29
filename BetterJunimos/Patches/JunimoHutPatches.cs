@@ -17,35 +17,17 @@ namespace BetterJunimos.Patches {
             if (__result)
                 return;
             
-            int radius = Util.MaxRadius;
-            if (radius > Util.DefaultRadius) {
-                __result = pathFindExtraHarvestableDirt(__instance, radius);
-            }
-
-            if (__instance.lastKnownCropLocation.Equals(Point.Zero)) {
-                __result = pathFindTilledDirt(__instance, radius);
-            }
+            __result = searchAroundHut(__instance, Util.MaxRadius);
         }
 
-        internal static bool pathFindExtraHarvestableDirt(JunimoHut hut, int radius) {
+        // search for crops + open plantable spots
+        internal static bool searchAroundHut(JunimoHut hut, int radius) {
             Farm farm = Game1.getFarm();
-            for (int x = hut.tileX.Value + 1 - radius + Util.DefaultRadius; x < hut.tileX.Value + 2 + radius; ++x) {
-                for (int y = hut.tileY.Value + 1 - radius + Util.DefaultRadius; y < hut.tileY.Value + 2 + radius; ++y) {
-                    if (farm.isCropAtTile(x, y) && (farm.terrainFeatures[new Vector2((float)x, (float)y)] as HoeDirt).readyForHarvest()) {
-                        hut.lastKnownCropLocation = new Point(x, y);
-                        return true;
-                    }
-                }
-            }
-            hut.lastKnownCropLocation = Point.Zero;
-            return false;
-        }
-
-        internal static bool pathFindTilledDirt(JunimoHut hut, int radius) {
             for (int x = hut.tileX.Value + 1 - radius; x < hut.tileX.Value + 2 + radius; ++x) {
                 for (int y = hut.tileY.Value + 1 - radius; y < hut.tileY.Value + 2 + radius; ++y) {
                     Vector2 pos = new Vector2((float)x, (float)y);
-                    if (JunimoPlanter.IsPlantable(pos) && JunimoPlanter.AreThereSeeds(hut)) {
+                    if ((radius > Util.DefaultRadius && farm.isCropAtTile(x, y) && (farm.terrainFeatures[new Vector2((float)x, (float)y)] as HoeDirt).readyForHarvest()) ||
+                        (Util.Config.JunimoCapabilities.PlantCrops && JunimoPlanter.IsPlantable(pos) && JunimoPlanter.AreThereSeeds(hut))) {
                         hut.lastKnownCropLocation = new Point(x, y);
                         return true;
                     }
