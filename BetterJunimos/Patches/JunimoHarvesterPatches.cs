@@ -20,7 +20,8 @@ namespace BetterJunimos.Patches {
             JunimoHut hut = Util.GetHutFromJunimo(__instance);
             if (JunimoPlanter.IsPlantable(pos) && JunimoPlanter.AreThereSeeds(hut)) {
                 var harvestTimer = BetterJunimos.instance.Helper.Reflection.GetField<int>(__instance, "harvestTimer");
-                harvestTimer.SetValue(999);
+                int time = Util.Config.JunimoImprovements.WorkFaster ? 300 : 998;
+                harvestTimer.SetValue(time);
                 JunimoPlanter.UseWorkItemFromHut(hut, pos);
             }
         }
@@ -29,8 +30,14 @@ namespace BetterJunimos.Patches {
     // update
     public class PatchJunimoShake {
         public static void Postfix(JunimoHarvester __instance) {
-            var harvestTimer = BetterJunimos.instance.Helper.Reflection.GetField<int>(__instance, "harvestTimer").GetValue();
-            if (harvestTimer > 500 && harvestTimer < 1000) {
+            var harvestTimer = BetterJunimos.instance.Helper.Reflection.GetField<int>(__instance, "harvestTimer");
+            int time = harvestTimer.GetValue();
+            if (Util.Config.JunimoImprovements.WorkFaster && time == 999) {
+                // skip last second of harvesting if faster
+                harvestTimer.SetValue(1);
+                __instance.pokeToHarvest();
+            }
+            else if (time > 500 && time < 1000 || (Util.Config.JunimoImprovements.WorkFaster && time > 5)) {
                 Util.AnimateJunimo(4, __instance);
                 __instance.shake(50);
             }
@@ -52,7 +59,7 @@ namespace BetterJunimos.Patches {
     // This exists to remove the max distance boundary
     [HarmonyPriority(Priority.Low)]
     public class PatchPathfindDoWork {
-
+        
         public static bool Prefix(JunimoHarvester __instance) {
             if (Game1.timeOfDay > 1900) {
                 if (__instance.controller != null)

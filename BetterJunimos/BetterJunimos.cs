@@ -44,6 +44,7 @@ namespace BetterJunimos {
             // https://github.com/danvolchek/StardewMods/blob/master/BetterGardenPots/BetterGardenPots/BetterGardenPotsMod.cs#L29
             IList<Tuple<string, Type, Type>> replacements = new List<Tuple<string, Type, Type>>();
 
+            // Junimo Harvester patches
             Type junimoType = Util.GetSDVType("Characters.JunimoHarvester");
             replacements.Add("foundCropEndFunction", junimoType, typeof(PatchFindingCropEnd));
             replacements.Add("tryToHarvestHere", junimoType, typeof(PatchHarvestAttemptToCustom));
@@ -53,14 +54,13 @@ namespace BetterJunimos {
                 replacements.Add("pathFindToNewCrop_doWork", junimoType, typeof(PatchPathfindDoWork));
             }
 
+            // Junimo Hut patches
             Type junimoHutType = Util.GetSDVType("Buildings.JunimoHut");
             replacements.Add("areThereMatureCropsWithinRadius", junimoHutType, typeof(PatchSearchAroundHut));
-            if (Config.JunimoImprovements.CanWorkInRain || Config.JunimoPayment.WorkForWages) {
-                replacements.Add("Update", junimoHutType, typeof(PatchJunimosInRain));
-            }
-            if (Config.JunimoPayment.WorkForWages) {
-                replacements.Add("performTenMinuteAction", junimoHutType, typeof(PatchJunimosSpawning));
-            }
+
+            // replacements for hardcoded max junimos
+            replacements.Add("Update", junimoHutType, typeof(ReplaceJunimoHutUpdate));
+            replacements.Add("getUnusedJunimoNumber", junimoHutType, typeof(ReplaceJunimoHutNumber));
 
             // fix stupid bugs in SDV 
             Type chestType = Util.GetSDVType("Objects.Chest");
@@ -116,16 +116,15 @@ namespace BetterJunimos {
             if (hut == null) return;
             Farm farm = Game1.getFarm();
             JunimoHarvester junimoHarvester = new JunimoHarvester(new Vector2((float)hut.tileX.Value + 1, (float)hut.tileY.Value + 1) * 64f + new Vector2(0.0f, 32f), hut, hut.myJunimos.Count + 1);
-
             farm.characters.Add((NPC)junimoHarvester);
             hut.myJunimos.Add(junimoHarvester);
 
             if (Game1.isRaining) {
                 var alpha = this.Helper.Reflection.GetField<float>(junimoHarvester, "alpha");
-                alpha.SetValue(0.4f);
+                alpha.SetValue(Config.FunChanges.RainyJunimoSpiritFactor);
             }
-            if (!Utility.isOnScreen(Utility.Vector2ToPoint(new Vector2((float)hut.tileX.Value + 1, (float)hut.tileY.Value + 1)), 64, farm))
-                return;
+            //if (!Utility.isOnScreen(Utility.Vector2ToPoint(new Vector2((float)hut.tileX.Value + 1, (float)hut.tileY.Value + 1)), 64, farm))
+            //    return;
             farm.playSound("junimoMeep1");
         }
 

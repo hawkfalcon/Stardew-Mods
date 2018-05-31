@@ -9,8 +9,9 @@
         public JunimoImprovement JunimoImprovements { get; set; } = new JunimoImprovement();
         internal class JunimoImprovement {
             public bool CanWorkInRain { get; set; } = true;
-            //public int MaxJunimos { get; set; } = 3;
+            public int MaxJunimos { get; set; } = 4;
             public int MaxRadius { get; set; } = 8;
+            public bool WorkFaster { get; set; } = true;
         }
 
         public JunimoPayments JunimoPayment { get; set; } = new JunimoPayments();
@@ -27,9 +28,9 @@
 
         public OtherSettings FunChanges { get; set; } = new OtherSettings();
         internal class OtherSettings {
+            public float RainyJunimoSpiritFactor = 0.7f;
             public bool JunimosAlwaysHaveLeafUmbrellas { get; set; } = false;
             public bool InfiniteJunimoInventory { get; set; } = false;
         }
-
     }
 }

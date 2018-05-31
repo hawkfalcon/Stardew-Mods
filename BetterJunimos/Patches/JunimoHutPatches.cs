@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using StardewValley;
+﻿using StardewValley;
 using Microsoft.Xna.Framework;
 using StardewValley.Buildings;
 using StardewValley.TerrainFeatures;
@@ -34,26 +33,6 @@ namespace BetterJunimos.Patches {
                 }
             }
             return false;
-        }
-    }
-
-    // performTenMinuteAction
-    internal class PatchJunimosSpawning {
-        public static void Postfix(JunimoHut __instance) {
-            //if (Util.Config.JunimoPayment.WorkForWages && !Util.WereJunimosPaidToday) {
-            //    Util.MaxRadius = 3;
-            //}
-        }
-    }
-
-    // Update
-    internal class PatchJunimosInRain {
-        public static void Postfix(JunimoHut __instance) {
-            var junimoSendOutTimer = BetterJunimos.instance.Helper.Reflection.GetField<int>(__instance, "junimoSendOutTimer");
-            if (junimoSendOutTimer.GetValue() > 0 || __instance.myJunimos.Count() >= 3 || Game1.IsWinter || Game1.farmEvent != null || !__instance.areThereMatureCropsWithinRadius())
-                return;
-            junimoSendOutTimer.SetValue(5000);
-            BetterJunimos.instance.spawnJunimoAtHut(__instance);
         }
     }
 }
