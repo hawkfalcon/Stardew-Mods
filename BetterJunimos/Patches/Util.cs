@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Xna.Framework;
 using Netcode;
+using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Characters;
@@ -14,9 +16,10 @@ namespace BetterJunimos.Patches {
         public const int DefaultRadius = 8;
         public static int MaxRadius;
         internal static ModConfig Config;
+        internal static IReflectionHelper Reflection;
 
         public static JunimoHut GetHutFromJunimo(JunimoHarvester junimo) {
-            NetGuid netHome = BetterJunimos.instance.Helper.Reflection.GetField<NetGuid>(junimo, "netHome").GetValue();
+            NetGuid netHome = Reflection.GetField<NetGuid>(junimo, "netHome").GetValue();
             return Game1.getFarm().buildings[netHome.Value] as JunimoHut;
         }
 
@@ -60,9 +63,30 @@ namespace BetterJunimos.Patches {
         }
 
         public static void AnimateJunimo(int type, JunimoHarvester junimo) {
-            var netAnimationEvent = BetterJunimos.instance.Helper.Reflection.
-                GetField<NetEvent1Field<int, NetInt>>(junimo, "netAnimationEvent");
+            var netAnimationEvent = Reflection.GetField<NetEvent1Field<int, NetInt>>(junimo, "netAnimationEvent");
             netAnimationEvent.GetValue().Fire(type);
+        }
+
+        public static void spawnJunimoAtHut(JunimoHut hut) {
+            if (hut == null) return;
+            Farm farm = Game1.getFarm();
+            JunimoHarvester junimoHarvester = new JunimoHarvester(new Vector2((float)hut.tileX.Value + 1, (float)hut.tileY.Value + 1) * 64f + new Vector2(0.0f, 32f), hut, hut.getUnusedJunimoNumber());
+            farm.characters.Add((NPC)junimoHarvester);
+            hut.myJunimos.Add(junimoHarvester);
+
+            if (Game1.isRaining) {
+                var alpha = Reflection.GetField<float>(junimoHarvester, "alpha");
+                alpha.SetValue(Config.FunChanges.RainyJunimoSpiritFactor);
+            }
+            if (!Utility.isOnScreen(Utility.Vector2ToPoint(new Vector2((float)hut.tileX.Value + 1, (float)hut.tileY.Value + 1)), 64, farm))
+                return;
+            farm.playSound("junimoMeep1");
+        }
+
+        public static void spawnJunimo() {
+            Farm farm = Game1.getFarm();
+            JunimoHut hut = farm.buildings.FirstOrDefault(building => building is JunimoHut) as JunimoHut;
+            spawnJunimoAtHut(hut);
         }
 
         //Big thanks to Routine for this workaround for mac users.

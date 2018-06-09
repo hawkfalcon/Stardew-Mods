@@ -1,10 +1,7 @@
 ﻿using Harmony;
-using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
-using StardewValley;
 using StardewValley.Buildings;
-using StardewValley.Characters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,20 +13,14 @@ namespace BetterJunimos {
     public class BetterJunimos : Mod {
         internal static BetterJunimos instance;
         internal ModConfig Config;
-        JunimoEditor editor;
-        bool addedEditor = false;
 
         public override void Entry(IModHelper helper) {
             instance = this;
             Config = Helper.ReadConfig<ModConfig>();
             Util.Config = Config;
+            Util.Reflection = Helper.Reflection;
             Util.MaxRadius = Config.JunimoPayment.WorkForWages ? 3 : Config.JunimoImprovements.MaxRadius;
-            editor = new JunimoEditor();
-
-            if (Config.FunChanges.JunimosAlwaysHaveLeafUmbrellas) {
-                Helper.Content.AssetEditors.Add(editor);
-                addedEditor = true;
-            }
+            Helper.Content.AssetEditors.Add(new JunimoEditor());
 
             InputEvents.ButtonPressed += InputEvents_ButtonPressed;
             MenuEvents.MenuClosed += MenuEvents_MenuClosed;
@@ -81,7 +72,7 @@ namespace BetterJunimos {
             if (!Context.IsWorldReady) { return; }
 
             if (e.Button == SButton.O) {
-                spawnJunimo();
+                Util.spawnJunimo();
             }
         }
 
@@ -100,38 +91,12 @@ namespace BetterJunimos {
 
         void TimeEvents_AfterDayStarted(object sender, EventArgs e) {
             Util.JunimoPaymentsToday.Clear();
+            Util.WereJunimosPaidToday = false;
+            
             if (!Config.FunChanges.JunimosAlwaysHaveLeafUmbrellas) {
-                if (!addedEditor && Game1.isRaining) {
-                    Helper.Content.AssetEditors.Add(editor);
-                    addedEditor = true;
-                }
-                else if (addedEditor) {
-                    Helper.Content.AssetEditors.Remove(editor);
-                    addedEditor = false;
-                }
+                // reset for rainy days
+                Helper.Content.InvalidateCache(@"Characters\Junimo");
             }
-        }
-
-        public void spawnJunimoAtHut(JunimoHut hut) {
-            if (hut == null) return;
-            Farm farm = Game1.getFarm();
-            JunimoHarvester junimoHarvester = new JunimoHarvester(new Vector2((float)hut.tileX.Value + 1, (float)hut.tileY.Value + 1) * 64f + new Vector2(0.0f, 32f), hut, hut.myJunimos.Count + 1);
-            farm.characters.Add((NPC)junimoHarvester);
-            hut.myJunimos.Add(junimoHarvester);
-
-            if (Game1.isRaining) {
-                var alpha = this.Helper.Reflection.GetField<float>(junimoHarvester, "alpha");
-                alpha.SetValue(Config.FunChanges.RainyJunimoSpiritFactor);
-            }
-            //if (!Utility.isOnScreen(Utility.Vector2ToPoint(new Vector2((float)hut.tileX.Value + 1, (float)hut.tileY.Value + 1)), 64, farm))
-            //    return;
-            farm.playSound("junimoMeep1");
-        }
-
-        public void spawnJunimo() {
-            Farm farm = Game1.getFarm();
-            JunimoHut hut = farm.buildings.FirstOrDefault(building => building is JunimoHut) as JunimoHut;
-            spawnJunimoAtHut(hut);
         }
     }
 }

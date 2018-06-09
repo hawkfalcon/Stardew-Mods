@@ -11,13 +11,13 @@ namespace BetterJunimos.Patches {
     internal class ReplaceJunimoHutUpdate {
         // this is to prevent the update function from running, but keeps it's call to base.Update()
         public static void Prefix(JunimoHut __instance, int __state) {
-            var junimoSendOutTimer = BetterJunimos.instance.Helper.Reflection.GetField<int>(__instance, "junimoSendOutTimer");
+            var junimoSendOutTimer = Util.Reflection.GetField<int>(__instance, "junimoSendOutTimer");
             __state = junimoSendOutTimer.GetValue();
             junimoSendOutTimer.SetValue(0);
         }
 
         public static void Postfix(JunimoHut __instance, GameTime time, int __state) {
-            var junimoSendOutTimer = BetterJunimos.instance.Helper.Reflection.GetField<int>(__instance, "junimoSendOutTimer");
+            var junimoSendOutTimer = Util.Reflection.GetField<int>(__instance, "junimoSendOutTimer");
             int sendOutTimer = __state;
             junimoSendOutTimer.SetValue(__state);
 
@@ -29,8 +29,8 @@ namespace BetterJunimos.Patches {
             // Rain
             if (Game1.isRaining && !Util.Config.JunimoImprovements.CanWorkInRain) 
                 return;
-
-            BetterJunimos.instance.spawnJunimoAtHut(__instance);
+            
+            Util.spawnJunimoAtHut(__instance);
             junimoSendOutTimer.SetValue(1000);
         }
     }

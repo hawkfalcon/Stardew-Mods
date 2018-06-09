@@ -19,7 +19,7 @@ namespace BetterJunimos.Patches {
             Vector2 pos = __instance.getTileLocation();
             JunimoHut hut = Util.GetHutFromJunimo(__instance);
             if (JunimoPlanter.IsPlantable(pos) && JunimoPlanter.AreThereSeeds(hut)) {
-                var harvestTimer = BetterJunimos.instance.Helper.Reflection.GetField<int>(__instance, "harvestTimer");
+                var harvestTimer = Util.Reflection.GetField<int>(__instance, "harvestTimer");
                 int time = Util.Config.JunimoImprovements.WorkFaster ? 300 : 998;
                 harvestTimer.SetValue(time);
                 JunimoPlanter.UseWorkItemFromHut(hut, pos);
@@ -30,7 +30,7 @@ namespace BetterJunimos.Patches {
     // update
     public class PatchJunimoShake {
         public static void Postfix(JunimoHarvester __instance) {
-            var harvestTimer = BetterJunimos.instance.Helper.Reflection.GetField<int>(__instance, "harvestTimer");
+            var harvestTimer = Util.Reflection.GetField<int>(__instance, "harvestTimer");
             int time = harvestTimer.GetValue();
             if (Util.Config.JunimoImprovements.WorkFaster && time == 999) {
                 // skip last second of harvesting if faster
