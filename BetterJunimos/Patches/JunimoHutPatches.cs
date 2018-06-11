@@ -5,6 +5,7 @@ using StardewValley.TerrainFeatures;
 
 namespace BetterJunimos.Patches {
     // areThereMatureCropsWithinRadius
+    // Search for actionable tiles
     internal class PatchSearchAroundHut {
         public static void Postfix(JunimoHut __instance, ref bool __result) {
             // Prevent unnecessary searching when unpaid
@@ -26,7 +27,7 @@ namespace BetterJunimos.Patches {
                 for (int y = hut.tileY.Value + 1 - radius; y < hut.tileY.Value + 2 + radius; ++y) {
                     Vector2 pos = new Vector2((float)x, (float)y);
                     if ((radius > Util.DefaultRadius && farm.isCropAtTile(x, y) && (farm.terrainFeatures[new Vector2((float)x, (float)y)] as HoeDirt).readyForHarvest()) ||
-                        (Util.Config.JunimoCapabilities.PlantCrops && JunimoPlanter.IsPlantable(pos) && JunimoPlanter.AreThereSeeds(hut))) {
+                        Util.Abilities.IsActionable(hut, pos)) {
                         hut.lastKnownCropLocation = new Point(x, y);
                         return true;
                     }

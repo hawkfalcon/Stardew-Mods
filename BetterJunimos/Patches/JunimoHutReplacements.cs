@@ -7,6 +7,7 @@ using StardewValley.Characters;
 
 namespace BetterJunimos.Patches {
     // Update
+    // To allow more junimos + rain working
     [HarmonyPriority(Priority.Low)]
     internal class ReplaceJunimoHutUpdate {
         // this is to prevent the update function from running, but keeps it's call to base.Update()
@@ -23,7 +24,7 @@ namespace BetterJunimos.Patches {
 
             // from Update
             junimoSendOutTimer.SetValue(sendOutTimer - time.ElapsedGameTime.Milliseconds);
-            if (sendOutTimer > 0 || __instance.myJunimos.Count<JunimoHarvester>() >= Util.Config.JunimoImprovements.MaxJunimos ||
+            if (sendOutTimer > 0 || __instance.myJunimos.Count() >= Util.Config.JunimoImprovements.MaxJunimos ||
                 Game1.IsWinter || !__instance.areThereMatureCropsWithinRadius() || Game1.farmEvent != null)
                 return;
             // Rain
@@ -36,6 +37,7 @@ namespace BetterJunimos.Patches {
     }
 
     // getUnusedJunimoNumber
+    // For more junimos
     [HarmonyPriority(Priority.Low)]
     internal class ReplaceJunimoHutNumber {
         public static bool Prefix(JunimoHut __instance, ref int __result) {

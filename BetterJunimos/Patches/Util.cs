@@ -17,6 +17,7 @@ namespace BetterJunimos.Patches {
         public static int MaxRadius;
         internal static ModConfig Config;
         internal static IReflectionHelper Reflection;
+        internal static JunimoAbilities Abilities;
 
         public static JunimoHut GetHutFromJunimo(JunimoHarvester junimo) {
             NetGuid netHome = Reflection.GetField<NetGuid>(junimo, "netHome").GetValue();
@@ -26,10 +27,10 @@ namespace BetterJunimos.Patches {
         public static bool JunimoPaymentReceiveItems(JunimoHut hut) {
             Farm farm = Game1.getFarm();
             NetObjectList<Item> chest = hut.output.Value.items;
-            bool paidForage = ReceiveItems(chest, Util.Config.JunimoPayment.DailyWage.ForagedItems, "Forage");
-            bool paidFlowers = ReceiveItems(chest, Util.Config.JunimoPayment.DailyWage.Flowers, "Flower");
-            bool paidFruit = ReceiveItems(chest, Util.Config.JunimoPayment.DailyWage.Fruit, "Fruit");
-            bool paidWine = ReceiveItems(chest, Util.Config.JunimoPayment.DailyWage.Wine, "Artisan Goods");
+            bool paidForage = ReceiveItems(chest, Config.JunimoPayment.DailyWage.ForagedItems, "Forage");
+            bool paidFlowers = ReceiveItems(chest, Config.JunimoPayment.DailyWage.Flowers, "Flower");
+            bool paidFruit = ReceiveItems(chest, Config.JunimoPayment.DailyWage.Fruit, "Fruit");
+            bool paidWine = ReceiveItems(chest, Config.JunimoPayment.DailyWage.Wine, "Artisan Goods");
 
             return paidForage && paidFlowers && paidFruit && paidWine;
         }

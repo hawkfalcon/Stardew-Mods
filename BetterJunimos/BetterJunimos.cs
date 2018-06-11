@@ -11,16 +11,20 @@ using static BetterJunimos.Patches.ListExtensions;
 
 namespace BetterJunimos {
     public class BetterJunimos : Mod {
-        internal static BetterJunimos instance;
         internal ModConfig Config;
 
         public override void Entry(IModHelper helper) {
-            instance = this;
             Config = Helper.ReadConfig<ModConfig>();
+
+            JunimoAbilities junimoAbilities = new JunimoAbilities();
+            junimoAbilities.Capabilities = Config.JunimoCapabilities;
+
             Util.Config = Config;
             Util.Reflection = Helper.Reflection;
+            Util.Abilities = junimoAbilities;
             Util.MaxRadius = Config.JunimoPayment.WorkForWages ? 3 : Config.JunimoImprovements.MaxRadius;
-            Helper.Content.AssetEditors.Add(new JunimoEditor());
+
+            Helper.Content.AssetEditors.Add(new JunimoEditor(Helper.Content));
 
             InputEvents.ButtonPressed += InputEvents_ButtonPressed;
             MenuEvents.MenuClosed += MenuEvents_MenuClosed;

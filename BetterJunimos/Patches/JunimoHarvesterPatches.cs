@@ -6,28 +6,32 @@ using Harmony;
 
 namespace BetterJunimos.Patches {
     // foundCropEndFunction
+    // Is there an action to perform at the end of this pathfind?
     public class PatchFindingCropEnd {
         public static void Postfix(ref PathNode currentNode, JunimoHarvester __instance, ref bool __result) {
             JunimoHut hut = Util.GetHutFromJunimo(__instance);
-            __result = __result || (JunimoPlanter.IsPlantable(new Vector2(currentNode.x, currentNode.y)) && JunimoPlanter.AreThereSeeds(hut));
+            __result = __result || Util.Abilities.IsActionable(hut, new Vector2(currentNode.x, currentNode.y));
         }
     }
 
     // tryToHarvestHere
+    // Try to perform ability 
     public class PatchHarvestAttemptToCustom {
         public static void Postfix(JunimoHarvester __instance) {
             Vector2 pos = __instance.getTileLocation();
             JunimoHut hut = Util.GetHutFromJunimo(__instance);
-            if (JunimoPlanter.IsPlantable(pos) && JunimoPlanter.AreThereSeeds(hut)) {
+            JunimoAbility junimoAbility = Util.Abilities.IdentifyJunimoAbility(hut, pos);
+            if (junimoAbility != JunimoAbility.None) {
                 var harvestTimer = Util.Reflection.GetField<int>(__instance, "harvestTimer");
                 int time = Util.Config.JunimoImprovements.WorkFaster ? 300 : 998;
                 harvestTimer.SetValue(time);
-                JunimoPlanter.UseWorkItemFromHut(hut, pos);
+                Util.Abilities.PerformAction(junimoAbility, hut, pos);
             }
         }
     }
 
     // update
+    // Animate & handle action timer 
     public class PatchJunimoShake {
         public static void Postfix(JunimoHarvester __instance) {
             var harvestTimer = Util.Reflection.GetField<int>(__instance, "harvestTimer");
@@ -45,6 +49,7 @@ namespace BetterJunimos.Patches {
     }
 
     // pathfindToRandomSpotAroundHut
+    // Expand radius of random pathfinding
     public class PatchPathfind {
         public static void Postfix(JunimoHarvester __instance) {
             JunimoHut hut = Util.GetHutFromJunimo(__instance);
@@ -56,7 +61,7 @@ namespace BetterJunimos.Patches {
     }
 
     // pathFindToNewCrop_doWork - completely replace 
-    // This exists to remove the max distance boundary
+    // Remove the max distance boundary
     [HarmonyPriority(Priority.Low)]
     public class PatchPathfindDoWork {
         

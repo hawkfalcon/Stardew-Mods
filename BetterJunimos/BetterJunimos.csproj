@@ -52,7 +52,7 @@
     <Compile Include="ModConfig.cs" />
     <Compile Include="Patches\JunimoHutPatches.cs" />
     <Compile Include="Patches\JunimoHarvesterPatches.cs" />
-    <Compile Include="Patches\JunimoPlanter.cs" />
+    <Compile Include="Patches\JunimoAbilities.cs" />
     <Compile Include="Patches\Util.cs" />
     <Compile Include="JunimoEditor.cs" />
     <Compile Include="Patches\ListExtensions.cs" />

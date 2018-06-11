@@ -4,6 +4,7 @@
         internal class JunimoCapability {
             public bool PlantCrops { get; set; } = true;
             public bool FertilizeCrops { get; set; } = true;
+            public bool ClearDeadCrops { get; set; } = true;
         }
 
         public JunimoImprovement JunimoImprovements { get; set; } = new JunimoImprovement();
