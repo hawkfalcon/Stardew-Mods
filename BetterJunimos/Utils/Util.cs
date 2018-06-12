@@ -61,7 +61,7 @@ namespace BetterJunimos.Patches {
 
             Game1.addHUDMessage(new HUDMessage(msg, 3) {
                 noIcon = true,
-                timeLeft = HUDMessage.defaultTime / 4
+                timeLeft = HUDMessage.defaultTime
             });
         }
 

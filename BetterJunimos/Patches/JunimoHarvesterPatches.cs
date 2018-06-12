@@ -24,10 +24,22 @@ namespace BetterJunimos.Patches {
             if (junimoAbility != JunimoAbility.None) {
                 var harvestTimer = Util.Reflection.GetField<int>(__instance, "harvestTimer");
                 int time = Util.Config.JunimoImprovements.WorkFaster ? 300 : 998;
-                harvestTimer.SetValue(time);
                 if (!Util.Abilities.PerformAction(junimoAbility, hut, pos)) {
-                    __instance.pathfindToNewCrop();
+                    // didn't succeed, move on
+                    time = 0;
                 }
+                harvestTimer.SetValue(time);
+            }
+        }
+    }
+
+    // pokeToHarvest
+    // Reduce chance of doing nothing
+    public class PatchPokeToHarvest {
+        public static void Postfix(JunimoHarvester __instance) {
+            var harvestTimer = Util.Reflection.GetField<int>(__instance, "harvestTimer");
+            if (harvestTimer.GetValue() <= 0 && (Util.Config.JunimoImprovements.WorkFaster || Game1.random.NextDouble() >= 0.3)) {
+                __instance.pathfindToNewCrop();
             }
         }
     }
@@ -40,7 +52,7 @@ namespace BetterJunimos.Patches {
             int time = harvestTimer.GetValue();
             if (Util.Config.JunimoImprovements.WorkFaster && time == 999) {
                 // skip last second of harvesting if faster
-                harvestTimer.SetValue(1);
+                harvestTimer.SetValue(0);
                 __instance.pokeToHarvest();
             }
             else if (time > 500 && time < 1000 || (Util.Config.JunimoImprovements.WorkFaster && time > 5)) {
@@ -78,6 +90,7 @@ namespace BetterJunimos.Patches {
                     __instance.pathfindToRandomSpotAroundHut();
                 }
                 else {
+                    // go on strike
                     Util.AnimateJunimo(7, __instance);
                 }
             }

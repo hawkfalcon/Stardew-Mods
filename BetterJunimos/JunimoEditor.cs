@@ -22,7 +22,8 @@ namespace BetterJunimos {
         public void Edit<T>(IAssetData asset) {
             if (Util.Config.FunChanges.JunimosAlwaysHaveLeafUmbrellas || Game1.isRaining) {
                 Rectangle rectangle = new Rectangle(0, 0, 128, 128);
-                Texture2D customTexture = Content.Load<Texture2D>("assets/JunimoUmbrellaOnly.png", ContentSource.ModFolder);
+                string umbrella = Util.Config.FunChanges.MoreColorfulLeafUmbrellas ? "JunimoUmbrellaOnly_Grayscale" : "JunimoUmbrellaOnly";
+                Texture2D customTexture = Content.Load<Texture2D>("assets/" + umbrella + ".png", ContentSource.ModFolder);
                 asset.AsImage().PatchImage(customTexture, rectangle, rectangle, PatchMode.Overlay);
             }
         }

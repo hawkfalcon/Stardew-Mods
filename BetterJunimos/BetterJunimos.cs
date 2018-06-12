@@ -48,6 +48,7 @@ namespace BetterJunimos {
             Type junimoType = Util.GetSDVType("Characters.JunimoHarvester");
             replacements.Add("foundCropEndFunction", junimoType, typeof(PatchFindingCropEnd));
             replacements.Add("tryToHarvestHere", junimoType, typeof(PatchHarvestAttemptToCustom));
+            replacements.Add("pokeToHarvest", junimoType, typeof(PatchPokeToHarvest));
             replacements.Add("update", junimoType, typeof(PatchJunimoShake));
             if (Config.JunimoImprovements.MaxRadius > Util.DefaultRadius || Config.JunimoPayment.WorkForWages) {
                 replacements.Add("pathfindToRandomSpotAroundHut", junimoType, typeof(PatchPathfind));
