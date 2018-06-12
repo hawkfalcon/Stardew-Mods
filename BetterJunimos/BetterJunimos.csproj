@@ -52,13 +52,13 @@
     <Compile Include="ModConfig.cs" />
     <Compile Include="Patches\JunimoHutPatches.cs" />
     <Compile Include="Patches\JunimoHarvesterPatches.cs" />
-    <Compile Include="Patches\JunimoAbilities.cs" />
-    <Compile Include="Patches\Util.cs" />
     <Compile Include="JunimoEditor.cs" />
-    <Compile Include="Patches\ListExtensions.cs" />
     <Compile Include="Patches\ChestPatches.cs" />
     <Compile Include="Patches\JunimoHutReplacements.cs" />
-    <Compile Include="Patches\JunimoPayments.cs" />
+    <Compile Include="Utils\Util.cs" />
+    <Compile Include="Utils\JunimoAbilities.cs" />
+    <Compile Include="Utils\JunimoPayments.cs" />
+    <Compile Include="Utils\ListExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="manifest.json" />
@@ -66,6 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Patches\" />
+    <Folder Include="Utils\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Pathoschild.Stardew.ModBuildConfig.2.1.0-beta-20180428\build\Pathoschild.Stardew.ModBuildConfig.targets" Condition="Exists('..\packages\Pathoschild.Stardew.ModBuildConfig.2.1.0-beta-20180428\build\Pathoschild.Stardew.ModBuildConfig.targets')" />
