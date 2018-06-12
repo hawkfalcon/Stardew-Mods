@@ -16,7 +16,7 @@ namespace BetterJunimos.Patches {
 
         // Can the Junimo use a capability/ability here
         public bool IsActionable(JunimoHut hut, Vector2 pos) {
-            return IdentifyJunimoAbility(hut, pos) == JunimoAbility.None;
+            return IdentifyJunimoAbility(hut, pos) != JunimoAbility.None;
         }
 
         public JunimoAbility IdentifyJunimoAbility(JunimoHut hut, Vector2 pos) {
@@ -51,36 +51,38 @@ namespace BetterJunimos.Patches {
             return chest.Any(item => item.category == itemCategory);
         }
 
-        public void PerformAction(JunimoAbility ability, JunimoHut hut, Vector2 pos) {
+        public bool PerformAction(JunimoAbility ability, JunimoHut hut, Vector2 pos) {
             switch (ability) {
             case JunimoAbility.FertilizeCrops:
-                UseItemAbility(hut, pos, SObject.fertilizerCategory, Fertilize);
-                break;
+                return UseItemAbility(hut, pos, SObject.fertilizerCategory, Fertilize);
             case JunimoAbility.PlantCrops:
-                UseItemAbility(hut, pos, SObject.SeedsCategory, Plant);
-                break;
+                return UseItemAbility(hut, pos, SObject.SeedsCategory, Plant);
             case JunimoAbility.ClearDeadCrops:
-                ClearDeadCrops(pos);
-                break;
+                return ClearDeadCrops(pos);
             }
+            return false;
         }
 
-        private void ClearDeadCrops(Vector2 pos) {
+        private bool ClearDeadCrops(Vector2 pos) {
             Farm farm = Game1.getFarm();
             if (farm.terrainFeatures[pos] is HoeDirt hd) {
                 bool animate = Utility.isOnScreen(Utility.Vector2ToPoint(pos), 64, farm);
                 hd.destroyCrop(pos, animate, farm);
+                return true;
             }
+            return false;
         }
 
-        private void UseItemAbility(JunimoHut hut, Vector2 pos, int itemCategory, Func<Vector2, int, bool> useItem) {
+        private bool UseItemAbility(JunimoHut hut, Vector2 pos, int itemCategory, Func<Vector2, int, bool> useItem) {
             Farm farm = Game1.getFarm();
             NetObjectList<Item> chest = hut.output.Value.items;
 
             Item foundItem = chest.FirstOrDefault(item => item.Category == itemCategory);
-            if (useItem(pos, foundItem.ParentSheetIndex)) {
+            bool success = useItem(pos, foundItem.ParentSheetIndex);
+            if (success) {
                 Util.ReduceItemCount(chest, foundItem);
             }
+            return success;
         }
 
         private bool Fertilize(Vector2 pos, int index) {
@@ -96,8 +98,6 @@ namespace BetterJunimos.Patches {
 
         private bool Plant(Vector2 pos, int index) {
             Crop crop = new Crop(index, (int)pos.X, (int)pos.Y);
-            if (crop.seasonsToGrowIn.Count == 0)
-                return false;
 
             if (!crop.seasonsToGrowIn.Contains(Game1.currentSeason))
                 return false;

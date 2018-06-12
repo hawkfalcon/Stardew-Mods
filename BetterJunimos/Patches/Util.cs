@@ -13,8 +13,10 @@ namespace BetterJunimos.Patches {
         public static bool WereJunimosPaidToday = false;
         public static Dictionary<string, List<int>> JunimoPaymentsToday = new Dictionary<string, List<int>>();
 
-        public const int DefaultRadius = 8;
+        internal const int DefaultRadius = 8;
+        internal const int UnpaidRadius = 3;
         public static int MaxRadius;
+
         internal static ModConfig Config;
         internal static IReflectionHelper Reflection;
         internal static JunimoAbilities Abilities;
@@ -68,10 +70,15 @@ namespace BetterJunimos.Patches {
             netAnimationEvent.GetValue().Fire(type);
         }
 
-        public static void spawnJunimoAtHut(JunimoHut hut) {
+        public static void SpawnJunimoAtHut(JunimoHut hut) {
+            Vector2 pos = new Vector2((float)hut.tileX.Value + 1, (float)hut.tileY.Value + 1) * 64f + new Vector2(0.0f, 32f);
+            SpawnJunimoAtPosition(pos, hut, hut.getUnusedJunimoNumber());
+        }
+
+        public static void SpawnJunimoAtPosition(Vector2 pos, JunimoHut hut, int junimoNumber) {
             if (hut == null) return;
             Farm farm = Game1.getFarm();
-            JunimoHarvester junimoHarvester = new JunimoHarvester(new Vector2((float)hut.tileX.Value + 1, (float)hut.tileY.Value + 1) * 64f + new Vector2(0.0f, 32f), hut, hut.getUnusedJunimoNumber());
+            JunimoHarvester junimoHarvester = new JunimoHarvester(pos, hut, junimoNumber);
             farm.characters.Add((NPC)junimoHarvester);
             hut.myJunimos.Add(junimoHarvester);
 
@@ -79,15 +86,18 @@ namespace BetterJunimos.Patches {
                 var alpha = Reflection.GetField<float>(junimoHarvester, "alpha");
                 alpha.SetValue(Config.FunChanges.RainyJunimoSpiritFactor);
             }
-            if (!Utility.isOnScreen(Utility.Vector2ToPoint(new Vector2((float)hut.tileX.Value + 1, (float)hut.tileY.Value + 1)), 64, farm))
+            if (!Utility.isOnScreen(Utility.Vector2ToPoint(pos), 64, farm))
                 return;
             farm.playSound("junimoMeep1");
         }
 
-        public static void spawnJunimo() {
-            Farm farm = Game1.getFarm();
-            JunimoHut hut = farm.buildings.FirstOrDefault(building => building is JunimoHut) as JunimoHut;
-            spawnJunimoAtHut(hut);
+        public static void SendMessage(string msg) {
+            if (!Config.Other.ReceiveMessages) return;
+
+            Game1.addHUDMessage(new HUDMessage(msg, 3) {
+                noIcon = true,
+                timeLeft = HUDMessage.defaultTime / 4
+            });
         }
 
         //Big thanks to Routine for this workaround for mac users.

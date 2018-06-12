@@ -1,4 +1,6 @@
-﻿namespace BetterJunimos {
+﻿using StardewModdingAPI;
+
+namespace BetterJunimos {
     internal class ModConfig {
         public JunimoCapability JunimoCapabilities { get; set; } = new JunimoCapability();
         internal class JunimoCapability {
@@ -27,11 +29,17 @@
             }
         }
 
-        public OtherSettings FunChanges { get; set; } = new OtherSettings();
-        internal class OtherSettings {
+        public FunSettings FunChanges { get; set; } = new FunSettings();
+        internal class FunSettings {
             public float RainyJunimoSpiritFactor = 0.7f;
             public bool JunimosAlwaysHaveLeafUmbrellas { get; set; } = false;
             public bool InfiniteJunimoInventory { get; set; } = false;
+        }
+
+        public OtherSettings Other { get; set; } = new OtherSettings();
+        internal class OtherSettings {
+            public SButton SpawnJunimoKeybind { get; set; } = SButton.J;
+            public bool ReceiveMessages { get; set; } = true;
         }
     }
 }

@@ -25,7 +25,9 @@ namespace BetterJunimos.Patches {
                 var harvestTimer = Util.Reflection.GetField<int>(__instance, "harvestTimer");
                 int time = Util.Config.JunimoImprovements.WorkFaster ? 300 : 998;
                 harvestTimer.SetValue(time);
-                Util.Abilities.PerformAction(junimoAbility, hut, pos);
+                if (!Util.Abilities.PerformAction(junimoAbility, hut, pos)) {
+                    __instance.pathfindToNewCrop();
+                }
             }
         }
     }
@@ -42,7 +44,6 @@ namespace BetterJunimos.Patches {
                 __instance.pokeToHarvest();
             }
             else if (time > 500 && time < 1000 || (Util.Config.JunimoImprovements.WorkFaster && time > 5)) {
-                Util.AnimateJunimo(4, __instance);
                 __instance.shake(50);
             }
         }
