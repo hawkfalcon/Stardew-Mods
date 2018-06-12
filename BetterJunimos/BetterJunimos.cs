@@ -9,6 +9,8 @@ using System.Reflection;
 using BetterJunimos.Patches;
 using static BetterJunimos.Patches.ListExtensions;
 using StardewValley;
+using StardewValley.Objects;
+using StardewValley.Characters;
 
 namespace BetterJunimos {
     public class BetterJunimos : Mod {
@@ -45,7 +47,7 @@ namespace BetterJunimos {
             IList<Tuple<string, Type, Type>> replacements = new List<Tuple<string, Type, Type>>();
 
             // Junimo Harvester patches
-            Type junimoType = Util.GetSDVType("Characters.JunimoHarvester");
+            Type junimoType = typeof(JunimoHarvester);
             replacements.Add("foundCropEndFunction", junimoType, typeof(PatchFindingCropEnd));
             replacements.Add("tryToHarvestHere", junimoType, typeof(PatchHarvestAttemptToCustom));
             replacements.Add("pokeToHarvest", junimoType, typeof(PatchPokeToHarvest));
@@ -56,7 +58,7 @@ namespace BetterJunimos {
             }
 
             // Junimo Hut patches
-            Type junimoHutType = Util.GetSDVType("Buildings.JunimoHut");
+            Type junimoHutType = typeof(JunimoHut);
             replacements.Add("areThereMatureCropsWithinRadius", junimoHutType, typeof(PatchSearchAroundHut));
 
             // replacements for hardcoded max junimos
@@ -64,7 +66,7 @@ namespace BetterJunimos {
             replacements.Add("getUnusedJunimoNumber", junimoHutType, typeof(ReplaceJunimoHutNumber));
 
             // fix stupid bugs in SDV 
-            Type chestType = Util.GetSDVType("Objects.Chest");
+            Type chestType = typeof(Chest);
             replacements.Add("grabItemFromChest", chestType, typeof(ChestPatchFrom));
             replacements.Add("grabItemFromInventory", chestType, typeof(ChestPatchTo));
 

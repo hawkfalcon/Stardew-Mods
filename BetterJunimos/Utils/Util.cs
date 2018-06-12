@@ -64,15 +64,5 @@ namespace BetterJunimos.Patches {
                 timeLeft = HUDMessage.defaultTime
             });
         }
-
-        //Big thanks to Routine for this workaround for mac users.
-        //https://github.com/Platonymous/Stardew-Valley-Mods/blob/master/PyTK/PyUtils.cs#L117
-        /// <summary>Gets the correct type of the object, handling different assembly names for mac/linux users.</summary>
-        public static Type GetSDVType(string type) {
-            const string prefix = "StardewValley.";
-            Type defaultSDV = Type.GetType(prefix + type + ", Stardew Valley");
-
-            return defaultSDV ?? Type.GetType(prefix + type + ", StardewValley");
-        }
     }
 }
