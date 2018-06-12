@@ -31,7 +31,7 @@ namespace BetterJunimos.Patches {
             if (Game1.isRaining && !Util.Config.JunimoImprovements.CanWorkInRain) 
                 return;
             
-            Util.spawnJunimoAtHut(__instance);
+            Util.SpawnJunimoAtHut(__instance);
             junimoSendOutTimer.SetValue(1000);
         }
     }

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Xna.Framework;
 using Netcode;
 using StardewModdingAPI;
@@ -10,9 +8,6 @@ using StardewValley.Characters;
 
 namespace BetterJunimos.Patches {
     public class Util {
-        public static bool WereJunimosPaidToday = false;
-        public static Dictionary<string, List<int>> JunimoPaymentsToday = new Dictionary<string, List<int>>();
-
         internal const int DefaultRadius = 8;
         internal const int UnpaidRadius = 3;
         public static int MaxRadius;
@@ -20,41 +15,11 @@ namespace BetterJunimos.Patches {
         internal static ModConfig Config;
         internal static IReflectionHelper Reflection;
         internal static JunimoAbilities Abilities;
+        internal static JunimoPayments Payments;
 
         public static JunimoHut GetHutFromJunimo(JunimoHarvester junimo) {
             NetGuid netHome = Reflection.GetField<NetGuid>(junimo, "netHome").GetValue();
             return Game1.getFarm().buildings[netHome.Value] as JunimoHut;
-        }
-
-        public static bool JunimoPaymentReceiveItems(JunimoHut hut) {
-            Farm farm = Game1.getFarm();
-            NetObjectList<Item> chest = hut.output.Value.items;
-            bool paidForage = ReceiveItems(chest, Config.JunimoPayment.DailyWage.ForagedItems, "Forage");
-            bool paidFlowers = ReceiveItems(chest, Config.JunimoPayment.DailyWage.Flowers, "Flower");
-            bool paidFruit = ReceiveItems(chest, Config.JunimoPayment.DailyWage.Fruit, "Fruit");
-            bool paidWine = ReceiveItems(chest, Config.JunimoPayment.DailyWage.Wine, "Artisan Goods");
-
-            return paidForage && paidFlowers && paidFruit && paidWine;
-        }
-
-        public static bool ReceiveItems(NetObjectList<Item> chest, int needed, string type) {
-            if (needed == 0) return true;
-            List<int> items;
-            if (!JunimoPaymentsToday.TryGetValue(type, out items)) {
-                items = new List<int>();
-                JunimoPaymentsToday[type] = items;
-            }
-            int paidSoFar = items.Count();
-            if (paidSoFar == needed) return true;
-
-            foreach (int i in Enumerable.Range(paidSoFar, needed)) {
-                Item foundItem = chest.FirstOrDefault(item => item.getCategoryName() == type);
-                if (foundItem != null) {
-                    items.Add(foundItem.ParentSheetIndex);
-                    ReduceItemCount(chest, foundItem);
-                }
-            }
-            return items.Count() == needed;
         }
 
         public static void ReduceItemCount(NetObjectList<Item> chest, Item item) {

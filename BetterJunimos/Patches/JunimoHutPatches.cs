@@ -9,7 +9,7 @@ namespace BetterJunimos.Patches {
     internal class PatchSearchAroundHut {
         public static void Postfix(JunimoHut __instance, ref bool __result) {
             // Prevent unnecessary searching when unpaid
-            if (Util.Config.JunimoPayment.WorkForWages && !Util.WereJunimosPaidToday) {
+            if (Util.Config.JunimoPayment.WorkForWages && !Util.Payments.WereJunimosPaidToday) {
                 __result = true;
                 __instance.lastKnownCropLocation = Point.Zero;
             }

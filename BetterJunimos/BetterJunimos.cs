@@ -17,12 +17,16 @@ namespace BetterJunimos {
         public override void Entry(IModHelper helper) {
             Config = Helper.ReadConfig<ModConfig>();
 
-            JunimoAbilities junimoAbilities = new JunimoAbilities();
-            junimoAbilities.Capabilities = Config.JunimoCapabilities;
-
             Util.Config = Config;
             Util.Reflection = Helper.Reflection;
+
+            JunimoAbilities junimoAbilities = new JunimoAbilities();
+            junimoAbilities.Capabilities = Config.JunimoCapabilities;
+            JunimoPayments junimoPayments = new JunimoPayments();
+            junimoPayments.Payment = Config.JunimoPayment;
+
             Util.Abilities = junimoAbilities;
+            Util.Payments = junimoPayments;
             Util.MaxRadius = Config.JunimoPayment.WorkForWages ? Util.UnpaidRadius : Config.JunimoImprovements.MaxRadius;
 
             Helper.Content.AssetEditors.Add(new JunimoEditor(Helper.Content));
@@ -93,8 +97,8 @@ namespace BetterJunimos {
 
         void TimeEvents_AfterDayStarted(object sender, EventArgs e) {
             if (Config.JunimoPayment.WorkForWages) {
-                Util.JunimoPaymentsToday.Clear();
-                Util.WereJunimosPaidToday = false;
+                Util.Payments.JunimoPaymentsToday.Clear();
+                Util.Payments.WereJunimosPaidToday = false;
                 Util.MaxRadius = Util.UnpaidRadius;
 
                 Farm farm = Game1.getFarm();
@@ -102,7 +106,7 @@ namespace BetterJunimos {
                     CheckForWages(hut);
                 }
 
-                if (!Util.WereJunimosPaidToday) {
+                if (!Util.Payments.WereJunimosPaidToday) {
                     Util.SendMessage("Junimos will not work until they are paid");
                 }
             }
@@ -132,8 +136,8 @@ namespace BetterJunimos {
         }
 
         private void CheckForWages(JunimoHut hut) {
-            if (!Util.WereJunimosPaidToday && Util.JunimoPaymentReceiveItems(hut)) {
-                Util.WereJunimosPaidToday = true;
+            if (!Util.Payments.WereJunimosPaidToday && Util.Payments.ReceivePaymentItems(hut)) {
+                Util.Payments.WereJunimosPaidToday = true;
                 Util.MaxRadius = Config.JunimoImprovements.MaxRadius;
                 Util.SendMessage("Junimos are happy with their payment!");
             }

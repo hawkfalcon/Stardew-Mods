@@ -73,7 +73,7 @@ namespace BetterJunimos.Patches {
                 __instance.returnToJunimoHut(__instance.currentLocation);
             }
             // Prevent working when not paid
-            else if (Util.Config.JunimoPayment.WorkForWages && !Util.WereJunimosPaidToday) {
+            else if (Util.Config.JunimoPayment.WorkForWages && !Util.Payments.WereJunimosPaidToday) {
                 if (Game1.random.NextDouble() < 0.02) {
                     __instance.pathfindToRandomSpotAroundHut();
                 }
