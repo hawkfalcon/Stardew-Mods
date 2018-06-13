@@ -15,6 +15,7 @@ namespace BetterJunimos {
             public int MaxJunimos { get; set; } = 3;
             public int MaxRadius { get; set; } = 8;
             public bool WorkFaster { get; set; } = false;
+            public bool AvoidHarvestingFlowers { get; set; } = true;
         }
 
         public JunimoPayments JunimoPayment { get; set; } = new JunimoPayments();

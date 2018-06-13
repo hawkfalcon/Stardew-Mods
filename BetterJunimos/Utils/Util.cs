@@ -1,10 +1,11 @@
-﻿using System;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Netcode;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Characters;
+using StardewValley.TerrainFeatures;
+using SObject = StardewValley.Object;
 
 namespace BetterJunimos.Patches {
     public class Util {
@@ -28,6 +29,18 @@ namespace BetterJunimos.Patches {
             if (item.Stack == 0) {
                 chest.Remove(item);
             }
+        }
+
+        internal static bool ShouldAvoidHarvesting(Vector2 pos) {
+            if (!Config.JunimoImprovements.AvoidHarvestingFlowers) return false;
+            Farm farm = Game1.getFarm();
+            if (farm.terrainFeatures.ContainsKey(pos) && farm.terrainFeatures[pos] is HoeDirt hd) {
+                if (!hd.readyForHarvest()) return false;
+                if (new SObject(pos, hd.crop.indexOfHarvest.Value, 0).getCategoryName() == "Flower") {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public static void AnimateJunimo(int type, JunimoHarvester junimo) {

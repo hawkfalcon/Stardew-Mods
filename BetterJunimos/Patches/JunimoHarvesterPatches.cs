@@ -19,10 +19,16 @@ namespace BetterJunimos.Patches {
     public class PatchHarvestAttemptToCustom {
         public static void Postfix(JunimoHarvester __instance) {
             Vector2 pos = __instance.getTileLocation();
+            var harvestTimer = Util.Reflection.GetField<int>(__instance, "harvestTimer");
+            if (Util.ShouldAvoidHarvesting(pos)) {
+                harvestTimer.SetValue(0);
+                __instance.jumpWithoutSound();
+                __instance.pathfindToNewCrop();
+                return;
+            }
             JunimoHut hut = Util.GetHutFromJunimo(__instance);
             JunimoAbility junimoAbility = Util.Abilities.IdentifyJunimoAbility(hut, pos);
             if (junimoAbility != JunimoAbility.None) {
-                var harvestTimer = Util.Reflection.GetField<int>(__instance, "harvestTimer");
                 int time = Util.Config.JunimoImprovements.WorkFaster ? 300 : 998;
                 if (!Util.Abilities.PerformAction(junimoAbility, hut, pos)) {
                     // didn't succeed, move on
