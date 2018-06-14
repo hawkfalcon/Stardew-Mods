@@ -6,6 +6,7 @@ namespace BetterJunimos {
         internal class JunimoCapability {
             public bool PlantCrops { get; set; } = true;
             public bool FertilizeCrops { get; set; } = true;
+            public bool HarvestForageCrops { get; set; } = true;
             public bool ClearDeadCrops { get; set; } = true;
         }
 

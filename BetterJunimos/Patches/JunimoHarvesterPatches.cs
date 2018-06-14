@@ -30,7 +30,7 @@ namespace BetterJunimos.Patches {
             JunimoAbility junimoAbility = Util.Abilities.IdentifyJunimoAbility(hut, pos);
             if (junimoAbility != JunimoAbility.None) {
                 int time = Util.Config.JunimoImprovements.WorkFaster ? 300 : 998;
-                if (!Util.Abilities.PerformAction(junimoAbility, hut, pos)) {
+                if (!Util.Abilities.PerformAction(junimoAbility, hut, pos, __instance)) {
                     // didn't succeed, move on
                     time = 0;
                 }

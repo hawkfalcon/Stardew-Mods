@@ -23,6 +23,14 @@ namespace BetterJunimos.Patches {
             return Game1.getFarm().buildings[netHome.Value] as JunimoHut;
         }
 
+        public static void AddItemToHut(Farm farm, JunimoHut hut, SObject item) {
+            Item obj = hut.output.Value.addItem(item);
+            if (obj == null)
+                return;
+            for (int index = 0; index < obj.Stack; ++index)
+                Game1.createObjectDebris(item.parentSheetIndex, hut.tileX + 1, hut.tileY + 1, -1, item.quality, 1f, farm);
+        }
+
         public static void ReduceItemCount(NetObjectList<Item> chest, Item item) {
             if (Config.FunChanges.InfiniteJunimoInventory) { return; }
             item.Stack--;
@@ -75,6 +83,16 @@ namespace BetterJunimos.Patches {
             Game1.addHUDMessage(new HUDMessage(msg, 3) {
                 noIcon = true,
                 timeLeft = HUDMessage.defaultTime
+            });
+        }
+
+        public static void SpawnParticles(Vector2 pos) {
+            Multiplayer multiplayer = Reflection.GetField<Multiplayer>(typeof(Game1), "multiplayer").GetValue();
+            multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite[1] {
+                new TemporaryAnimatedSprite(17, new Vector2(pos.X * 64f, pos.Y * 64f), Color.White, 7, Game1.random.NextDouble() < 0.5, 125f, 0, -1, -1f, -1, 0)
+            });
+            multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite[1] {
+                new TemporaryAnimatedSprite(14, new Vector2(pos.X * 64f, pos.Y * 64f), Color.White, 7, Game1.random.NextDouble() < 0.5, 50f, 0, -1, -1f, -1, 0)
             });
         }
     }

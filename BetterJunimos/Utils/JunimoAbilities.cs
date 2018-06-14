@@ -6,10 +6,11 @@ using StardewValley.TerrainFeatures;
 using StardewValley.Buildings;
 using SObject = StardewValley.Object;
 using System;
+using StardewValley.Characters;
 
 namespace BetterJunimos.Patches {
     public enum JunimoAbility {
-        None, FertilizeCrops, PlantCrops, ClearDeadCrops
+        None, FertilizeCrops, PlantCrops, ClearDeadCrops, HarvestForageCrop
     }
     public class JunimoAbilities {
         internal ModConfig.JunimoCapability Capabilities;
@@ -21,6 +22,9 @@ namespace BetterJunimos.Patches {
 
         public JunimoAbility IdentifyJunimoAbility(JunimoHut hut, Vector2 pos) {
             Farm farm = Game1.getFarm();
+            if (Capabilities.HarvestForageCrops && IsForageCrop(farm, pos)) {
+                return JunimoAbility.HarvestForageCrop;
+            }
             if (farm.terrainFeatures.ContainsKey(pos) && farm.terrainFeatures[pos] is HoeDirt hd) {
                 if (IsEmptyHoeDirt(farm, hd, pos)) {
                     if (Capabilities.FertilizeCrops && hd.fertilizer.Value <= 0 && HutContainsItemCategory(hut, SObject.fertilizerCategory)) {
@@ -37,6 +41,21 @@ namespace BetterJunimos.Patches {
             return JunimoAbility.None;
         }
 
+        public bool IsForageCrop(Farm farm, Vector2 pos) {
+            Vector2 up = new Vector2(pos.X, pos.Y + 1);
+            Vector2 right = new Vector2(pos.X + 1, pos.Y);
+            Vector2 down = new Vector2(pos.X, pos.Y - 1);
+            Vector2 left = new Vector2(pos.X - 1, pos.Y);
+
+            Vector2[] positions = { up, right, down, left };
+            foreach (Vector2 nextPos in positions) {
+                if (farm.objects.ContainsKey(nextPos) && farm.objects[nextPos].isForage(farm)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public bool IsEmptyHoeDirt(Farm farm, HoeDirt hd, Vector2 pos) {
             return hd.crop == null && !farm.objects.ContainsKey(pos);
         }
@@ -51,16 +70,66 @@ namespace BetterJunimos.Patches {
             return chest.Any(item => item.category == itemCategory);
         }
 
-        public bool PerformAction(JunimoAbility ability, JunimoHut hut, Vector2 pos) {
+        public bool PerformAction(JunimoAbility ability, JunimoHut hut, Vector2 pos, JunimoHarvester junimo) {
             switch (ability) {
             case JunimoAbility.FertilizeCrops:
                 return UseItemAbility(hut, pos, SObject.fertilizerCategory, Fertilize);
             case JunimoAbility.PlantCrops:
                 return UseItemAbility(hut, pos, SObject.SeedsCategory, Plant);
+            case JunimoAbility.HarvestForageCrop:
+                return HarvestForageCrop(hut, pos, junimo);
             case JunimoAbility.ClearDeadCrops:
                 return ClearDeadCrops(pos);
             }
             return false;
+        }
+
+        private bool HarvestForageCrop(JunimoHut hut, Vector2 pos, JunimoHarvester junimo) {
+            Farm farm = Game1.getFarm();
+
+            Vector2 up = new Vector2(pos.X, pos.Y + 1);
+            Vector2 right = new Vector2(pos.X + 1, pos.Y);
+            Vector2 down = new Vector2(pos.X, pos.Y - 1);
+            Vector2 left = new Vector2(pos.X - 1, pos.Y);
+
+            int direction = 0;
+            Vector2[] positions = { up, right, down, left };
+            foreach (Vector2 nextPos in positions) {
+                if (farm.objects.ContainsKey(nextPos) && farm.objects[nextPos].isForage(farm)) {
+                    junimo.faceDirection(direction);
+                    SetForageQuality(farm, nextPos);
+
+                    SObject item = farm.objects[nextPos];
+                    Util.AddItemToHut(farm, hut, item);
+
+                    Util.SpawnParticles(nextPos);
+                    farm.objects.Remove(nextPos);
+                    return true;
+                }
+                direction++;
+            }
+
+            return false;
+        }
+
+        // adapted from GameLocation.checkAction
+        private void SetForageQuality(Farm farm, Vector2 pos) {
+            int quality = farm.objects[pos].Quality;
+            Random random = new Random((int)Game1.uniqueIDForThisGame / 2 + (int)Game1.stats.DaysPlayed + (int)pos.X + (int)pos.Y * 777);
+
+            foreach (Farmer farmer in Game1.getOnlineFarmers()) {
+                int maxQuality = quality;
+                if (farmer.professions.Contains(16))
+                    maxQuality = 4;
+                else if (random.NextDouble() < farmer.ForagingLevel / 30.0)
+                    maxQuality = 2;
+                else if (random.NextDouble() < farmer.ForagingLevel / 15.0)
+                    maxQuality = 1;
+                if (maxQuality > quality)
+                    quality = maxQuality;
+            }
+            
+            farm.objects[pos].Quality = quality;
         }
 
         private bool ClearDeadCrops(Vector2 pos) {
