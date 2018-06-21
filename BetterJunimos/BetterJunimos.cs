@@ -11,6 +11,7 @@ using static BetterJunimos.Patches.ListExtensions;
 using StardewValley;
 using StardewValley.Objects;
 using StardewValley.Characters;
+using StardewValley.Menus;
 
 namespace BetterJunimos {
     public class BetterJunimos : Mod {
@@ -32,10 +33,13 @@ namespace BetterJunimos {
             Util.MaxRadius = Config.JunimoPayment.WorkForWages ? Util.UnpaidRadius : Config.JunimoImprovements.MaxRadius;
 
             Helper.Content.AssetEditors.Add(new JunimoEditor(Helper.Content));
+            Helper.Content.AssetEditors.Add(new BlueprintEditor());
 
             InputEvents.ButtonPressed += InputEvents_ButtonPressed;
             MenuEvents.MenuClosed += MenuEvents_MenuClosed;
+            MenuEvents.MenuChanged += MenuEvents_MenuChanged;
             TimeEvents.AfterDayStarted += TimeEvents_AfterDayStarted;
+            SaveEvents.AfterLoad += SaveEvents_AfterLoad;
 
             DoHarmonyRegistration();
         }
@@ -88,12 +92,30 @@ namespace BetterJunimos {
             }
         }
 
+        // BUG: player warps back to wizard hut after use
+        private void OpenJunimoHutMenu() {
+            CarpenterMenu menu = new CarpenterMenu(true);
+            var blueprints = Helper.Reflection.GetField<List<BluePrint>>(menu, "blueprints");
+            List<BluePrint> newBluePrints = new List<BluePrint>();
+            newBluePrints.Add(new BluePrint("Junimo Hut"));
+            blueprints.SetValue(newBluePrints);
+            Game1.activeClickableMenu = (IClickableMenu) menu;
+        }
+
         // Closed Junimo Hut menu
         void MenuEvents_MenuClosed(object sender, EventArgsClickableMenuClosed e) {
-            if (!Config.JunimoPayment.WorkForWages) return;
-            if (e.PriorMenu is StardewValley.Menus.ItemGrabMenu menu) {
+            if (Config.JunimoPayment.WorkForWages && e.PriorMenu is ItemGrabMenu menu) {
                 if (menu.specialObject != null && menu.specialObject is JunimoHut hut) {
                     CheckForWages(hut);
+                }
+            }
+        }
+
+        void MenuEvents_MenuChanged(object sender, EventArgsClickableMenuChanged e) {
+            if (e.PriorMenu == null && e.NewMenu is CarpenterMenu) {
+                // limit to only junimo hut 
+                if (!Game1.MasterPlayer.mailReceived.Contains("hasPickedUpMagicInk")) {
+                    OpenJunimoHutMenu();
                 }
             }
         }
@@ -117,6 +139,18 @@ namespace BetterJunimos {
             if (!Config.FunChanges.JunimosAlwaysHaveLeafUmbrellas) {
                 // reset for rainy days
                 Helper.Content.InvalidateCache(@"Characters\Junimo");
+            }
+        }
+
+        void SaveEvents_AfterLoad(object sender, EventArgs e) {
+            AllowJunimoHutPurchasing();
+        }
+
+        public void AllowJunimoHutPurchasing() {
+            if (Config.JunimoHut.AvailibleImmediately || 
+                (Config.JunimoHut.AvailibleAfterCommunityCenterComplete && 
+                Game1.MasterPlayer.mailReceived.Contains("ccIsComplete"))) {
+                    Game1.player.hasMagicInk = true;
             }
         }
 

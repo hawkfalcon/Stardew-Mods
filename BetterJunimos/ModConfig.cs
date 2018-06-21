@@ -31,6 +31,14 @@ namespace BetterJunimos {
             }
         }
 
+        public HutSettings JunimoHut { get; set; } = new HutSettings();
+        internal class HutSettings {
+            public bool AvailibleAfterCommunityCenterComplete { get; set; } = true;
+            public bool AvailibleImmediately { get; set; } = false;
+            public bool ReducedCostToConstruct { get; set; } = true;
+            public bool FreeToConstruct { get; set; } = false;
+        }
+
         public FunSettings FunChanges { get; set; } = new FunSettings();
         internal class FunSettings {
             public float RainyJunimoSpiritFactor = 0.7f;
