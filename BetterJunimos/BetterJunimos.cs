@@ -7,11 +7,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using BetterJunimos.Patches;
-using static BetterJunimos.Patches.ListExtensions;
 using StardewValley;
 using StardewValley.Objects;
 using StardewValley.Characters;
 using StardewValley.Menus;
+using BetterJunimos.Utils;
 
 namespace BetterJunimos {
     public class BetterJunimos : Mod {
@@ -30,7 +30,7 @@ namespace BetterJunimos {
 
             Util.Abilities = junimoAbilities;
             Util.Payments = junimoPayments;
-            Util.MaxRadius = Config.JunimoPayment.WorkForWages ? Util.UnpaidRadius : Config.JunimoImprovements.MaxRadius;
+            Util.MaxRadius = Config.JunimoPayment.WorkForWages ? Util.UnpaidRadius : Config.JunimoHuts.MaxRadius;
 
             Helper.Content.AssetEditors.Add(new JunimoEditor(Helper.Content));
             Helper.Content.AssetEditors.Add(new BlueprintEditor());
@@ -56,7 +56,7 @@ namespace BetterJunimos {
             replacements.Add("tryToHarvestHere", junimoType, typeof(PatchHarvestAttemptToCustom));
             replacements.Add("pokeToHarvest", junimoType, typeof(PatchPokeToHarvest));
             replacements.Add("update", junimoType, typeof(PatchJunimoShake));
-            if (Config.JunimoImprovements.MaxRadius > Util.DefaultRadius || Config.JunimoPayment.WorkForWages) {
+            if (Config.JunimoHuts.MaxRadius > Util.DefaultRadius || Config.JunimoPayment.WorkForWages) {
                 replacements.Add("pathfindToRandomSpotAroundHut", junimoType, typeof(PatchPathfind));
                 replacements.Add("pathFindToNewCrop_doWork", junimoType, typeof(PatchPathfindDoWork));
             }
@@ -147,8 +147,8 @@ namespace BetterJunimos {
         }
 
         public void AllowJunimoHutPurchasing() {
-            if (Config.JunimoHut.AvailibleImmediately || 
-                (Config.JunimoHut.AvailibleAfterCommunityCenterComplete && 
+            if (Config.JunimoHuts.AvailibleImmediately || 
+                (Config.JunimoHuts.AvailibleAfterCommunityCenterComplete && 
                 Game1.MasterPlayer.mailReceived.Contains("ccIsComplete"))) {
                     Game1.player.hasMagicInk = true;
             }
@@ -175,9 +175,13 @@ namespace BetterJunimos {
         private void CheckForWages(JunimoHut hut) {
             if (!Util.Payments.WereJunimosPaidToday && Util.Payments.ReceivePaymentItems(hut)) {
                 Util.Payments.WereJunimosPaidToday = true;
-                Util.MaxRadius = Config.JunimoImprovements.MaxRadius;
+                Util.MaxRadius = Config.JunimoHuts.MaxRadius;
                 Util.SendMessage("Junimos are happy with their payment!");
             }
+        }
+
+        public override object GetApi() {
+            return new BetterJunimosApi();
         }
     }
 }

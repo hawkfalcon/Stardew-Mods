@@ -4,7 +4,7 @@ using Netcode;
 using StardewValley;
 using StardewValley.Buildings;
 
-namespace BetterJunimos.Patches {
+namespace BetterJunimos.Utils {
     public class JunimoPayments {
         internal ModConfig.JunimoPayments Payment;
 

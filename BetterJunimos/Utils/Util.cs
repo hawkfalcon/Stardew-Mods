@@ -7,7 +7,7 @@ using StardewValley.Characters;
 using StardewValley.TerrainFeatures;
 using SObject = StardewValley.Object;
 
-namespace BetterJunimos.Patches {
+namespace BetterJunimos.Utils {
     public class Util {
         internal const int DefaultRadius = 8;
         internal const int UnpaidRadius = 3;

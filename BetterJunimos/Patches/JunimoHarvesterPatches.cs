@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using StardewValley.Buildings;
 using StardewValley.Characters;
 using Harmony;
+using BetterJunimos.Utils;
 
 namespace BetterJunimos.Patches {
     // foundCropEndFunction

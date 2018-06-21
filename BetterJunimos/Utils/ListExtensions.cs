@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace BetterJunimos.Patches {
+namespace BetterJunimos.Utils {
     internal static class ListExtensions {
         /// <summary>Create lists of tuples more easily.</summary>
         public static void Add<T1, T2, T3>(this IList<Tuple<T1, T2, T3>> list, T1 item1, T2 item2, T3 item3) {

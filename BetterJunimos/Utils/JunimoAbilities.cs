@@ -8,7 +8,7 @@ using SObject = StardewValley.Object;
 using System;
 using StardewValley.Characters;
 
-namespace BetterJunimos.Patches {
+namespace BetterJunimos.Utils {
     public enum JunimoAbility {
         None, FertilizeCrops, PlantCrops, ClearDeadCrops, HarvestForageCrop
     }

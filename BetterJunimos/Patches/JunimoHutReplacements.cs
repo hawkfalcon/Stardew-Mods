@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using BetterJunimos.Utils;
 using Harmony;
 using Microsoft.Xna.Framework;
 using StardewValley;
@@ -24,7 +25,7 @@ namespace BetterJunimos.Patches {
 
             // from Update
             junimoSendOutTimer.SetValue(sendOutTimer - time.ElapsedGameTime.Milliseconds);
-            if (sendOutTimer > 0 || __instance.myJunimos.Count() >= Util.Config.JunimoImprovements.MaxJunimos ||
+            if (sendOutTimer > 0 || __instance.myJunimos.Count() >= Util.Config.JunimoHuts.MaxJunimos ||
                 Game1.IsWinter || !__instance.areThereMatureCropsWithinRadius() || Game1.farmEvent != null)
                 return;
             // Rain
@@ -41,7 +42,7 @@ namespace BetterJunimos.Patches {
     [HarmonyPriority(Priority.Low)]
     internal class ReplaceJunimoHutNumber {
         public static bool Prefix(JunimoHut __instance, ref int __result) {
-            for (int index = 0; index < Util.Config.JunimoImprovements.MaxJunimos; ++index) {
+            for (int index = 0; index < Util.Config.JunimoHuts.MaxJunimos; ++index) {
                 if (index >= __instance.myJunimos.Count<JunimoHarvester>()) {
                     __result = index;
                     return false;

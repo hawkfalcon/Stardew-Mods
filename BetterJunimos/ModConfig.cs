@@ -10,11 +10,19 @@ namespace BetterJunimos {
             public bool ClearDeadCrops { get; set; } = true;
         }
 
+        public HutSettings JunimoHuts { get; set; } = new HutSettings();
+        internal class HutSettings {
+            public int MaxJunimos { get; set; } = 3;
+            public int MaxRadius { get; set; } = 8;
+            public bool AvailibleAfterCommunityCenterComplete { get; set; } = true;
+            public bool AvailibleImmediately { get; set; } = false;
+            public bool ReducedCostToConstruct { get; set; } = true;
+            public bool FreeToConstruct { get; set; } = false;
+        }
+
         public JunimoImprovement JunimoImprovements { get; set; } = new JunimoImprovement();
         internal class JunimoImprovement {
             public bool CanWorkInRain { get; set; } = true;
-            public int MaxJunimos { get; set; } = 3;
-            public int MaxRadius { get; set; } = 8;
             public bool WorkFaster { get; set; } = false;
             public bool AvoidHarvestingFlowers { get; set; } = true;
         }
@@ -29,14 +37,6 @@ namespace BetterJunimos {
                 public int Fruit { get; set; } = 0;
                 public int Wine { get; set; } = 0;
             }
-        }
-
-        public HutSettings JunimoHut { get; set; } = new HutSettings();
-        internal class HutSettings {
-            public bool AvailibleAfterCommunityCenterComplete { get; set; } = true;
-            public bool AvailibleImmediately { get; set; } = false;
-            public bool ReducedCostToConstruct { get; set; } = true;
-            public bool FreeToConstruct { get; set; } = false;
         }
 
         public FunSettings FunChanges { get; set; } = new FunSettings();

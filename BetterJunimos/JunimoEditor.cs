@@ -1,4 +1,5 @@
 ﻿using BetterJunimos.Patches;
+using BetterJunimos.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
