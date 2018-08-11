@@ -43,11 +43,10 @@
   <ItemGroup>
     <Compile Include="BetterJunimos.cs" />
     <Compile Include="ModConfig.cs" />
-    <Compile Include="Patches\JunimoHutPatches.cs" />
     <Compile Include="Patches\JunimoHarvesterPatches.cs" />
     <Compile Include="JunimoEditor.cs" />
     <Compile Include="Patches\ChestPatches.cs" />
-    <Compile Include="Patches\JunimoHutReplacements.cs" />
+    <Compile Include="Patches\JunimoHutPatches.cs" />
     <Compile Include="Utils\Util.cs" />
     <Compile Include="Utils\JunimoAbilities.cs" />
     <Compile Include="Utils\JunimoPayments.cs" />
@@ -58,13 +57,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="manifest.json" />
-    <None Include="packages.config" />
     <None Include="assets\JunimoUmbrellaOnly.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="assets\JunimoUmbrellaOnly_Grayscale.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Patches\" />
@@ -72,5 +71,5 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\packages\Pathoschild.Stardew.ModBuildConfig.2.1.0-beta-20180428\build\Pathoschild.Stardew.ModBuildConfig.targets" Condition="Exists('..\packages\Pathoschild.Stardew.ModBuildConfig.2.1.0-beta-20180428\build\Pathoschild.Stardew.ModBuildConfig.targets')" />
+  <Import Project="..\packages\Pathoschild.Stardew.ModBuildConfig.2.1.0\build\Pathoschild.Stardew.ModBuildConfig.targets" Condition="Exists('..\packages\Pathoschild.Stardew.ModBuildConfig.2.1.0\build\Pathoschild.Stardew.ModBuildConfig.targets')" />
 </Project>

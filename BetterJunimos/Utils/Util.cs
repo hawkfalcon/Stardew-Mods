@@ -44,7 +44,7 @@ namespace BetterJunimos.Utils {
             Farm farm = Game1.getFarm();
             if (farm.terrainFeatures.ContainsKey(pos) && farm.terrainFeatures[pos] is HoeDirt hd) {
                 if (!hd.readyForHarvest()) return false;
-                if (new SObject(pos, hd.crop.indexOfHarvest.Value, 0).Category == Object.flowersCategory) {
+                if (new SObject(pos, hd.crop.indexOfHarvest.Value, 0).Category == SObject.flowersCategory) {
                     return true;
                 }
             }

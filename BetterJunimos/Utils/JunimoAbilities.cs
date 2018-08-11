@@ -15,22 +15,25 @@ namespace BetterJunimos.Utils {
     public class JunimoAbilities {
         internal ModConfig.JunimoCapability Capabilities;
 
+        public static bool FertilizerInHut;
+        public static bool SeedsInHut;
+
         // Can the Junimo use a capability/ability here
-        public bool IsActionable(JunimoHut hut, Vector2 pos) {
-            return IdentifyJunimoAbility(hut, pos) != JunimoAbility.None;
+        public bool IsActionable(Vector2 pos) {
+            return IdentifyJunimoAbility(pos) != JunimoAbility.None;
         }
 
-        public JunimoAbility IdentifyJunimoAbility(JunimoHut hut, Vector2 pos) {
+        public JunimoAbility IdentifyJunimoAbility(Vector2 pos) {
             Farm farm = Game1.getFarm();
             if (Capabilities.HarvestForageCrops && IsForageCrop(farm, pos)) {
                 return JunimoAbility.HarvestForageCrop;
             }
             if (farm.terrainFeatures.ContainsKey(pos) && farm.terrainFeatures[pos] is HoeDirt hd) {
                 if (IsEmptyHoeDirt(farm, hd, pos)) {
-                    if (Capabilities.FertilizeCrops && hd.fertilizer.Value <= 0 && HutContainsItemCategory(hut, SObject.fertilizerCategory)) {
+                    if (Capabilities.FertilizeCrops && FertilizerInHut && hd.fertilizer.Value <= 0) {
                         return JunimoAbility.FertilizeCrops;
                     } 
-                    if (Capabilities.PlantCrops && HutContainsItemCategory(hut, SObject.SeedsCategory)) {
+                    if (Capabilities.PlantCrops && SeedsInHut) {
                         return JunimoAbility.PlantCrops;
                     }
                 }
@@ -62,12 +65,6 @@ namespace BetterJunimos.Utils {
 
         public bool IsDeadCrop(Farm farm, HoeDirt hd, Vector2 pos) {
             return farm.isCropAtTile((int)pos.X, (int)pos.Y) && hd.crop.dead.Value;
-        }
-
-        public bool HutContainsItemCategory(JunimoHut hut, int itemCategory) {
-            Farm farm = Game1.getFarm();
-            NetObjectList<Item> chest = hut.output.Value.items;
-            return chest.Any(item => item.category == itemCategory);
         }
 
         public bool PerformAction(JunimoAbility ability, JunimoHut hut, Vector2 pos, JunimoHarvester junimo) {
@@ -142,6 +139,19 @@ namespace BetterJunimos.Utils {
             return false;
         }
 
+
+        public bool HutContainsItemCategory(JunimoHut hut, int itemCategory) {
+            Farm farm = Game1.getFarm();
+            NetObjectList<Item> chest = hut.output.Value.items;
+            return chest.Any(item => item.category == itemCategory);
+        }
+
+
+        internal void UpdateHutItems(JunimoHut hut) {
+            FertilizerInHut = HutContainsItemCategory(hut, SObject.fertilizerCategory);
+            SeedsInHut = HutContainsItemCategory(hut, SObject.SeedsCategory);
+        }
+
         private bool UseItemAbility(JunimoHut hut, Vector2 pos, int itemCategory, Func<Vector2, int, bool> useItem) {
             Farm farm = Game1.getFarm();
             NetObjectList<Item> chest = hut.output.Value.items;
@@ -150,6 +160,7 @@ namespace BetterJunimos.Utils {
             bool success = useItem(pos, foundItem.ParentSheetIndex);
             if (success) {
                 Util.ReduceItemCount(chest, foundItem);
+                UpdateHutItems(hut);
             }
             return success;
         }

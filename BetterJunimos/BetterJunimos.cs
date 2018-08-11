@@ -56,10 +56,10 @@ namespace BetterJunimos {
             replacements.Add("tryToHarvestHere", junimoType, typeof(PatchHarvestAttemptToCustom));
             replacements.Add("pokeToHarvest", junimoType, typeof(PatchPokeToHarvest));
             replacements.Add("update", junimoType, typeof(PatchJunimoShake));
-            if (Config.JunimoHuts.MaxRadius > Util.DefaultRadius || Config.JunimoPayment.WorkForWages) {
-                replacements.Add("pathfindToRandomSpotAroundHut", junimoType, typeof(PatchPathfind));
-                replacements.Add("pathFindToNewCrop_doWork", junimoType, typeof(PatchPathfindDoWork));
-            }
+
+            // improve pathfinding
+            replacements.Add("pathfindToRandomSpotAroundHut", junimoType, typeof(PatchPathfind));
+            replacements.Add("pathFindToNewCrop_doWork", junimoType, typeof(PatchPathfindDoWork));
 
             // Junimo Hut patches
             Type junimoHutType = typeof(JunimoHut);
