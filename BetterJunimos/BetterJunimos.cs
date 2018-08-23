@@ -54,7 +54,7 @@ namespace BetterJunimos {
             Type junimoType = typeof(JunimoHarvester);
             replacements.Add("foundCropEndFunction", junimoType, typeof(PatchFindingCropEnd));
             replacements.Add("tryToHarvestHere", junimoType, typeof(PatchHarvestAttemptToCustom));
-            replacements.Add("pokeToHarvest", junimoType, typeof(PatchPokeToHarvest));
+            //replacements.Add("pokeToHarvest", junimoType, typeof(PatchPokeToHarvest));
             replacements.Add("update", junimoType, typeof(PatchJunimoShake));
 
             // improve pathfinding

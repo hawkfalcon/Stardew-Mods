@@ -4,6 +4,7 @@ namespace BetterJunimos {
     internal class ModConfig {
         public JunimoCapability JunimoCapabilities { get; set; } = new JunimoCapability();
         internal class JunimoCapability {
+            public bool HarvestCrops { get; set; } = true;
             public bool PlantCrops { get; set; } = true;
             public bool FertilizeCrops { get; set; } = true;
             public bool HarvestForageCrops { get; set; } = true;

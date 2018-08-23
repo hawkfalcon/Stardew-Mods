@@ -1,10 +1,10 @@
 ﻿{
   "Name": "Better Junimos",
   "Author": "hawkfalcon",
-  "Version": "0.5.0",
+  "Version": "0.6.0",
   "Description": "Allow your junimos (from junimo huts) to automatically plant seeds, fertilize, and much more!",
   "UniqueID": "hawkfalcon.BetterJunimos",
   "EntryDll": "BetterJunimos.dll",
-  "MinimumApiVersion": "2.6-beta",
+  "MinimumApiVersion": "2.7",
   "UpdateKeys": [ "Nexus:2221" ]
 }

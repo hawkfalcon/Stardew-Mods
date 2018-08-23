@@ -36,9 +36,7 @@ namespace BetterJunimos.Patches {
             for (int x = hut.tileX.Value + 1 - radius; x < hut.tileX.Value + 2 + radius; ++x) {
                 for (int y = hut.tileY.Value + 1 - radius; y < hut.tileY.Value + 2 + radius; ++y) {
                     Vector2 pos = new Vector2((float)x, (float)y);
-                    if ((farm.isCropAtTile(x, y) && (farm.terrainFeatures[new Vector2((float)x, (float)y)] as HoeDirt).readyForHarvest()) ||
-                        Util.Abilities.IsActionable(pos)) {
-                        Console.WriteLine(">" + radius + " = " + x + ", " + y);
+                    if (Util.Abilities.IsActionable(pos)) {
                         hut.lastKnownCropLocation = new Point(x, y);
                         return true;
                     }
@@ -88,7 +86,6 @@ namespace BetterJunimos.Patches {
     [HarmonyPriority(Priority.Low)]
     internal class ReplaceJunimoHutNumber {
         public static bool Prefix(JunimoHut __instance, ref int __result) {
-            Console.WriteLine("num");
             for (int index = 0; index < Util.Config.JunimoHuts.MaxJunimos; ++index) {
                 if (index >= __instance.myJunimos.Count<JunimoHarvester>()) {
                     __result = index;

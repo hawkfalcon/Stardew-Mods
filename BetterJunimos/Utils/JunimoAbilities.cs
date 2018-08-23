@@ -10,7 +10,7 @@ using StardewValley.Characters;
 
 namespace BetterJunimos.Utils {
     public enum JunimoAbility {
-        None, FertilizeCrops, PlantCrops, ClearDeadCrops, HarvestForageCrop
+        None, HarvestCrops, FertilizeCrops, PlantCrops, ClearDeadCrops, HarvestForageCrops
     }
     public class JunimoAbilities {
         internal ModConfig.JunimoCapability Capabilities;
@@ -25,23 +25,45 @@ namespace BetterJunimos.Utils {
 
         public JunimoAbility IdentifyJunimoAbility(Vector2 pos) {
             Farm farm = Game1.getFarm();
+            Console.WriteLine("pos" + pos.X);
             if (Capabilities.HarvestForageCrops && IsForageCrop(farm, pos)) {
-                return JunimoAbility.HarvestForageCrop;
+                Console.WriteLine("ASD: FOR");
+                return JunimoAbility.HarvestForageCrops;
             }
             if (farm.terrainFeatures.ContainsKey(pos) && farm.terrainFeatures[pos] is HoeDirt hd) {
+                if (IsCrop(hd)) {
+                    Console.WriteLine("CROP");
+                    if (Capabilities.HarvestCrops && hd.readyForHarvest()) {
+                        Console.WriteLine("ASD: HAR");
+                        return JunimoAbility.HarvestCrops;
+
+                    }
+                    if (Capabilities.ClearDeadCrops && hd.crop.dead.Value) {
+                        Console.WriteLine("ASD: DEA");
+                        return JunimoAbility.ClearDeadCrops;
+                    }
+                }
                 if (IsEmptyHoeDirt(farm, hd, pos)) {
                     if (Capabilities.FertilizeCrops && FertilizerInHut && hd.fertilizer.Value <= 0) {
+                        Console.WriteLine("ASD: FER");
                         return JunimoAbility.FertilizeCrops;
                     } 
                     if (Capabilities.PlantCrops && SeedsInHut) {
+                        Console.WriteLine("ASD: PLA");
                         return JunimoAbility.PlantCrops;
                     }
                 }
-                if (Capabilities.ClearDeadCrops && IsDeadCrop(farm, hd, pos)) {
-                    return JunimoAbility.ClearDeadCrops;
-                }
             }
             return JunimoAbility.None;
+        }
+
+        public bool IsCrop(HoeDirt hd) {
+            // implementation of isCropAtTile
+            return hd.crop != null;
+        }
+
+        public bool IsEmptyHoeDirt(Farm farm, HoeDirt hd, Vector2 pos) {
+            return !IsCrop(hd) && !farm.objects.ContainsKey(pos);
         }
 
         public bool IsForageCrop(Farm farm, Vector2 pos) {
@@ -59,21 +81,13 @@ namespace BetterJunimos.Utils {
             return false;
         }
 
-        public bool IsEmptyHoeDirt(Farm farm, HoeDirt hd, Vector2 pos) {
-            return hd.crop == null && !farm.objects.ContainsKey(pos);
-        }
-
-        public bool IsDeadCrop(Farm farm, HoeDirt hd, Vector2 pos) {
-            return farm.isCropAtTile((int)pos.X, (int)pos.Y) && hd.crop.dead.Value;
-        }
-
         public bool PerformAction(JunimoAbility ability, JunimoHut hut, Vector2 pos, JunimoHarvester junimo) {
             switch (ability) {
             case JunimoAbility.FertilizeCrops:
                 return UseItemAbility(hut, pos, SObject.fertilizerCategory, Fertilize);
             case JunimoAbility.PlantCrops:
                 return UseItemAbility(hut, pos, SObject.SeedsCategory, Plant);
-            case JunimoAbility.HarvestForageCrop:
+            case JunimoAbility.HarvestForageCrops:
                 return HarvestForageCrop(hut, pos, junimo);
             case JunimoAbility.ClearDeadCrops:
                 return ClearDeadCrops(pos);
@@ -139,13 +153,11 @@ namespace BetterJunimos.Utils {
             return false;
         }
 
-
         public bool HutContainsItemCategory(JunimoHut hut, int itemCategory) {
             Farm farm = Game1.getFarm();
             NetObjectList<Item> chest = hut.output.Value.items;
             return chest.Any(item => item.category == itemCategory);
         }
-
 
         internal void UpdateHutItems(JunimoHut hut) {
             FertilizerInHut = HutContainsItemCategory(hut, SObject.fertilizerCategory);
