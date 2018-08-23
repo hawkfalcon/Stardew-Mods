@@ -93,7 +93,6 @@ namespace BetterJunimos.Patches {
     // Expand radius of random pathfinding
     public class PatchPathfind {
         public static void Postfix(JunimoHarvester __instance) {
-            Console.WriteLine("random");
             JunimoHut hut = Util.GetHutFromJunimo(__instance);
             int radius = Util.MaxRadius;
             __instance.controller = new PathFindController(__instance, __instance.currentLocation, Utility.Vector2ToPoint(
@@ -108,7 +107,6 @@ namespace BetterJunimos.Patches {
     public class PatchPathfindDoWork {
         
         public static bool Prefix(JunimoHarvester __instance) {
-            Console.WriteLine("dowrok");
             if (Game1.timeOfDay > 1900) {
                 if (__instance.controller != null)
                     return false;

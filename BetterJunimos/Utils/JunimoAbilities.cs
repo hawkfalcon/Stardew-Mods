@@ -25,31 +25,24 @@ namespace BetterJunimos.Utils {
 
         public JunimoAbility IdentifyJunimoAbility(Vector2 pos) {
             Farm farm = Game1.getFarm();
-            Console.WriteLine("pos" + pos.X);
             if (Capabilities.HarvestForageCrops && IsForageCrop(farm, pos)) {
-                Console.WriteLine("ASD: FOR");
                 return JunimoAbility.HarvestForageCrops;
             }
             if (farm.terrainFeatures.ContainsKey(pos) && farm.terrainFeatures[pos] is HoeDirt hd) {
                 if (IsCrop(hd)) {
-                    Console.WriteLine("CROP");
                     if (Capabilities.HarvestCrops && hd.readyForHarvest()) {
-                        Console.WriteLine("ASD: HAR");
                         return JunimoAbility.HarvestCrops;
 
                     }
                     if (Capabilities.ClearDeadCrops && hd.crop.dead.Value) {
-                        Console.WriteLine("ASD: DEA");
                         return JunimoAbility.ClearDeadCrops;
                     }
                 }
                 if (IsEmptyHoeDirt(farm, hd, pos)) {
                     if (Capabilities.FertilizeCrops && FertilizerInHut && hd.fertilizer.Value <= 0) {
-                        Console.WriteLine("ASD: FER");
                         return JunimoAbility.FertilizeCrops;
                     } 
                     if (Capabilities.PlantCrops && SeedsInHut) {
-                        Console.WriteLine("ASD: PLA");
                         return JunimoAbility.PlantCrops;
                     }
                 }

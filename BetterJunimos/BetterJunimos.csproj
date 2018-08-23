@@ -45,7 +45,6 @@
     <Compile Include="ModConfig.cs" />
     <Compile Include="Patches\JunimoHarvesterPatches.cs" />
     <Compile Include="JunimoEditor.cs" />
-    <Compile Include="Patches\ChestPatches.cs" />
     <Compile Include="Patches\JunimoHutPatches.cs" />
     <Compile Include="Utils\Util.cs" />
     <Compile Include="Utils\JunimoAbilities.cs" />

@@ -8,7 +8,6 @@ using System.Linq;
 using System.Reflection;
 using BetterJunimos.Patches;
 using StardewValley;
-using StardewValley.Objects;
 using StardewValley.Characters;
 using StardewValley.Menus;
 using BetterJunimos.Utils;
@@ -69,11 +68,6 @@ namespace BetterJunimos {
             replacements.Add("Update", junimoHutType, typeof(ReplaceJunimoHutUpdate));
             replacements.Add("getUnusedJunimoNumber", junimoHutType, typeof(ReplaceJunimoHutNumber));
 
-            // fix stupid bugs in SDV 
-            Type chestType = typeof(Chest);
-            replacements.Add("grabItemFromChest", chestType, typeof(ChestPatchFrom));
-            replacements.Add("grabItemFromInventory", chestType, typeof(ChestPatchTo));
-
             foreach (Tuple<string, Type, Type> replacement in replacements) {
                 MethodInfo original = replacement.Item2.GetMethods(BindingFlags.Instance | BindingFlags.Public).ToList().Find(m => m.Name == replacement.Item1);
 
@@ -99,13 +93,13 @@ namespace BetterJunimos {
             List<BluePrint> newBluePrints = new List<BluePrint>();
             newBluePrints.Add(new BluePrint("Junimo Hut"));
             blueprints.SetValue(newBluePrints);
-            Game1.activeClickableMenu = (IClickableMenu) menu;
+            Game1.activeClickableMenu = (IClickableMenu)menu;
         }
 
         // Closed Junimo Hut menu
         void MenuEvents_MenuClosed(object sender, EventArgsClickableMenuClosed e) {
             if (Config.JunimoPayment.WorkForWages && e.PriorMenu is ItemGrabMenu menu) {
-                if (menu.specialObject != null && menu.specialObject is JunimoHut hut) {
+                if (menu.context != null && menu.context is JunimoHut hut) {
                     CheckForWages(hut);
                 }
             }
@@ -127,15 +121,16 @@ namespace BetterJunimos {
                 Util.MaxRadius = Util.UnpaidRadius;
 
                 Farm farm = Game1.getFarm();
-                foreach (JunimoHut hut in farm.buildings.OfType<JunimoHut>()) {
+                var huts = farm.buildings.OfType<JunimoHut>();
+                foreach (JunimoHut hut in huts) {
                     CheckForWages(hut);
                 }
 
-                if (!Util.Payments.WereJunimosPaidToday) {
+                if (!Util.Payments.WereJunimosPaidToday && huts.Any()) {
                     Util.SendMessage("Junimos will not work until they are paid");
                 }
             }
-            
+
             if (!Config.FunChanges.JunimosAlwaysHaveLeafUmbrellas) {
                 // reset for rainy days
                 Helper.Content.InvalidateCache(@"Characters\Junimo");
@@ -147,10 +142,10 @@ namespace BetterJunimos {
         }
 
         public void AllowJunimoHutPurchasing() {
-            if (Config.JunimoHuts.AvailibleImmediately || 
-                (Config.JunimoHuts.AvailibleAfterCommunityCenterComplete && 
+            if (Config.JunimoHuts.AvailibleImmediately ||
+                (Config.JunimoHuts.AvailibleAfterCommunityCenterComplete &&
                 Game1.MasterPlayer.mailReceived.Contains("ccIsComplete"))) {
-                    Game1.player.hasMagicInk = true;
+                Game1.player.hasMagicInk = true;
             }
         }
 
