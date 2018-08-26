@@ -126,7 +126,7 @@ namespace BetterJunimos {
                 Util.Abilities.UpdateHutItems(Util.GetHutIdFromHut(hut));
             }
 
-            if (!Util.Payments.WereJunimosPaidToday && huts.Any()) {
+            if (Config.JunimoPayment.WorkForWages && !Util.Payments.WereJunimosPaidToday && huts.Any()) {
                 Util.SendMessage("Junimos will not work until they are paid");
             }
 
