@@ -14,8 +14,8 @@ namespace BetterJunimos.Patches {
      * Completely replace
      */
     public class PatchFindingCropEnd {
-        public static bool Prefix(ref PathNode currentNode, ref bool __result) {
-            __result = Util.Abilities.IsActionable(new Vector2(currentNode.x, currentNode.y));
+        public static bool Prefix(JunimoHarvester __instance, ref PathNode currentNode, ref bool __result) {
+            __result = Util.Abilities.IsActionable(new Vector2(currentNode.x, currentNode.y), Util.GetHutIdFromJunimo(__instance));
 
             return false;
         }
@@ -40,14 +40,15 @@ namespace BetterJunimos.Patches {
                 return false;
             }
             int time = Util.Config.JunimoImprovements.WorkFaster ? 300 : 998;
-            JunimoHut hut = Util.GetHutFromJunimo(__instance);
-            JunimoAbility junimoAbility = Util.Abilities.IdentifyJunimoAbility(pos);
+            Guid id = Util.GetHutIdFromJunimo(__instance);
+
+            JunimoAbility junimoAbility = Util.Abilities.IdentifyJunimoAbility(pos, id);
             // Use the update() harvesting
             if (junimoAbility == JunimoAbility.HarvestCrops) {
                 time = 2000;
             }
             else if (junimoAbility != JunimoAbility.None) {
-                if (!Util.Abilities.PerformAction(junimoAbility, hut, pos, __instance)) {
+                if (!Util.Abilities.PerformAction(junimoAbility, id, pos, __instance)) {
                     // didn't succeed, move on
                     time = 0;
                 }
@@ -93,7 +94,7 @@ namespace BetterJunimos.Patches {
     // Expand radius of random pathfinding
     public class PatchPathfind {
         public static void Postfix(JunimoHarvester __instance) {
-            JunimoHut hut = Util.GetHutFromJunimo(__instance);
+            JunimoHut hut = Util.GetHutFromId(Util.GetHutIdFromJunimo(__instance));
             int radius = Util.MaxRadius;
             __instance.controller = new PathFindController(__instance, __instance.currentLocation, Utility.Vector2ToPoint(
                 new Vector2((float)(hut.tileX.Value + 1 + Game1.random.Next(-radius, radius + 1)), (float)(hut.tileY.Value + 1 + Game1.random.Next(-radius, radius + 1)))),
@@ -107,6 +108,7 @@ namespace BetterJunimos.Patches {
     public class PatchPathfindDoWork {
         
         public static bool Prefix(JunimoHarvester __instance) {
+            JunimoHut hut = Util.GetHutFromId(Util.GetHutIdFromJunimo(__instance));
             if (Game1.timeOfDay > 1900) {
                 if (__instance.controller != null)
                     return false;
@@ -122,7 +124,7 @@ namespace BetterJunimos.Patches {
                     Util.AnimateJunimo(7, __instance);
                 }
             }
-            else if (Game1.random.NextDouble() < 0.035 || Util.GetHutFromJunimo(__instance).noHarvest) {
+            else if (Game1.random.NextDouble() < 0.035 || hut.noHarvest) {
                 __instance.pathfindToRandomSpotAroundHut();
             }
             else {
@@ -130,7 +132,6 @@ namespace BetterJunimos.Patches {
                     new PathFindController.isAtEnd(__instance.foundCropEndFunction), -1, false, 
                     new PathFindController.endBehavior(__instance.reachFirstDestinationFromHut), 100, Point.Zero);
             
-                JunimoHut hut = Util.GetHutFromJunimo(__instance);
                 int radius = Util.MaxRadius;
                 if (__instance.controller.pathToEndPoint == null ||
                     Math.Abs(__instance.controller.pathToEndPoint.Last().X - hut.tileX) + 1 > radius ||

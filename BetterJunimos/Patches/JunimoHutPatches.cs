@@ -16,7 +16,6 @@ namespace BetterJunimos.Patches {
     */
     internal class PatchSearchAroundHut {
         public static bool Prefix(JunimoHut __instance, ref bool __result) {
-            Console.WriteLine("searchhut");
             // Prevent unnecessary searching when unpaid
             if (Util.Config.JunimoPayment.WorkForWages && !Util.Payments.WereJunimosPaidToday) {
                 __instance.lastKnownCropLocation = Point.Zero;
@@ -29,14 +28,13 @@ namespace BetterJunimos.Patches {
 
         // search for crops + open plantable spots
         internal static bool searchAroundHut(JunimoHut hut) {
-            Util.Abilities.UpdateHutItems(hut);
-
-            Farm farm = Game1.getFarm();
+            Guid id = Util.GetHutIdFromHut(hut);
+            Util.Abilities.UpdateHutItems(id);
             int radius = Util.MaxRadius;
             for (int x = hut.tileX.Value + 1 - radius; x < hut.tileX.Value + 2 + radius; ++x) {
                 for (int y = hut.tileY.Value + 1 - radius; y < hut.tileY.Value + 2 + radius; ++y) {
                     Vector2 pos = new Vector2((float)x, (float)y);
-                    if (Util.Abilities.IsActionable(pos)) {
+                    if (Util.Abilities.IsActionable(pos, id)) {
                         hut.lastKnownCropLocation = new Point(x, y);
                         return true;
                     }

@@ -119,17 +119,17 @@ namespace BetterJunimos {
                 Util.Payments.JunimoPaymentsToday.Clear();
                 Util.Payments.WereJunimosPaidToday = false;
                 Util.MaxRadius = Util.UnpaidRadius;
-
-                Farm farm = Game1.getFarm();
-                var huts = farm.buildings.OfType<JunimoHut>();
-                foreach (JunimoHut hut in huts) {
-                    CheckForWages(hut);
-                }
-
-                if (!Util.Payments.WereJunimosPaidToday && huts.Any()) {
-                    Util.SendMessage("Junimos will not work until they are paid");
-                }
             }
+            var huts = Game1.getFarm().buildings.OfType<JunimoHut>();
+            foreach (JunimoHut hut in huts) {
+                CheckForWages(hut);
+                Util.Abilities.UpdateHutItems(Util.GetHutIdFromHut(hut));
+            }
+
+            if (!Util.Payments.WereJunimosPaidToday && huts.Any()) {
+                Util.SendMessage("Junimos will not work until they are paid");
+            }
+
 
             if (!Config.FunChanges.JunimosAlwaysHaveLeafUmbrellas) {
                 // reset for rainy days
