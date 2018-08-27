@@ -109,7 +109,7 @@ namespace BetterJunimos.Patches {
         
         public static bool Prefix(JunimoHarvester __instance) {
             JunimoHut hut = Util.GetHutFromId(Util.GetHutIdFromJunimo(__instance));
-            if (Game1.timeOfDay > 1900) {
+            if (Game1.timeOfDay > 1900 && !Util.Config.JunimoImprovements.CanWorkInEvenings) {
                 if (__instance.controller != null)
                     return false;
                 __instance.returnToJunimoHut(__instance.currentLocation);

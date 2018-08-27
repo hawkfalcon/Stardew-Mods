@@ -169,6 +169,7 @@ namespace BetterJunimos.Utils {
             NetObjectList<Item> chest = hut.output.Value.items;
 
             Item foundItem = chest.FirstOrDefault(item => item.Category == itemCategory);
+            if (foundItem == null) return false;
             bool success = useItem(pos, foundItem.ParentSheetIndex);
             if (success) {
                 Util.ReduceItemCount(chest, foundItem);

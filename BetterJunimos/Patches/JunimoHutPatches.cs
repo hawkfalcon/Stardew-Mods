@@ -65,7 +65,10 @@ namespace BetterJunimos.Patches {
             // from Update
             junimoSendOutTimer.SetValue(sendOutTimer - time.ElapsedGameTime.Milliseconds);
             if (sendOutTimer > 0 || __instance.myJunimos.Count() >= Util.Config.JunimoHuts.MaxJunimos ||
-                Game1.IsWinter || !__instance.areThereMatureCropsWithinRadius() || Game1.farmEvent != null)
+                !__instance.areThereMatureCropsWithinRadius() || Game1.farmEvent != null)
+                return;
+            // Winter
+            if (Game1.IsWinter && !Util.Config.JunimoImprovements.CanWorkInWinter)
                 return;
             // Rain
             if (Game1.isRaining && !Util.Config.JunimoImprovements.CanWorkInRain) 
@@ -85,7 +88,7 @@ namespace BetterJunimos.Patches {
     internal class ReplaceJunimoHutNumber {
         public static bool Prefix(JunimoHut __instance, ref int __result) {
             for (int index = 0; index < Util.Config.JunimoHuts.MaxJunimos; ++index) {
-                if (index >= __instance.myJunimos.Count<JunimoHarvester>()) {
+                if (index >= __instance.myJunimos.Count()) {
                     __result = index;
                     return false;
                 }

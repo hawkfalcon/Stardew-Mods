@@ -24,6 +24,8 @@ namespace BetterJunimos {
         public JunimoImprovement JunimoImprovements { get; set; } = new JunimoImprovement();
         internal class JunimoImprovement {
             public bool CanWorkInRain { get; set; } = true;
+            public bool CanWorkInWinter { get; set; } = false;
+            public bool CanWorkInEvenings { get; set; } = false;
             public bool WorkFaster { get; set; } = false;
             public bool AvoidHarvestingFlowers { get; set; } = true;
         }
