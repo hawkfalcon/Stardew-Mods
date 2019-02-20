@@ -11,6 +11,7 @@ using StardewValley;
 using StardewValley.Characters;
 using StardewValley.Menus;
 using BetterJunimos.Utils;
+using BetterJunimos.Abilities;
 
 namespace BetterJunimos {
     public class BetterJunimos : Mod {
@@ -25,7 +26,14 @@ namespace BetterJunimos {
             Util.Reflection = helper.Reflection;
 
             JunimoAbilities junimoAbilities = new JunimoAbilities();
-            junimoAbilities.Capabilities = Config.JunimoCapabilities;
+            junimoAbilities.EnabledAbilities = Config.JunimoAbilites;
+            // register built in abilities, in order
+            junimoAbilities.RegisterJunimoAbility(new FertilizeAbility());
+            junimoAbilities.RegisterJunimoAbility(new PlantCropsAbility());
+            junimoAbilities.RegisterJunimoAbility(new HarvestCropsAbility());
+            junimoAbilities.RegisterJunimoAbility(new HarvestForageCropsAbility());
+            junimoAbilities.RegisterJunimoAbility(new ClearDeadCropsAbility());
+
             JunimoPayments junimoPayments = new JunimoPayments();
             junimoPayments.Payment = Config.JunimoPayment;
 

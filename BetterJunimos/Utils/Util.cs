@@ -5,6 +5,7 @@ using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Characters;
+using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using SObject = StardewValley.Object;
 
@@ -19,11 +20,6 @@ namespace BetterJunimos.Utils {
         internal static JunimoAbilities Abilities;
         internal static JunimoPayments Payments;
 
-        public static Guid GetHutIdFromJunimo(JunimoHarvester junimo) {
-            NetGuid netHome = Reflection.GetField<NetGuid>(junimo, "netHome").GetValue();
-            return netHome.Value;
-        }
-
         public static Guid GetHutIdFromHut(JunimoHut hut) {
             return Game1.getFarm().buildings.GuidOf(hut);
         }
@@ -32,20 +28,20 @@ namespace BetterJunimos.Utils {
             return Game1.getFarm().buildings[id] as JunimoHut;
         }
 
-        public static void AddItemToHut(Guid id, SObject item) {
-            JunimoHut hut = GetHutFromId(id);
-            Item obj = hut.output.Value.addItem(item);
+        public static void AddItemToChest(Farm farm, Chest chest, SObject item) {
+            Item obj = chest.addItem(item);
             if (obj == null)
                 return;
+            Vector2 pos = chest.TileLocation;
             for (int index = 0; index < obj.Stack; ++index)
-                Game1.createObjectDebris(item.parentSheetIndex, hut.tileX + 1, hut.tileY + 1, -1, item.quality, 1f, Game1.getFarm());
+                Game1.createObjectDebris(item.ParentSheetIndex, (int)pos.X + 1, (int)pos.Y + 1, -1, item.Quality, 1f, farm);
         }
 
-        public static void ReduceItemCount(NetObjectList<Item> chest, Item item) {
+        public static void RemoveItemFromChest(Chest chest, Item item) {
             if (Config.FunChanges.InfiniteJunimoInventory) { return; }
             item.Stack--;
             if (item.Stack == 0) {
-                chest.Remove(item);
+                chest.items.Remove(item);
             }
         }
 
