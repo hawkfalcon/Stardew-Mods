@@ -11,6 +11,10 @@ namespace BetterJunimos.Utils {
         public bool WereJunimosPaidToday;
         public Dictionary<string, List<int>> JunimoPaymentsToday = new Dictionary<string, List<int>>();
 
+        internal JunimoPayments(ModConfig.JunimoPayments Payment) {
+            this.Payment = Payment;
+        }
+
         public bool ReceivePaymentItems(JunimoHut hut) {
             Farm farm = Game1.getFarm();
             Chest chest = hut.output.Value;

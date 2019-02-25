@@ -11,7 +11,6 @@ using StardewValley;
 using StardewValley.Characters;
 using StardewValley.Menus;
 using BetterJunimos.Utils;
-using BetterJunimos.Abilities;
 
 namespace BetterJunimos {
     public class BetterJunimos : Mod {
@@ -30,20 +29,10 @@ namespace BetterJunimos {
             Util.Config = Config;
             Util.Reflection = helper.Reflection;
 
-            JunimoAbilities junimoAbilities = new JunimoAbilities();
-            junimoAbilities.EnabledAbilities = Config.JunimoAbilites;
-            // register built in abilities, in order
-            junimoAbilities.RegisterJunimoAbility(new FertilizeAbility());
-            junimoAbilities.RegisterJunimoAbility(new PlantCropsAbility());
-            junimoAbilities.RegisterJunimoAbility(new HarvestCropsAbility());
-            junimoAbilities.RegisterJunimoAbility(new HarvestForageCropsAbility());
-            junimoAbilities.RegisterJunimoAbility(new ClearDeadCropsAbility());
+            Util.Abilities = new JunimoAbilities(Config.JunimoAbilites);
+            helper.WriteConfig(Config);
 
-            JunimoPayments junimoPayments = new JunimoPayments();
-            junimoPayments.Payment = Config.JunimoPayment;
-
-            Util.Abilities = junimoAbilities;
-            Util.Payments = junimoPayments;
+            Util.Payments = new JunimoPayments(Config.JunimoPayment);
             Util.MaxRadius = Config.JunimoPayment.WorkForWages ? Util.UnpaidRadius : Config.JunimoHuts.MaxRadius;
 
             helper.Content.AssetEditors.Add(new JunimoEditor(helper.Content));
@@ -53,6 +42,7 @@ namespace BetterJunimos {
             helper.Events.Display.MenuChanged += OnMenuChanged;
             helper.Events.GameLoop.DayStarted += OnDayStarted;
             helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
+            helper.Events.GameLoop.Saved += OnSaved;
 
             DoHarmonyRegistration();
         }
@@ -101,6 +91,13 @@ namespace BetterJunimos {
             if (e.Button == Config.Other.SpawnJunimoKeybind) {
                 SpawnJunimoCommand();
             }
+        }
+
+        /// <summary>Raised after a the game is saved</summary>
+        /// <param name="sender">The event sender.</param>
+        /// <param name="e">The event arguments.</param>
+        void OnSaved(object sender, SavedEventArgs e) {
+            Helper.WriteConfig(Config);
         }
 
         // BUG: player warps back to wizard hut after use

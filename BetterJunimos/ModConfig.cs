@@ -3,7 +3,7 @@ using StardewModdingAPI;
 
 namespace BetterJunimos {
     internal class ModConfig {
-        public Dictionary<string, bool> JunimoAbilites { get; set; }
+        public Dictionary<string, bool> JunimoAbilites { get; set; } = new Dictionary<string, bool>();
 
         public HutSettings JunimoHuts { get; set; } = new HutSettings();
         internal class HutSettings {

@@ -17,11 +17,38 @@ namespace BetterJunimos.Utils {
 
         public static Dictionary<Guid, Dictionary<int, bool>> ItemsInHuts = new Dictionary<Guid, Dictionary<int, bool>>();
 
+        public JunimoAbilities(Dictionary<string, bool> EnabledAbilities) {
+            this.EnabledAbilities = EnabledAbilities;
+            RegisterDefaultAbilites();
+        }
+
+        // register built in abilities, in order
+        private void RegisterDefaultAbilites() {
+            List<IJunimoAbility> DefaultAbilities = new List<IJunimoAbility> {
+                new FertilizeAbility(), 
+                new FertilizeAbility(), 
+                new WaterAbility(),
+                new PlantCropsAbility(), 
+                new HarvestCropsAbility(), 
+                new HarvestForageCropsAbility(), 
+                new ClearDeadCropsAbility() 
+            };
+            foreach(IJunimoAbility junimoAbility in DefaultAbilities) {
+                RegisterJunimoAbility(junimoAbility);
+            }
+        }
+
         /*
-         * Add an IJunimoAbility to the list of possible actions
+         * Add an IJunimoAbility to the list of possible actions if allowed
          */
-        public void RegisterJunimoAbility(IJunimoAbility ability) {
-            JunimoCapabilities.Add(ability);
+        public void RegisterJunimoAbility(IJunimoAbility junimoAbility) {
+            string name = junimoAbility.AbilityName();
+            if (!EnabledAbilities.ContainsKey(name)) {
+                EnabledAbilities.Add(name, true);
+            }
+            if (EnabledAbilities[name]) {
+                JunimoCapabilities.Add(junimoAbility);
+            }
         }
 
         // Can the Junimo use a capability/ability here
