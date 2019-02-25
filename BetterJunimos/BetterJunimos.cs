@@ -20,6 +20,11 @@ namespace BetterJunimos {
         /// <summary>The mod entry point, called after the mod is first loaded.</summary>
         /// <param name="helper">Provides simplified APIs for writing mods.</param>
         public override void Entry(IModHelper helper) {
+            // Only run if the master game
+            if (!Game1.IsMasterGame) {
+                return;
+            }
+
             Config = helper.ReadConfig<ModConfig>();
 
             Util.Config = Config;
@@ -62,7 +67,6 @@ namespace BetterJunimos {
             Type junimoType = typeof(JunimoHarvester);
             replacements.Add("foundCropEndFunction", junimoType, typeof(PatchFindingCropEnd));
             replacements.Add("tryToHarvestHere", junimoType, typeof(PatchHarvestAttemptToCustom));
-            //replacements.Add("pokeToHarvest", junimoType, typeof(PatchPokeToHarvest));
             replacements.Add("update", junimoType, typeof(PatchJunimoShake));
 
             // improve pathfinding
@@ -76,6 +80,7 @@ namespace BetterJunimos {
             // replacements for hardcoded max junimos
             replacements.Add("Update", junimoHutType, typeof(ReplaceJunimoHutUpdate));
             replacements.Add("getUnusedJunimoNumber", junimoHutType, typeof(ReplaceJunimoHutNumber));
+            replacements.Add("performTenMinuteAction", junimoHutType, typeof(ReplaceJunimoTimerNumber));
 
             foreach (Tuple<string, Type, Type> replacement in replacements) {
                 MethodInfo original = replacement.Item2.GetMethods(BindingFlags.Instance | BindingFlags.Public).ToList().Find(m => m.Name == replacement.Item1);
@@ -113,8 +118,11 @@ namespace BetterJunimos {
         /// <param name="e">The event arguments.</param>
         void OnMenuChanged(object sender, MenuChangedEventArgs e) {
             // closed Junimo Hut menu
-            if (Config.JunimoPayment.WorkForWages && e.OldMenu is ItemGrabMenu menu && menu.context is JunimoHut hut) {
-                CheckForWages(hut);
+            if (e.OldMenu is ItemGrabMenu menu && menu.context is JunimoHut hut) {
+                Util.Abilities.UpdateHutItems(Util.GetHutIdFromHut(hut));
+                if (Config.JunimoPayment.WorkForWages) {
+                    CheckForWages(hut);
+                }
             }
             
             // opened menu

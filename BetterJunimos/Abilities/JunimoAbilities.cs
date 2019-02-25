@@ -33,9 +33,7 @@ namespace BetterJunimos.Utils {
             Farm farm = Game1.getFarm();
             foreach (IJunimoAbility junimoAbility in JunimoCapabilities) {
                 if (junimoAbility.IsActionAvailable(farm, pos)) {
-                    Console.WriteLine("I" + junimoAbility.AbilityName());
                     int requiredItem = junimoAbility.RequiredItem();
-                    Console.WriteLine("J" + requiredItem + " " + id);
                     if (requiredItem == 0 || ItemInHut(id, requiredItem)) {
                         return junimoAbility;
                     }
@@ -48,9 +46,6 @@ namespace BetterJunimos.Utils {
             JunimoHut hut = Util.GetHutFromId(id);
             Chest chest = hut.output.Value;
             Farm farm = Game1.getFarm();
-
-            Console.WriteLine("P" + ability.AbilityName());
-
 
             bool success = ability.PerformAction(farm, pos, junimo, chest);
             int requiredItem = ability.RequiredItem();
@@ -77,7 +72,6 @@ namespace BetterJunimos.Utils {
             if (!ItemsInHuts.ContainsKey(id)) {
                 ItemsInHuts.Add(id, new Dictionary<int, bool>());
             }
-            Console.WriteLine("R" + itemCategory + " " + id);
             ItemsInHuts[id][itemCategory] = chest.items.Any(item => item.Category == itemCategory);
         }
     }

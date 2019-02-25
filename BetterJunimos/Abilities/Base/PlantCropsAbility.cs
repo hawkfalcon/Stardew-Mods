@@ -9,7 +9,7 @@ using StardewValley.TerrainFeatures;
 
 namespace BetterJunimos.Abilities {
     public class PlantCropsAbility : IJunimoAbility {
-        int ItemCategory = StardewValley.Object.fertilizerCategory;
+        int ItemCategory = StardewValley.Object.SeedsCategory;
 
         public string AbilityName() {
             return "PlantCrops";

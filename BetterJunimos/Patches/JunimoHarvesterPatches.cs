@@ -34,22 +34,14 @@ namespace BetterJunimos.Patches {
         public static bool Prefix(JunimoHarvester __instance, ref int ___harvestTimer, ref NetGuid ___netHome) {
             Guid id = ___netHome.Value;
             Vector2 pos = __instance.getTileLocation();
-            // avoid flowers, etc (todo: move)
-            if (Util.ShouldAvoidHarvesting(pos)) {
-                ___harvestTimer = 0;
-                __instance.jumpWithoutSound();
-                __instance.pathfindToNewCrop();
-                return false;
-            }
             int time = Util.Config.JunimoImprovements.WorkFaster ? 300 : 998;
 
             IJunimoAbility junimoAbility = Util.Abilities.IdentifyJunimoAbility(pos, id);
-            // Use the update() harvesting
-            if (junimoAbility.AbilityName() == "HarvestCrops") {
-                time = 2000;
-            }
-            else if (junimoAbility != null) {
-                if (!Util.Abilities.PerformAction(junimoAbility, id, pos, __instance)) {
+            if (junimoAbility != null) {
+                // Use the update() harvesting
+                if (junimoAbility.AbilityName() == "HarvestCrops") {
+                    time = 2000;
+                } else if (!Util.Abilities.PerformAction(junimoAbility, id, pos, __instance)) {
                     // didn't succeed, move on
                     time = 0;
                 }
@@ -63,29 +55,15 @@ namespace BetterJunimos.Patches {
         }
     }
 
-    // pokeToHarvest
-    // Reduce chance of doing nothing
-    //public class PatchPokeToHarvest {
-    //    public static void Postfix(JunimoHarvester __instance) {
-    //        var harvestTimer = Util.Reflection.GetField<int>(__instance, "harvestTimer");
-    //        if (harvestTimer.GetValue() <= 0 && (Util.Config.JunimoImprovements.WorkFaster || Game1.random.NextDouble() >= 0.3)) {
-    //            __instance.pathfindToNewCrop();
-    //        }
-    //    }
-    //}
-
     // update
     // Animate & handle action timer 
     public class PatchJunimoShake {
-        public static void Postfix(JunimoHarvester __instance) {
-            var harvestTimer = Util.Reflection.GetField<int>(__instance, "harvestTimer");
-            int time = harvestTimer.GetValue();
-            if (Util.Config.JunimoImprovements.WorkFaster && time == 999) {
+        public static void Postfix(JunimoHarvester __instance, ref int ___harvestTimer) {
+            if (Util.Config.JunimoImprovements.WorkFaster && ___harvestTimer == 999) {
                 // skip last second of harvesting if faster
-                harvestTimer.SetValue(0);
-                //__instance.pokeToHarvest();
+                ___harvestTimer = 0;
             }
-            else if (time > 500 && time < 1000 || (Util.Config.JunimoImprovements.WorkFaster && time > 5)) {
+            else if (___harvestTimer > 500 && ___harvestTimer < 1000 || (Util.Config.JunimoImprovements.WorkFaster && ___harvestTimer > 5)) {
                 __instance.shake(50);
             }
         }
@@ -108,7 +86,7 @@ namespace BetterJunimos.Patches {
     [HarmonyPriority(Priority.Low)]
     public class PatchPathfindDoWork {
         
-        public static bool Prefix(JunimoHarvester __instance, ref NetGuid ___netHome) {
+        public static bool Prefix(JunimoHarvester __instance, ref NetGuid ___netHome, ref NetEvent1Field<int, NetInt> ___netAnimationEvent) {
             JunimoHut hut = Util.GetHutFromId(___netHome.Value);
             if (Game1.timeOfDay > 1900 && !Util.Config.JunimoImprovements.CanWorkInEvenings) {
                 if (__instance.controller != null)
@@ -122,7 +100,7 @@ namespace BetterJunimos.Patches {
                 }
                 else {
                     // go on strike
-                    Util.AnimateJunimo(7, __instance);
+                    ___netAnimationEvent.Fire(7);
                 }
             }
             else if (Game1.random.NextDouble() < 0.035 || hut.noHarvest.Value) {
@@ -135,14 +113,16 @@ namespace BetterJunimos.Patches {
             
                 int radius = Util.MaxRadius;
                 if (__instance.controller.pathToEndPoint == null ||
-                    Math.Abs(__instance.controller.pathToEndPoint.Last().X - hut.tileX.Value) + 1 > radius ||
-                    Math.Abs(__instance.controller.pathToEndPoint.Last().Y - hut.tileY.Value) + 1 > radius) {
-                    if (Game1.random.NextDouble() < 0.5 && !hut.lastKnownCropLocation.Equals(Point.Zero)) {
+                    Math.Abs(__instance.controller.pathToEndPoint.Last().X - hut.tileX.Value + 1) > radius ||
+                    Math.Abs(__instance.controller.pathToEndPoint.Last().Y - hut.tileY.Value + 1) > radius) {
+                    if (Game1.random.NextDouble() < 0.75 && !hut.lastKnownCropLocation.Equals(Point.Zero)) {
                         __instance.controller = new PathFindController(__instance, __instance.currentLocation, hut.lastKnownCropLocation, -1,
                             new PathFindController.endBehavior(__instance.reachFirstDestinationFromHut), 100);
+                        // refresh lastKnownCropLocation
+                        hut.areThereMatureCropsWithinRadius();
                     }
-                    else if (Game1.random.NextDouble() < 0.25) {
-                        Util.AnimateJunimo(0, __instance);
+                    else if (Game1.random.NextDouble() < 0.05) {
+                        ___netAnimationEvent.Fire(0);
                         __instance.returnToJunimoHut(__instance.currentLocation);
                     }
                     else {
@@ -150,7 +130,7 @@ namespace BetterJunimos.Patches {
                     }
                 }
                 else {
-                    Util.AnimateJunimo(0, __instance);
+                    ___netAnimationEvent.Fire(0);
                 }
             }
             return false;

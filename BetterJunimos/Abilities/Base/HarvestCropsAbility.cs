@@ -11,8 +11,10 @@ namespace BetterJunimos.Abilities {
         }
 
         public bool IsActionAvailable(Farm farm, Vector2 pos) {
-            return farm.terrainFeatures.ContainsKey(pos) && farm.terrainFeatures[pos] is HoeDirt hd && 
-                hd.crop != null && hd.readyForHarvest();
+            if (farm.terrainFeatures.ContainsKey(pos) && farm.terrainFeatures[pos] is HoeDirt hd) {
+                return hd.crop != null && hd.readyForHarvest() && !ShouldAvoidHarvesting(pos, hd);
+            }
+            return false;
         }
 
         public bool PerformAction(Farm farm, Vector2 pos, JunimoHarvester junimo, Chest chest) {
@@ -22,6 +24,10 @@ namespace BetterJunimos.Abilities {
 
         public int RequiredItem() {
             return 0;
+        }
+
+        private bool ShouldAvoidHarvesting(Vector2 pos, HoeDirt hd) {
+            return new StardewValley.Object(pos, hd.crop.indexOfHarvest.Value, 0).Category == StardewValley.Object.flowersCategory;
         }
     }
 }

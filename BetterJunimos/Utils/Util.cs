@@ -45,23 +45,6 @@ namespace BetterJunimos.Utils {
             }
         }
 
-        internal static bool ShouldAvoidHarvesting(Vector2 pos) {
-            if (!Config.JunimoImprovements.AvoidHarvestingFlowers) return false;
-            Farm farm = Game1.getFarm();
-            if (farm.terrainFeatures.ContainsKey(pos) && farm.terrainFeatures[pos] is HoeDirt hd) {
-                if (!hd.readyForHarvest()) return false;
-                if (new SObject(pos, hd.crop.indexOfHarvest.Value, 0).Category == SObject.flowersCategory) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public static void AnimateJunimo(int type, JunimoHarvester junimo) {
-            var netAnimationEvent = Reflection.GetField<NetEvent1Field<int, NetInt>>(junimo, "netAnimationEvent");
-            netAnimationEvent.GetValue().Fire(type);
-        }
-
         public static void SpawnJunimoAtHut(JunimoHut hut) {
             Vector2 pos = new Vector2((float)hut.tileX.Value + 1, (float)hut.tileY.Value + 1) * 64f + new Vector2(0.0f, 32f);
             SpawnJunimoAtPosition(pos, hut, hut.getUnusedJunimoNumber());
