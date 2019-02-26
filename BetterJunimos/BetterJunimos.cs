@@ -43,6 +43,7 @@ namespace BetterJunimos {
             helper.Events.GameLoop.DayStarted += OnDayStarted;
             helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
             helper.Events.GameLoop.Saved += OnSaved;
+            helper.Events.World.BuildingListChanged += OnBuildingListChanged;
 
             DoHarmonyRegistration();
         }
@@ -154,6 +155,17 @@ namespace BetterJunimos {
             if (!Config.FunChanges.JunimosAlwaysHaveLeafUmbrellas) {
                 // reset for rainy days
                 Helper.Content.InvalidateCache(@"Characters\Junimo");
+            }
+        }
+
+        /// <summary>Raised after a building is added
+        /// <param name="sender">The event sender.</param>
+        /// <param name="e">The event arguments.</param>
+        void OnBuildingListChanged(object sender, BuildingListChangedEventArgs e) {
+            foreach (Building building in e.Added) {
+                if (building is JunimoHut hut) {
+                    Util.Abilities.UpdateHutItems(Util.GetHutIdFromHut(hut));
+                }
             }
         }
 
