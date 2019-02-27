@@ -34,8 +34,8 @@ namespace BetterJunimos.Patches {
         public static bool Prefix(JunimoHarvester __instance, ref int ___harvestTimer, ref NetGuid ___netHome) {
             Guid id = ___netHome.Value;
             Vector2 pos = __instance.getTileLocation();
-            int time = Util.Config.JunimoImprovements.WorkFaster ? 300 : 998;
 
+            int time;
             IJunimoAbility junimoAbility = Util.Abilities.IdentifyJunimoAbility(pos, id);
             if (junimoAbility != null) {
                 // Use the update() harvesting
@@ -44,9 +44,14 @@ namespace BetterJunimos.Patches {
                 } else if (!Util.Abilities.PerformAction(junimoAbility, id, pos, __instance)) {
                     // didn't succeed, move on
                     time = 0;
+                } else {
+                    // succeeded, shake
+                    time = Util.Config.JunimoImprovements.WorkFaster ? 300 : 998;
                 }
             }
             else {
+                // nothing to do, wait a moment
+                time = Util.Config.JunimoImprovements.WorkFaster ? 5 : 200;
                 __instance.pokeToHarvest();
             }
             ___harvestTimer = time;
@@ -75,9 +80,13 @@ namespace BetterJunimos.Patches {
         public static void Postfix(JunimoHarvester __instance, ref NetGuid ___netHome) {
             JunimoHut hut = Util.GetHutFromId(___netHome.Value);
             int radius = Util.MaxRadius;
-            __instance.controller = new PathFindController(__instance, __instance.currentLocation, Utility.Vector2ToPoint(
-                new Vector2((float)(hut.tileX.Value + 1 + Game1.random.Next(-radius, radius + 1)), (float)(hut.tileY.Value + 1 + Game1.random.Next(-radius, radius + 1)))),
-                -1, new PathFindController.endBehavior(__instance.reachFirstDestinationFromHut), 100);
+            int retry = 0;
+            do {
+                __instance.controller = new PathFindController(__instance, __instance.currentLocation, Utility.Vector2ToPoint(
+                    new Vector2((float)(hut.tileX.Value + 1 + Game1.random.Next(-radius, radius + 1)), (float)(hut.tileY.Value + 1 + Game1.random.Next(-radius, radius + 1)))),
+                    -1, new PathFindController.endBehavior(__instance.reachFirstDestinationFromHut), 100);
+                retry++;
+            } while (retry <= 5 && (__instance.controller == null || __instance.controller.pathToEndPoint == null));
         }
     }
 
@@ -88,7 +97,8 @@ namespace BetterJunimos.Patches {
         
         public static bool Prefix(JunimoHarvester __instance, ref NetGuid ___netHome, ref NetEvent1Field<int, NetInt> ___netAnimationEvent) {
             JunimoHut hut = Util.GetHutFromId(___netHome.Value);
-            if (Game1.timeOfDay > 1900 && !Util.Config.JunimoImprovements.CanWorkInEvenings) {
+            int time = Util.Config.JunimoImprovements.CanWorkInEvenings ? 2400 : 1900;
+            if (Game1.timeOfDay > time) {
                 if (__instance.controller != null)
                     return false;
                 __instance.returnToJunimoHut(__instance.currentLocation);
@@ -115,13 +125,13 @@ namespace BetterJunimos.Patches {
                 if (__instance.controller.pathToEndPoint == null ||
                     Math.Abs(__instance.controller.pathToEndPoint.Last().X - hut.tileX.Value + 1) > radius ||
                     Math.Abs(__instance.controller.pathToEndPoint.Last().Y - hut.tileY.Value + 1) > radius) {
-                    if (Game1.random.NextDouble() < 0.75 && !hut.lastKnownCropLocation.Equals(Point.Zero)) {
+                    if (Game1.random.NextDouble() < 0.5 && !hut.lastKnownCropLocation.Equals(Point.Zero)) {
                         __instance.controller = new PathFindController(__instance, __instance.currentLocation, hut.lastKnownCropLocation, -1,
                             new PathFindController.endBehavior(__instance.reachFirstDestinationFromHut), 100);
                         // refresh lastKnownCropLocation
                         hut.areThereMatureCropsWithinRadius();
                     }
-                    else if (Game1.random.NextDouble() < 0.05) {
+                    else if (Game1.random.NextDouble() < 0.25) {
                         ___netAnimationEvent.Fire(0);
                         __instance.returnToJunimoHut(__instance.currentLocation);
                     }

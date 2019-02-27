@@ -99,7 +99,9 @@ namespace BetterJunimos.Patches {
     [HarmonyPriority(Priority.Low)]
     internal class ReplaceJunimoTimerNumber {
         public static void Postfix(JunimoHut __instance, ref int ___junimoSendOutTimer) {
-            if (__instance.myJunimos.Count() < Util.Config.JunimoHuts.MaxJunimos && Game1.timeOfDay < 1900) {
+            int time = Util.Config.JunimoImprovements.CanWorkInEvenings ? 2400 : 1900;
+            if (__instance.myJunimos.Count() < Util.Config.JunimoHuts.MaxJunimos && 
+                Game1.timeOfDay < time) {
                 ___junimoSendOutTimer = 1;
             }
         }

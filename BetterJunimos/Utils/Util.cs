@@ -1,12 +1,10 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
-using Netcode;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Characters;
 using StardewValley.Objects;
-using StardewValley.TerrainFeatures;
 using SObject = StardewValley.Object;
 
 namespace BetterJunimos.Utils {
