@@ -25,8 +25,7 @@ namespace BetterJunimos.Utils {
         // register built in abilities, in order
         private void RegisterDefaultAbilites() {
             List<IJunimoAbility> DefaultAbilities = new List<IJunimoAbility> {
-                new FertilizeAbility(), 
-                new FertilizeAbility(), 
+                new FertilizeAbility(),
                 new WaterAbility(),
                 new PlantCropsAbility(), 
                 new HarvestCropsAbility(), 
