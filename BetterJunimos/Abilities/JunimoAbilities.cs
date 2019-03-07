@@ -99,7 +99,10 @@ namespace BetterJunimos.Utils {
             if (!ItemsInHuts.ContainsKey(id)) {
                 ItemsInHuts.Add(id, new Dictionary<int, bool>());
             }
-            ItemsInHuts[id][itemCategory] = chest.items.Any(item => item.Category == itemCategory);
+            ItemsInHuts[id][itemCategory] = chest.items.Any(item => 
+                item.Category == itemCategory && 
+                !(Util.Config.JunimoImprovements.AvoidPlantingCoffee && item.ParentSheetIndex == Util.CoffeeId)
+            );
         }
     }
 }
