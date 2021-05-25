@@ -11,7 +11,7 @@ namespace BetterJunimos {
         }
 
         public int GetJunimoHutMaxJunimos() {
-            return Util.Config.JunimoHuts.MaxJunimos;
+            return Util.Progression.MaxJunimosUnlocked;
         }
 
         public Dictionary<string, bool> GetJunimoAbilities() {
