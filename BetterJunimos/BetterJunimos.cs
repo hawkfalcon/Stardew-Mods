@@ -160,7 +160,9 @@ namespace BetterJunimos {
                 Util.Abilities.UpdateHutItems(Util.GetHutIdFromHut(hut));
             }
 
-            Util.Progression.DayStartedProgressionPrompt(Game1.IsWinter, Game1.isRaining);
+            if (huts.Count() > 0) {
+                Util.Progression.DayStartedProgressionPrompt(Game1.IsWinter, Game1.isRaining);
+            }
 
             if (Config.JunimoPayment.WorkForWages && !Util.Payments.WereJunimosPaidToday && huts.Any()) {
                 Util.SendMessage(Helper.Translation.Get("junimosWillNotWorkText"));
