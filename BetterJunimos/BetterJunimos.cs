@@ -198,6 +198,7 @@ namespace BetterJunimos {
         private void OnLaunched(object sender, GameLaunchedEventArgs e) {
             Config = Helper.ReadConfig<ModConfig>();
             var api = Helper.ModRegistry.GetApi<GenericModConfigMenuAPI>("spacechase0.GenericModConfigMenu");
+            if (api is null) return;
             api.RegisterModConfig(ModManifest, () => Config = new ModConfig(), () => Helper.WriteConfig(Config));
             api.SetDefaultIngameOptinValue(ModManifest, true);
 
