@@ -140,17 +140,21 @@ namespace BetterJunimos.Utils {
 
         public void PromptForCanWorkInEvenings() {
             if (!Config.Progression.Enabled || ProgData.CanWorkInEveningsUnlocked || ProgData.CanWorkInEveningsPrompted) return;
+            if (!Config.JunimoImprovements.CanWorkInEvenings) return;
             Util.SendMessage(GetPromptText("WorkInEvenings", Config.Progression.CanWorkInEvenings.Item, Config.Progression.CanWorkInEvenings.Stack));
             ProgData.CanWorkInEveningsPrompted = true;
         }
 
         public void DayStartedProgressionPrompt(bool isWinter, bool isRaining) {
             string prompt = null;
-            if (isWinter && !ProgData.CanWorkInWinterUnlocked && !ProgData.CanWorkInWinterPrompted) {
+
+            if (!Config.Progression.Enabled) return;
+
+            if (isWinter && !ProgData.CanWorkInWinterUnlocked && !ProgData.CanWorkInWinterPrompted && Config.JunimoImprovements.CanWorkInWinter) {
                 prompt = Util.Progression.GetPromptText("CanWorkInWinter", Config.Progression.CanWorkInWinter.Item, Config.Progression.CanWorkInWinter.Stack);
                 ProgData.CanWorkInWinterPrompted = true;
             }
-            else if (isRaining && !ProgData.CanWorkInRainUnlocked && !ProgData.CanWorkInRainPrompted) {
+            else if (isRaining && !ProgData.CanWorkInRainUnlocked && !ProgData.CanWorkInRainPrompted && Config.JunimoImprovements.CanWorkInRain) {
                 prompt = Util.Progression.GetPromptText("CanWorkInRain", Config.Progression.CanWorkInRain.Item, Config.Progression.CanWorkInRain.Stack);
                 ProgData.CanWorkInRainPrompted = true;
             }
@@ -162,11 +166,11 @@ namespace BetterJunimos.Utils {
                 prompt = Util.Progression.GetPromptText("UnlimitedJunimos", Config.Progression.UnlimitedJunimos.Item, Config.Progression.UnlimitedJunimos.Stack);
                 ProgData.UnlimitedJunimosPrompted = true;
             }
-            else if (!ProgData.WorkFasterUnlocked && !ProgData.WorkFasterPrompted) {
+            else if (!ProgData.WorkFasterUnlocked && !ProgData.WorkFasterPrompted && Config.JunimoImprovements.WorkFaster) {
                 prompt = Util.Progression.GetPromptText("WorkFaster", Config.Progression.WorkFaster.Item, Config.Progression.WorkFaster.Stack);
                 ProgData.WorkFasterPrompted = true;
             }
-            else if (!ProgData.ReducedCostToConstructUnlocked && !ProgData.ReducedCostToConstructPrompted) {
+            else if (!ProgData.ReducedCostToConstructUnlocked && !ProgData.ReducedCostToConstructPrompted && Config.JunimoHuts.ReducedCostToConstruct) {
                 prompt = Util.Progression.GetPromptText("ReducedCostToConstruct", Config.Progression.ReducedCostToConstruct.Item, Config.Progression.ReducedCostToConstruct.Stack);
                 ProgData.ReducedCostToConstructPrompted = true;
             }
