@@ -15,7 +15,7 @@ namespace BetterJunimos {
         }
 
         public Dictionary<string, bool> GetJunimoAbilities() {
-            return Util.Config.JunimoAbilites;
+            return Util.Config.JunimoAbilities;
         }
 
         public void RegisterJunimoAbility(IJunimoAbility junimoAbility) {

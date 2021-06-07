@@ -16,6 +16,7 @@ namespace BetterJunimos.Utils {
         private List<IJunimoAbility> JunimoCapabilities = new List<IJunimoAbility>();
 
         public static Dictionary<Guid, Dictionary<int, bool>> ItemsInHuts = new Dictionary<Guid, Dictionary<int, bool>>();
+        private HashSet<int> RequiredItems = new HashSet<int> { SObject.fertilizerCategory, SObject.SeedsCategory };
 
         public JunimoAbilities(Dictionary<string, bool> EnabledAbilities) {
             this.EnabledAbilities = EnabledAbilities;
@@ -31,7 +32,7 @@ namespace BetterJunimos.Utils {
                 new HarvestCropsAbility(),
                 new HarvestBushesAbility(),
                 new HarvestForageCropsAbility(), 
-                new ClearDeadCropsAbility() 
+                new ClearDeadCropsAbility()
             };
             foreach(IJunimoAbility junimoAbility in DefaultAbilities) {
                 RegisterJunimoAbility(junimoAbility);
@@ -48,6 +49,7 @@ namespace BetterJunimos.Utils {
             }
             if (EnabledAbilities[name]) {
                 JunimoCapabilities.Add(junimoAbility);
+                RequiredItems.UnionWith(junimoAbility.RequiredItems());
             }
         }
 
@@ -60,8 +62,8 @@ namespace BetterJunimos.Utils {
             Farm farm = Game1.getFarm();
             foreach (IJunimoAbility junimoAbility in JunimoCapabilities) {
                 if (junimoAbility.IsActionAvailable(farm, pos)) {
-                    int requiredItem = junimoAbility.RequiredItem();
-                    if (requiredItem == 0 || ItemInHut(id, requiredItem)) {
+                    List<int> requiredItems = junimoAbility.RequiredItems();
+                    if (requiredItems.Count == 0 || ItemInHut(id, requiredItems)) {
 
                         // is this ability available in current progression?
                         // CanUseAbility also has side-effect of prompting user to unlock needed abilities
@@ -80,9 +82,9 @@ namespace BetterJunimos.Utils {
             Farm farm = Game1.getFarm();
 
             bool success = ability.PerformAction(farm, pos, junimo, chest);
-            int requiredItem = ability.RequiredItem();
-            if (requiredItem != 0) {
-                UpdateHutContainsItemCategory(id, chest, requiredItem);
+            List<int> requiredItems = ability.RequiredItems();
+            if (requiredItems.Count > 0) {
+                UpdateHutContainsItems(id, chest, requiredItems);
             }
 
             return success;
@@ -92,12 +94,35 @@ namespace BetterJunimos.Utils {
             return ItemsInHuts[id][item];
         }
 
+        public bool ItemInHut(Guid id, List<int> items) {
+            foreach (int item in items) {
+                if (ItemInHut(id, item)) return true;
+            }
+            return false;
+        }
+
         internal void UpdateHutItems(Guid id) {
             JunimoHut hut = Util.GetHutFromId(id);
             Chest chest = hut.output.Value;
+            UpdateHutContainsItems(id, chest, RequiredItems.ToList<int>());
+        }
 
-            UpdateHutContainsItemCategory(id, chest, SObject.fertilizerCategory);
-            UpdateHutContainsItemCategory(id, chest, SObject.SeedsCategory);
+        public void UpdateHutContainsItems(Guid id, Chest chest, List<int> items) {
+            foreach (int item_id in items) {
+                if (!ItemsInHuts.ContainsKey(id)) {
+                    ItemsInHuts.Add(id, new Dictionary<int, bool>());
+                }
+
+                if (item_id > 0) {
+                    ItemsInHuts[id][item_id] = chest.items.Any(item =>
+                        item != null && item.ParentSheetIndex == item_id &&
+                        !(Util.Config.JunimoImprovements.AvoidPlantingCoffee && item.ParentSheetIndex == Util.CoffeeId)
+                    );
+                }
+                else {
+                    UpdateHutContainsItemCategory(id, chest, item_id);
+                }
+            }
         }
 
         public void UpdateHutContainsItemCategory(Guid id, Chest chest, int itemCategory) {

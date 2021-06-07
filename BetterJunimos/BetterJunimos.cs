@@ -30,7 +30,7 @@ namespace BetterJunimos {
             Util.Config = Config;
             Util.Reflection = helper.Reflection;
 
-            Util.Abilities = new JunimoAbilities(Config.JunimoAbilites);
+            Util.Abilities = new JunimoAbilities(Config.JunimoAbilities);
             helper.WriteConfig(Config);
 
             Util.Payments = new JunimoPayments(Config.JunimoPayment);

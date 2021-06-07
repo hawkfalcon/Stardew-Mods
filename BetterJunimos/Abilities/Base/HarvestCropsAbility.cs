@@ -4,6 +4,7 @@ using StardewValley;
 using StardewValley.Characters;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
+using System.Collections.Generic;
 
 namespace BetterJunimos.Abilities {
     public class HarvestCropsAbility : IJunimoAbility {
@@ -23,8 +24,8 @@ namespace BetterJunimos.Abilities {
             return true;
         }
 
-        public int RequiredItem() {
-            return 0;
+        public List<int> RequiredItems() {
+            return new List<int>();
         }
 
         private bool ShouldAvoidHarvesting(Vector2 pos, HoeDirt hd) {

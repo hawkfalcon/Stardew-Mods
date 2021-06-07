@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Characters;
 using StardewValley.Objects;
@@ -24,8 +25,8 @@ namespace BetterJunimos.Abilities {
             return false;
         }
 
-        public int RequiredItem() {
-            return 0;
+        public List<int> RequiredItems() {
+            return new List<int>();
         }
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Characters;
 using StardewValley.Objects;
+using System.Collections.Generic;
 
 namespace BetterJunimos.Abilities {
     /* 
@@ -25,9 +26,9 @@ namespace BetterJunimos.Abilities {
         bool PerformAction(Farm farm, Vector2 pos, JunimoHarvester junimo, Chest chest);
 
         /*
-         * Does this action require an item (SObject.SeedsCategory, etc)?
-         * Return 0 if no item needed        
+         * Does this action require specific items (or SObject.SeedsCategory, etc)?
+         * Return empty list if no item needed
          */
-        int RequiredItem();
+        List<int> RequiredItems();
     }
 }
