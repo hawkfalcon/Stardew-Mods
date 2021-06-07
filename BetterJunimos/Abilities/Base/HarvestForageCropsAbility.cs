@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Characters;
 using StardewValley.Objects;
+using System.Collections.Generic;
 
 namespace BetterJunimos.Abilities {
     public class HarvestForageCropsAbility : IJunimoAbility {
@@ -52,8 +53,8 @@ namespace BetterJunimos.Abilities {
             return false;
         }
 
-        public int RequiredItem() {
-            return 0;
+        public List<int> RequiredItems() {
+            return new List<int>();
         }
 
         // adapted from GameLocation.checkAction

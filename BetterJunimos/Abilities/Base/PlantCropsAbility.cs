@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using BetterJunimos.Utils;
 using Microsoft.Xna.Framework;
@@ -6,6 +6,8 @@ using StardewValley;
 using StardewValley.Characters;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
+using System.Collections.Generic;
+using SObject = StardewValley.Object;
 
 namespace BetterJunimos.Abilities {
     public class PlantCropsAbility : IJunimoAbility {
@@ -34,8 +36,8 @@ namespace BetterJunimos.Abilities {
             return success;
         }
 
-        public int RequiredItem() {
-            return ItemCategory;
+        public List<int> RequiredItems() {
+            return new List<int> { ItemCategory };
         }
 
         private bool Plant(Farm farm, Vector2 pos, int index) {

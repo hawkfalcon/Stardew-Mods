@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Collections.Generic;
 using BetterJunimos.Utils;
 using Microsoft.Xna.Framework;
 using StardewValley;
@@ -28,8 +29,8 @@ namespace BetterJunimos.Abilities {
             return true;
         }
 
-        public int RequiredItem() {
-            return ItemCategory;
+        public List<int> RequiredItems() {
+            return new List<int> { ItemCategory };
         }
 
         private void Fertilize(Farm farm, Vector2 pos, int index) {
