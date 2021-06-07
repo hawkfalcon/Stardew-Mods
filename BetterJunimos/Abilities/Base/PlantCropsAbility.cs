@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using BetterJunimos.Utils;
 using Microsoft.Xna.Framework;
@@ -23,17 +23,22 @@ namespace BetterJunimos.Abilities {
         }
 
         public bool PerformAction(Farm farm, Vector2 pos, JunimoHarvester junimo, Chest chest) {
-            Item foundItem = chest.items.FirstOrDefault(item =>
-                item != null && item.Category == ItemCategory &&
-                !(Util.Config.JunimoImprovements.AvoidPlantingCoffee && item.ParentSheetIndex == Util.CoffeeId)
+            List<Item> foundItems = chest.items.ToList<Item>().FindAll(item =>
+                item != null && item.Category == ItemCategory
+                && !(Util.Config.JunimoImprovements.AvoidPlantingCoffee && item.ParentSheetIndex == Util.CoffeeId)
             );
-            if (foundItem == null) return false;
+            if (foundItems.Count == 0) return false;
 
-            bool success = Plant(farm, pos, foundItem.ParentSheetIndex);
-            if (success) {
-                Util.RemoveItemFromChest(chest, foundItem);
+            foreach (Item foundItem in foundItems) {
+                Crop crop = new Crop(foundItem.ParentSheetIndex, (int)pos.X, (int)pos.Y);
+                if (crop.seasonsToGrowIn.Contains(Game1.currentSeason)) {
+                    if (Plant(farm, pos, foundItem.ParentSheetIndex)) {
+                        Util.RemoveItemFromChest(chest, foundItem);
+                        return true;
+                    }
+                }
             }
-            return success;
+            return false;
         }
 
         public List<int> RequiredItems() {
@@ -41,10 +46,10 @@ namespace BetterJunimos.Abilities {
         }
 
         private bool Plant(Farm farm, Vector2 pos, int index) {
+            SObject o = new SObject(index, 1);
             Crop crop = new Crop(index, (int)pos.X, (int)pos.Y);
 
-            if (!crop.seasonsToGrowIn.Contains(Game1.currentSeason))
-                return false;
+            if (!crop.seasonsToGrowIn.Contains(Game1.currentSeason)) return false;
 
             if (farm.terrainFeatures[pos] is HoeDirt hd) {
                 CheckSpeedGro(hd, crop);
