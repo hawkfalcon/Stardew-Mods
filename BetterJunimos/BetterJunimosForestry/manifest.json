@@ -1,0 +1,16 @@
+﻿{
+  "Name": "Better Junimos Forestry",
+  "Author": "ceruleandeep",
+  "Version": "0.0.1-alpha.1",
+  "Description": "Allow your junimos (from junimo huts) to automatically plant and harvest trees",
+  "UniqueID": "ceruleandeep.BetterJunimosForestry",
+  "EntryDll": "BetterJunimosForestry.dll",
+  "MinimumApiVersion": "3.2.0",
+  "Dependencies": [
+    {
+      "UniqueID": "hawkfalcon.BetterJunimos",
+      "MinimumVersion": "1.0.0"
+    }
+  ],
+  "UpdateKeys": [ "Nexus:????" ]
+}
