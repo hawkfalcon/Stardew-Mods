@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using BetterJunimos.Utils;
 using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Characters;
 using StardewValley.Objects;
 using System.Collections.Generic;
+using StardewValley.Buildings;
 
 namespace BetterJunimos.Abilities {
     public class HarvestForageCropsAbility : IJunimoAbility {
@@ -12,7 +13,7 @@ namespace BetterJunimos.Abilities {
             return "HarvestForageCrops";
         }
 
-        public bool IsActionAvailable(Farm farm, Vector2 pos) {
+        public bool IsActionAvailable(Farm farm, Vector2 pos, Guid guid) {
             Vector2 up = new Vector2(pos.X, pos.Y + 1);
             Vector2 right = new Vector2(pos.X + 1, pos.Y);
             Vector2 down = new Vector2(pos.X, pos.Y - 1);
@@ -27,7 +28,9 @@ namespace BetterJunimos.Abilities {
             return false;
         }
 
-        public bool PerformAction(Farm farm, Vector2 pos, JunimoHarvester junimo, Chest chest) {
+        public bool PerformAction(Farm farm, Vector2 pos, JunimoHarvester junimo, Guid guid) {
+            Chest chest = Util.GetHutFromId(guid).output.Value;
+
             Vector2 up = new Vector2(pos.X, pos.Y + 1);
             Vector2 right = new Vector2(pos.X + 1, pos.Y);
             Vector2 down = new Vector2(pos.X, pos.Y - 1);
