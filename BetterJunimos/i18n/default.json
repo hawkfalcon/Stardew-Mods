@@ -1,6 +1,7 @@
 {
   "junimosWillNotWorkText": "Junimos will not work until they are paid",
   "spawnJunimoCommandText": "Can only spawn Junimos on Farm",
+  "spawnJunimoButNoHutsText": "Build a Junimo hut before you spawn a Junimo",
   "checkForWagesText": "Junimos are happy with their payment!",
   "CanWorkInEveningsPromptText": "For {{qty}} {{item}}, the Junimos can work in the evening",
   "CanWorkInEveningsSuccessText": "Now the Junimos can work in the evening",
@@ -27,5 +28,6 @@
   "WaterPromptText": "For {{qty}} {{item}}, the Junimos can water your crops",
   "WaterSuccessText": "Now the Junimos can water your crops",
   "WorkFasterPromptText": "For {{qty}} {{item}}, the Junimos can work faster",
-  "WorkFasterSuccessText": "Now the Junimos can work faster"
+  "WorkFasterSuccessText": "Now the Junimos can work faster",
+  "ProgressionTrackerText": "Junimo Progression Tracker: {{percentage}}%^^Quests:^{{quests}}^^Spoilers/troubleshooting:^{{details}}"
 }
