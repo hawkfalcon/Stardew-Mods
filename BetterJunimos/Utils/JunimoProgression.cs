@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BetterJunimos.Abilities;
@@ -319,69 +319,72 @@ namespace BetterJunimos.Utils {
                 items.Add(foundItem.ParentSheetIndex);
                 Util.RemoveItemFromChest(chest, foundItem);
             }
-             //Monitor.Log($"ReceiveItems finished with {items.Count()} of [{index}]", LogLevel.Debug);
+
+            //Monitor.Log($"ReceiveItems finished with {items.Count()} of [{index}]", LogLevel.Debug);
             return items.Count >= needed;
         }
 
-        
-        
+
         private int UnlockedCount() {
             var unlocked = 0.0f;
-            foreach (var unused in Progressions().Where(Unlocked))
-            {
+            foreach (var unused in Progressions().Where(Unlocked)) {
                 unlocked++;
             }
+
             var pc = unlocked / Progressions().Count * 100;
-            return (int)Math.Round(pc);
+            return (int) Math.Round(pc);
         }
 
         private string ActiveQuests() {
-            var quests = (from progression in Progressions() where Prompted(progression) && !Unlocked(progression) select $"= {GetPromptText(progression)}").ToList();
+            var quests = (from progression in Progressions()
+                where Prompted(progression) && !Unlocked(progression)
+                select $"= {GetPromptText(progression)}").ToList();
             return Join("^", quests);
         }
 
         private string PaymentsDetail() {
-            var detail = "Payments: ";
-            if (!BetterJunimos.Config.JunimoPayment.WorkForWages) detail += "working for free";
-            else if (Util.Payments.WereJunimosPaidToday) detail += "working for free";
-            else detail += "unpaid, on strike!";
+            var detail = $"{Get("tracker.payments")}: ";
+            if (!BetterJunimos.Config.JunimoPayment.WorkForWages) detail += Get("tracker.working-for-free");
+            else if (Util.Payments.WereJunimosPaidToday) detail += Get("tracker.paid-today");
+            else detail += Get("tracker.unpaid-not-working");
             return detail;
         }
-        
+
         private string QuestsDetail() {
             var quests = new List<string> {
                 PaymentsDetail(),
-                $"Max Junimos per hut: {Util.Progression.MaxJunimosUnlocked} current, {BetterJunimos.Config.JunimoHuts.MaxJunimos} set in config",
-                $"Working radius: {Util.CurrentWorkingRadius} current, {BetterJunimos.Config.JunimoHuts.MaxRadius} set in config"
+                $"{Get("tracker.max-junimos-per-hut")}: {Util.Progression.MaxJunimosUnlocked} {Get("tracker.current")}, {BetterJunimos.Config.JunimoHuts.MaxJunimos} {Get("tracker.configured")}",
+                $"{Get("tracker.working-radius")}: {Util.CurrentWorkingRadius} {Get("tracker.current")}, {BetterJunimos.Config.JunimoHuts.MaxRadius} {Get("tracker.configured")}"
             };
 
             foreach (var progression in Progressions()) {
                 var ps = progression;
-                if (!Enabled(progression)) ps += ": disabled by configuration";
-                else if (!BetterJunimos.Config.Progression.Enabled) ps += ": enabled";
-                else if (Unlocked(progression)) ps += ": unlocked";
-                else if (Prompted(progression)) ps += ": prompted";
-                else ps += ": not triggered";
+                if (!Enabled(progression)) ps += $": {Get("tracker.current")}";
+                else if (!BetterJunimos.Config.Progression.Enabled) ps += $": {Get("tracker.enabled")}";
+                else if (Unlocked(progression)) ps += $": {Get("tracker.unlocked")}";
+                else if (Prompted(progression)) ps += $": {Get("tracker.prompted")}";
+                else ps += $": {Get("tracker.not-triggered")}";
                 quests.Add(ps);
             }
+
             return Join("^", quests);
         }
 
         internal void PromptAllQuests() {
-            _monitor.Log("Prompting all quests", LogLevel.Info);
+            _monitor.Log(Get("debug.prompting-all-quests"), LogLevel.Info);
             foreach (var progression in Progressions()) {
                 SetPrompted(progression);
                 _monitor.Log($"    {progression}", LogLevel.Debug);
             }
         }
-        
+
         public void ShowPerfectionTracker() {
             var quests = ActiveQuests();
             var percentage = UnlockedCount().ToString();
 
-            var prompt = _helper.Translation.Get("ProgressionTrackerText").ToString();
-            
-            if (quests.Length == 0) quests = "No abilities to unlock at the moment";
+            var prompt = Get("tracker.tracker-title");
+
+            if (quests.Length == 0) quests = Get("tracker.no-abilities-to-unlock");
 
             var message = prompt
                 .Replace("{{percentage}}", percentage)
@@ -407,39 +410,48 @@ namespace BetterJunimos.Utils {
                 ListAvailableActions(Util.GetHutIdFromHut(hut));
             }
         }
-        
+
         // search for crops + open plantable spots
         internal void ListAvailableActions(Guid id) {
             JunimoHut hut = Util.GetHutFromId(id);
             int radius = Util.CurrentWorkingRadius;
-            
-            _monitor.Log($"Available actions for hut at [{hut.tileX} {hut.tileY}] ({id}):", LogLevel.Debug);
+
+            _monitor.Log($"{Get("debug.locked-by-progression")} [{hut.tileX} {hut.tileY}] ({id}):",
+                LogLevel.Debug);
             for (var x = hut.tileX.Value + 1 - radius; x < hut.tileX.Value + 2 + radius; ++x) {
                 for (var y = hut.tileY.Value + 1 - radius; y < hut.tileY.Value + 2 + radius; ++y) {
                     var pos = new Vector2(x, y);
-                    
+
                     var ability = Util.Abilities.IdentifyJunimoAbility(pos, id);
                     if (ability == null) {
                         continue;
                     }
 
-                    // if (ability.AbilityName() != "HoeAroundTrees") {
-                    //     if (!JunimoAbilities.ItemInHut(id, ability.RequiredItems())) continue;
-                    // }
-                    
-                    var cooldown = JunimoAbilities.ActionCoolingDown(ability, pos) ? "[cooling down]" : "";
-                    var itemsAvail = JunimoAbilities.ItemInHut(id, ability.RequiredItems()) ? "" : "[required item unavailable]";
-                    var progLocked = Util.Progression.CanUseAbility(ability) ? "" : "[progression locked]";
-                    
-                    _monitor.Log($"    [{pos.X} {pos.Y}] {ability.AbilityName()} {cooldown} {itemsAvail} {progLocked}", LogLevel.Debug);
+                    // these 3 statements don't run unless you remove the `continue` above
+                    var cooldown = JunimoAbilities.ActionCoolingDown(ability, pos)
+                        ? Get("debug.in-cooldown")
+                        : "";
+                    var itemsAvail = JunimoAbilities.ItemInHut(id, ability.RequiredItems())
+                        ? ""
+                        : Get("debug.required-item-unavailable");
+                    var progLocked = Util.Progression.CanUseAbility(ability)
+                        ? ""
+                        : Get("debug.locked-by-progression");
+
+                    _monitor.Log($"    [{pos.X} {pos.Y}] {ability.AbilityName()} {cooldown} {itemsAvail} {progLocked}",
+                        LogLevel.Debug);
                 }
             }
-            
-            Util.SendMessage("Available actions logged to the console");
+
+            Util.SendMessage(Get("debug.actions-logged"));
         }
-        
+
         public static bool HutOnTile(Vector2 pos) {
             return Game1.getFarm().buildings.Any(b => b is JunimoHut && b.occupiesTile(pos));
+        }
+
+        private string Get(string key) {
+            return _helper.Translation.Get(key);
         }
     }
 }
