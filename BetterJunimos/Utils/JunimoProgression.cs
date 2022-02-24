@@ -1,364 +1,445 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using BetterJunimos.Abilities;
+using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Objects;
-using System;
-using BetterJunimos.Abilities;
+using static System.String;
+using SObject = StardewValley.Object;
 
 namespace BetterJunimos.Utils {
+    public class ProgressionItem {
+        public bool Prompted;
+        public bool Unlocked;
+    }
+
+    public class UnlockCost {
+        public int Item { get; set; }
+        public int Stack { get; set; }
+
+        public string Remarks { get; set; }
+    }
+    
     public class ProgressionData {
-        public bool CanWorkInEveningsPrompted { get; set; }
-        public bool CanWorkInEveningsUnlocked { get; set; }
-        public bool CanWorkInRainPrompted { get; set; }
-        public bool CanWorkInRainUnlocked { get; set; }
-        public bool CanWorkInWinterPrompted { get; set; }
-        public bool CanWorkInWinterUnlocked { get; set; }
-        public bool ClearDeadCropsPrompted { get; set; }
-        public bool ClearDeadCropsUnlocked { get; set; }
-        public bool FertilizePrompted { get; set; }
-        public bool FertilizeUnlocked { get; set; }
-        public bool HarvestBushesPrompted { get; set; }
-        public bool HarvestBushesUnlocked { get; set; }
-        public bool HarvestForageCropsPrompted { get; set; }
-        public bool HarvestForageCropsUnlocked { get; set; }
-        public bool MoreJunimosPrompted { get; set; }
-        public bool MoreJunimosUnlocked { get; set; }
-        public bool PlantCropsPrompted { get; set; }
-        public bool PlantCropsUnlocked { get; set; }
-        public bool ReducedCostToConstructPrompted { get; set; }
-        public bool ReducedCostToConstructUnlocked { get; set; }
-        public bool UnlimitedJunimosPrompted { get; set; }
-        public bool UnlimitedJunimosUnlocked { get; set; }
-        public bool WaterPrompted { get; set; }
-        public bool WaterUnlocked { get; set; }
-        public bool WorkFasterPrompted { get; set; }
-        public bool WorkFasterUnlocked { get; set; }
+        public Dictionary<string, ProgressionItem> Progress { get; set; } = new Dictionary<string, ProgressionItem>();
     }
 
     public class JunimoProgression {
-        private const int INITIAL_JUNIMOS_LIMIT = 3;
-        private const int MORE_JUNIMOS_LIMIT = 6;
+        private const int InitialJunimosLimit = 3;
+        private const int MoreJunimosLimit = 6;
 
-        internal ModConfig Config;
-        internal ProgressionData ProgData;
-        private readonly IMonitor Monitor;
-        private readonly IModHelper Helper;
+        private ProgressionData _progData;
+        private Dictionary<string, UnlockCost> UnlockCosts { get; set; }
 
-        public Dictionary<int, List<int>> JunimoPaymentsToday = new Dictionary<int, List<int>>();
+        private readonly IMonitor _monitor;
+        private readonly IModHelper _helper;
 
-        internal JunimoProgression(ModConfig Config, IMonitor Monitor, IModHelper Helper) {
-            this.Config = Config;
-            this.Monitor = Monitor;
-            this.Helper = Helper;
+        private readonly Dictionary<int, List<int>> _junimoPaymentsToday = new();
+
+        internal JunimoProgression(IMonitor monitor, IModHelper helper) {
+            _monitor = monitor;
+            _helper = helper;
+
+            UnlockCosts = _helper.Data.ReadJsonFile<Dictionary<string, UnlockCost>>("assets/unlock_costs.json");
+            if (UnlockCosts is null) {
+                UnlockCosts = new Dictionary<string, UnlockCost>();
+                monitor.Log("JunimoProgression: did not load UnlockCosts", LogLevel.Error);
+            }
+            var keys = Join(", ", UnlockCosts.Keys);
+            monitor.Log($"JunimoProgression: current UnlockCosts.Keys {keys}", LogLevel.Debug);
+
+            _helper.Data.WriteJsonFile("assets/unlock_costs_recycled.json", UnlockCosts);
         }
 
-        public void Initialize(ProgressionData ProgData) {
-            this.ProgData = ProgData;
+        internal void Configure(ModConfig config, ProgressionData progData) {
+            BetterJunimos.Config = config;
+            _progData = progData;
+            foreach (var progression in Progressions()) {
+                if (! progData.Progress.ContainsKey(progression)) {
+                    progData.Progress[progression] = new ProgressionItem();
+                }
+            }
         }
 
+        private bool Unlocked(IJunimoAbility ability) {
+            if (!_progData.Progress.ContainsKey(ability.AbilityName())) {
+                return true;
+            }
+            return Unlocked(ability.AbilityName());
+        }
+
+        private bool Unlocked(string progression) {
+            if (_progData == null) {
+                _monitor.Log("Unlocked: ProgData is null", LogLevel.Warn);
+                return false;
+            }
+            if (_progData.Progress == null) {
+                _monitor.Log("Unlocked: ProgData.Progress is null", LogLevel.Warn);
+                return false;
+            }
+            if (!_progData.Progress.ContainsKey(progression)) {
+                _monitor.Log($"Unlocked: unknown progression {progression}", LogLevel.Warn);
+                return true;
+            }
+            return _progData.Progress[progression].Unlocked;
+        }
+
+        public void SetUnlocked(string progression) {
+            if (!_progData.Progress.ContainsKey(progression)) {
+                _monitor.Log($"SetUnlocked: unknown progression {progression}", LogLevel.Error);
+                return;
+            }
+            _progData.Progress[progression].Unlocked = true; 
+        }
+
+        private bool Prompted(IJunimoAbility ability) {
+            if (!_progData.Progress.ContainsKey(ability.AbilityName())) {
+                return false;
+            }
+            return Prompted(ability.AbilityName());
+        }
+
+        private bool Prompted(string progression) {
+            if (!_progData.Progress.ContainsKey(progression)) {
+                _monitor.Log($"Prompted: unknown progression {progression}", LogLevel.Warn);
+                return false;
+            }
+            return _progData.Progress[progression].Prompted;
+        }
+
+        public void SetPrompted(string progression) {
+            if (!_progData.Progress.ContainsKey(progression)) {
+                _monitor.Log($"SetPrompted: unknown progression {progression}", LogLevel.Error);
+                throw new ArgumentOutOfRangeException($"SetPrompted: unknown progression {progression}");
+            }
+            _progData.Progress[progression].Prompted = true;
+        }
+
+        private bool LockedAndPrompted(string progression) {
+            return !Unlocked(progression) && Prompted(progression);
+        }
+
+        private bool LockedAndNotPrompted(string progression) {
+            return !Unlocked(progression) && !Prompted(progression);
+        }
+
+        // is it enabled in config?
+        private bool Enabled(string progression) {
+            switch (progression) {
+                case "MoreJunimos":
+                    return BetterJunimos.Config.JunimoHuts.MaxJunimos > InitialJunimosLimit ;
+                case "UnlimitedJunimos":
+                    return BetterJunimos.Config.JunimoHuts.MaxJunimos > MoreJunimosLimit;
+                case "WorkFaster":
+                    return BetterJunimos.Config.JunimoImprovements.WorkFaster;
+                case "CanWorkInWinter":
+                    return BetterJunimos.Config.JunimoImprovements.CanWorkInWinter;
+                case "CanWorkInRain":
+                    return BetterJunimos.Config.JunimoImprovements.CanWorkInRain;
+                case "CanWorkInEvenings":
+                    return BetterJunimos.Config.JunimoImprovements.CanWorkInEvenings;
+                case "ReducedCostToConstruct":
+                    return BetterJunimos.Config.JunimoHuts.ReducedCostToConstruct;
+                default:
+                    return true;
+            }
+        }
         public int MaxJunimosUnlocked {
             get {
-                if (!Config.Progression.Enabled) return Config.JunimoHuts.MaxJunimos;
-                if (ProgData.UnlimitedJunimosUnlocked) return Config.JunimoHuts.MaxJunimos;
-                if (ProgData.MoreJunimosUnlocked) return Math.Min(MORE_JUNIMOS_LIMIT, Config.JunimoHuts.MaxJunimos); ;
-                return Math.Min(INITIAL_JUNIMOS_LIMIT, Config.JunimoHuts.MaxJunimos);
+                if (!BetterJunimos.Config.Progression.Enabled) return BetterJunimos.Config.JunimoHuts.MaxJunimos;
+                if (Unlocked("UnlimitedJunimos")) return BetterJunimos.Config.JunimoHuts.MaxJunimos;
+                if (Unlocked("MoreJunimos")) return Math.Min(MoreJunimosLimit, BetterJunimos.Config.JunimoHuts.MaxJunimos);
+                return Math.Min(InitialJunimosLimit, BetterJunimos.Config.JunimoHuts.MaxJunimos);
             }
         }
 
         public bool ReducedCostToConstruct { 
             get {
-                if (!Util.Config.JunimoHuts.ReducedCostToConstruct) return false;
-                if (!Config.Progression.Enabled) return true;
-                if (ProgData is null) return Util.Config.JunimoHuts.ReducedCostToConstruct;
-                return ProgData.ReducedCostToConstructUnlocked;
+                if (!BetterJunimos.Config.JunimoHuts.ReducedCostToConstruct) return false;
+                if (!BetterJunimos.Config.Progression.Enabled) return true;
+                if (_progData is null) return BetterJunimos.Config.JunimoHuts.ReducedCostToConstruct;
+                return Unlocked("ReducedCostToConstruct");
             }
         }
 
         public bool CanWorkInEvenings {
             get {
-                if (!Util.Config.JunimoImprovements.CanWorkInEvenings) return false;
-                if (!Config.Progression.Enabled) return true;
-                return ProgData.CanWorkInEveningsUnlocked;
+                if (!BetterJunimos.Config.JunimoImprovements.CanWorkInEvenings) return false;
+                if (!BetterJunimos.Config.Progression.Enabled) return true;
+                return Unlocked("CanWorkInEvenings");
             }
         }
 
         public bool CanWorkInRain {
             get {
-                if (!Util.Config.JunimoImprovements.CanWorkInRain) return false;
-                if (!Config.Progression.Enabled) return true;
-                return ProgData.CanWorkInRainUnlocked;
+                if (!BetterJunimos.Config.JunimoImprovements.CanWorkInRain) return false;
+                if (!BetterJunimos.Config.Progression.Enabled) return true;
+                return Unlocked("CanWorkInRain");
             }
         }
 
         public bool CanWorkInWinter {
             get {
-                if (!Util.Config.JunimoImprovements.CanWorkInWinter) return false;
-                if (!Config.Progression.Enabled) return true;
-                return ProgData.CanWorkInWinterUnlocked;
+                if (!BetterJunimos.Config.JunimoImprovements.CanWorkInWinter) return false;
+                if (!BetterJunimos.Config.Progression.Enabled) return true;
+                return Unlocked("CanWorkInWinter");
             }
         }
 
         public bool WorkFaster {
             get {
-                if (!Util.Config.JunimoImprovements.WorkFaster) return false;
-                if (!Config.Progression.Enabled) return true;
-                return ProgData.WorkFasterUnlocked;
+                if (!BetterJunimos.Config.JunimoImprovements.WorkFaster) return false;
+                if (!BetterJunimos.Config.Progression.Enabled) return true;
+                return Unlocked("WorkFaster");
             }
         }
 
         public bool CanUseAbility(IJunimoAbility ability) {
-            if (!Config.Progression.Enabled) return true;
+            if (!BetterJunimos.Config.Progression.Enabled) return true;
             PromptForAbility(ability);
             return Unlocked(ability);
         }
 
-        private bool Unlocked(IJunimoAbility ability) {
-            if (ability.AbilityName() == "ClearDeadCrops") return ProgData.ClearDeadCropsUnlocked;
-            if (ability.AbilityName() == "Fertilize") return ProgData.FertilizeUnlocked;
-            if (ability.AbilityName() == "HarvestBushes") return ProgData.HarvestBushesUnlocked;
-            if (ability.AbilityName() == "HarvestForageCrops") return ProgData.HarvestForageCropsUnlocked;
-            if (ability.AbilityName() == "PlantCrops") return ProgData.PlantCropsUnlocked;
-            if (ability.AbilityName() == "Water") return ProgData.WaterUnlocked;
-            if (ability.AbilityName() == "HarvestCrops") return true;
-            Monitor.Log($"Unlocked: progression checked for {ability.AbilityName()} but not implemented", LogLevel.Debug);
-            return true;
-        }
-
-        private bool Prompted(IJunimoAbility ability) {
-            if (ability.AbilityName() == "ClearDeadCrops") return ProgData.ClearDeadCropsPrompted;
-            if (ability.AbilityName() == "Fertilize") return ProgData.FertilizePrompted;
-            if (ability.AbilityName() == "HarvestBushes") return ProgData.HarvestBushesPrompted;
-            if (ability.AbilityName() == "HarvestForageCrops") return ProgData.HarvestForageCropsPrompted;
-            if (ability.AbilityName() == "PlantCrops") return ProgData.PlantCropsPrompted;
-            if (ability.AbilityName() == "Water") return ProgData.WaterPrompted;
-            if (ability.AbilityName() == "HarvestCrops") return true;
-            Monitor.Log($"Prompted: progression checked for {ability.AbilityName()} but not implemented", LogLevel.Debug);
-            return true;
-        }
-
         public void PromptForCanWorkInEvenings() {
-            if (!Config.Progression.Enabled || ProgData.CanWorkInEveningsUnlocked || ProgData.CanWorkInEveningsPrompted) return;
-            if (!Config.JunimoImprovements.CanWorkInEvenings) return;
-            Util.SendMessage(GetPromptText("WorkInEvenings", Config.Progression.CanWorkInEvenings.Item, Config.Progression.CanWorkInEvenings.Stack));
-            ProgData.CanWorkInEveningsPrompted = true;
+            if (!BetterJunimos.Config.Progression.Enabled || Unlocked("CanWorkInEvenings") || Prompted("CanWorkInEvenings")) return;
+            if (!BetterJunimos.Config.JunimoImprovements.CanWorkInEvenings) return;
+            DisplayPromptFor("CanWorkInEvenings");
         }
 
         public void DayStartedProgressionPrompt(bool isWinter, bool isRaining) {
-            string prompt = null;
+            if (!BetterJunimos.Config.Progression.Enabled) return;
 
-            if (!Config.Progression.Enabled) return;
-
-            if (isWinter && !ProgData.CanWorkInWinterUnlocked && !ProgData.CanWorkInWinterPrompted && Config.JunimoImprovements.CanWorkInWinter) {
-                prompt = Util.Progression.GetPromptText("CanWorkInWinter", Config.Progression.CanWorkInWinter.Item, Config.Progression.CanWorkInWinter.Stack);
-                ProgData.CanWorkInWinterPrompted = true;
+            if (isWinter && LockedAndNotPrompted("CanWorkInWinter") && BetterJunimos.Config.JunimoImprovements.CanWorkInWinter) {
+                DisplayPromptFor("CanWorkInWinter");
             }
-            else if (isRaining && !ProgData.CanWorkInRainUnlocked && !ProgData.CanWorkInRainPrompted && Config.JunimoImprovements.CanWorkInRain) {
-                prompt = Util.Progression.GetPromptText("CanWorkInRain", Config.Progression.CanWorkInRain.Item, Config.Progression.CanWorkInRain.Stack);
-                ProgData.CanWorkInRainPrompted = true;
+            else if (isRaining && LockedAndNotPrompted("CanWorkInRain") && BetterJunimos.Config.JunimoImprovements.CanWorkInRain) {
+                DisplayPromptFor("CanWorkInRain");
             }
-            else if (Config.JunimoHuts.MaxJunimos >= MaxJunimosUnlocked && !ProgData.MoreJunimosUnlocked && !ProgData.MoreJunimosPrompted) {
-                prompt = Util.Progression.GetPromptText("MoreJunimos", Config.Progression.MoreJunimos.Item, Config.Progression.MoreJunimos.Stack);
-                ProgData.MoreJunimosPrompted = true;
+            else if (BetterJunimos.Config.JunimoHuts.MaxJunimos >= MaxJunimosUnlocked && LockedAndNotPrompted("MoreJunimos")) {
+                DisplayPromptFor("MoreJunimos");
             }
-            else if (Config.JunimoHuts.MaxJunimos >= MaxJunimosUnlocked && ProgData.MoreJunimosUnlocked && !ProgData.UnlimitedJunimosUnlocked && !ProgData.UnlimitedJunimosPrompted) {
-                prompt = Util.Progression.GetPromptText("UnlimitedJunimos", Config.Progression.UnlimitedJunimos.Item, Config.Progression.UnlimitedJunimos.Stack);
-                ProgData.UnlimitedJunimosPrompted = true;
+            else if (BetterJunimos.Config.JunimoHuts.MaxJunimos >= MaxJunimosUnlocked && Unlocked("MoreJunimos") && LockedAndNotPrompted("UnlimitedJunimos")) {
+                DisplayPromptFor("UnlimitedJunimos");
             }
-            else if (!ProgData.WorkFasterUnlocked && !ProgData.WorkFasterPrompted && Config.JunimoImprovements.WorkFaster) {
-                prompt = Util.Progression.GetPromptText("WorkFaster", Config.Progression.WorkFaster.Item, Config.Progression.WorkFaster.Stack);
-                ProgData.WorkFasterPrompted = true;
+            else if (LockedAndNotPrompted("WorkFaster") && BetterJunimos.Config.JunimoImprovements.WorkFaster) {
+                DisplayPromptFor("WorkFaster");
             }
-            else if (!ProgData.ReducedCostToConstructUnlocked && !ProgData.ReducedCostToConstructPrompted && Config.JunimoHuts.ReducedCostToConstruct) {
-                prompt = Util.Progression.GetPromptText("ReducedCostToConstruct", Config.Progression.ReducedCostToConstruct.Item, Config.Progression.ReducedCostToConstruct.Stack);
-                ProgData.ReducedCostToConstructPrompted = true;
-            }
-
-            if (prompt is not null) {
-                Util.SendMessage(prompt);
+            else if (LockedAndNotPrompted("ReducedCostToConstruct") && BetterJunimos.Config.JunimoHuts.ReducedCostToConstruct) {
+                DisplayPromptFor("ReducedCostToConstruct");
             }
         }
 
-        public void PromptForAbility(IJunimoAbility ability) {
+        private void PromptForAbility(IJunimoAbility ability) {
             if (Unlocked(ability) || Prompted(ability)) return;
-            string an = ability.AbilityName();
-            switch (an) {
-                case "ClearDeadCrops":
-                    Util.SendMessage(GetPromptText(an, Config.Progression.ClearDeadCrops.Item, Config.Progression.ClearDeadCrops.Stack));
-                    ProgData.ClearDeadCropsPrompted = true;
-                    break;
-
-                case "Fertilize":
-                    Util.SendMessage(GetPromptText(an, Config.Progression.Fertilize.Item, Config.Progression.Fertilize.Stack));
-                    ProgData.FertilizePrompted = true;
-                    break;
-
-                case "HarvestBushes":
-                    Util.SendMessage(GetPromptText(an, Config.Progression.HarvestBushes.Item, Config.Progression.HarvestBushes.Stack));
-                    ProgData.HarvestBushesPrompted = true;
-                    break;
-
-                case "HarvestForageCrops":
-                    Util.SendMessage(GetPromptText(an, Config.Progression.HarvestForageCrops.Item, Config.Progression.HarvestForageCrops.Stack));
-                    ProgData.HarvestForageCropsPrompted = true;
-                    break;
-
-                case "PlantCrops":
-                    Util.SendMessage(GetPromptText(an, Config.Progression.PlantCrops.Item, Config.Progression.PlantCrops.Stack));
-                    ProgData.PlantCropsPrompted = true;
-                    break;
-
-                case "Water":
-                    Util.SendMessage(GetPromptText(an, Config.Progression.Water.Item, Config.Progression.Water.Stack));
-                    ProgData.WaterPrompted = true;
-                    break;
-
-                default:
-                    Monitor.Log($"PromptForAbility: progression prompt check needed for {an} but not implemented", LogLevel.Debug);
-                    break;
+            var an = ability.AbilityName();
+            if (! _progData.Progress.ContainsKey(an)) {
+                _monitor.Log($"PromptForAbility: unknown ability {an}", LogLevel.Warn);
+                return;
             }
+            DisplayPromptFor(an);
         }
 
-        public string GetPromptText(string ability, int item, int stack) {
-            string text_key = ability + "PromptText";
-            StardewValley.Object i = new StardewValley.Object(item, stack);
-            string prompt = Helper.Translation.Get(text_key).ToString();
-            if (prompt.Contains("no translation")) {
-                prompt = "For {{qty}} {{item}}, the Junimos can " + ability.ToLower();
-                Monitor.Log($"GetPromptText: no translation for {text_key}", LogLevel.Debug);
+        private void DisplayPromptFor(string progression) {
+            var prompt = GetPromptText(progression);
+            if (prompt.Length == 0) {
+                _monitor.Log($"DisplayPromptFor: did not get progression prompt text for {progression}", LogLevel.Warn);
+                return;
             }
-            return prompt.Replace("{{qty}}", stack.ToString()).Replace("{{item}}", i.DisplayName);
+            SetPrompted(progression);
+            Util.SendMessage(prompt);
         }
 
-        public string GetSuccessText(string ability) {
-            string text_key = ability + "SuccessText";
-            string prompt = Helper.Translation.Get(text_key).ToString();
+        private string GetPromptText(string ability) {
+            return GetPromptText(ability, ItemForAbility(ability), StackForAbility(ability));
+        }
+
+        private string GetPromptText(string ability, int item, int stack) {
+            var textKey = $"{ability}PromptText";
+            var displayName = new SObject(item, stack).DisplayName;
+            var prompt = _helper.Translation.Get(textKey).ToString();
             if (prompt.Contains("no translation")) {
-                prompt = "Now the Junimos can " + ability.ToLower();
-                Monitor.Log($"GetSuccessText: no translation for {text_key}", LogLevel.Debug);
+                prompt = $"For {{{{qty}}}} {{{{item}}}}, the Junimos can {ability.ToLower()}";
+                _monitor.Log($"GetPromptText: no translation for {textKey}", LogLevel.Debug);
             }
+            return prompt.Replace("{{qty}}", stack.ToString()).Replace("{{item}}", displayName);
+        }
+
+        private string GetSuccessText(string ability) {
+            var textKey = $"{ability}SuccessText";
+            var prompt = _helper.Translation.Get(textKey).ToString();
+            if (!prompt.Contains("no translation")) return prompt;
+            prompt = $"Now the Junimos can {ability.ToLower()}";
+            _monitor.Log($"GetSuccessText: no translation for {textKey}", LogLevel.Debug);
             return prompt;
         }
 
         public void ReceiveProgressionItems(JunimoHut hut) {
-            Chest chest = hut.output.Value;
+            var chest = hut.output.Value;
 
-            if (!ProgData.CanWorkInEveningsUnlocked && ProgData.CanWorkInEveningsPrompted) {
-                if (ReceiveItems(chest, Config.Progression.CanWorkInEvenings.Stack, Config.Progression.CanWorkInEvenings.Item)) {
-                    ProgData.CanWorkInEveningsUnlocked = true;
-                    Util.SendMessage(GetSuccessText("CanWorkInEvenings"));
-                }
-            }
-
-            if (!ProgData.CanWorkInRainUnlocked && ProgData.CanWorkInRainPrompted) {
-                if (ReceiveItems(chest, Config.Progression.CanWorkInRain.Stack, Config.Progression.CanWorkInRain.Item)) {
-                    ProgData.CanWorkInRainUnlocked = true;
-                    Util.SendMessage(GetSuccessText("CanWorkInRain"));
-                }
-            }
-
-            if (!ProgData.CanWorkInWinterUnlocked && ProgData.CanWorkInWinterPrompted) {
-                if (ReceiveItems(chest, Config.Progression.CanWorkInWinter.Stack, Config.Progression.CanWorkInWinter.Item)) {
-                    ProgData.CanWorkInWinterUnlocked = true;
-                    Util.SendMessage(GetSuccessText("CanWorkInWinter"));
-                }
-            }
-
-            if (!ProgData.MoreJunimosUnlocked && ProgData.MoreJunimosPrompted) {
-                if (ReceiveItems(chest, Config.Progression.MoreJunimos.Stack, Config.Progression.MoreJunimos.Item)) {
-                    ProgData.MoreJunimosUnlocked = true;
-                    Util.SendMessage(GetSuccessText("MoreJunimos"));
-                }
-            }
-
-            if (!ProgData.ReducedCostToConstructUnlocked && ProgData.ReducedCostToConstructPrompted) {
-                if (ReceiveItems(chest, Config.Progression.ReducedCostToConstruct.Stack, Config.Progression.ReducedCostToConstruct.Item)) {
-                    ProgData.ReducedCostToConstructUnlocked = true;
-                    Util.SendMessage(GetSuccessText("ReducedCostToConstruct"));
-                }
-            }
-
-            if (!ProgData.UnlimitedJunimosUnlocked && ProgData.UnlimitedJunimosPrompted) {
-                if (ReceiveItems(chest, Config.Progression.UnlimitedJunimos.Stack, Config.Progression.UnlimitedJunimos.Item)) {
-                    ProgData.UnlimitedJunimosUnlocked = true;
-                    Util.SendMessage(GetSuccessText("UnlimitedJunimos"));
-                }
-            }
-
-            if (!ProgData.WorkFasterUnlocked && ProgData.WorkFasterPrompted) {
-                if (ReceiveItems(chest, Config.Progression.WorkFaster.Stack, Config.Progression.WorkFaster.Item)) {
-                    ProgData.WorkFasterUnlocked = true;
-                    Util.SendMessage(GetSuccessText("WorkFaster"));
-                }
-            }
-
-            if (!ProgData.ClearDeadCropsUnlocked && ProgData.ClearDeadCropsPrompted) {
-                if (ReceiveItems(chest, Config.Progression.ClearDeadCrops.Stack, Config.Progression.ClearDeadCrops.Item)) {
-                    ProgData.ClearDeadCropsUnlocked = true;
-                    Util.SendMessage(GetSuccessText("ClearDeadCrops"));
-                }
-            }
-
-            if (!ProgData.FertilizeUnlocked && ProgData.FertilizePrompted) {
-                if (ReceiveItems(chest, Config.Progression.Fertilize.Stack, Config.Progression.Fertilize.Item)) {
-                    ProgData.FertilizeUnlocked = true;
-                    Util.SendMessage(GetSuccessText("Fertilize"));
-                }
-            }
-
-            if (!ProgData.HarvestBushesUnlocked && ProgData.HarvestBushesPrompted) {
-                if (ReceiveItems(chest, Config.Progression.HarvestBushes.Stack, Config.Progression.HarvestBushes.Item)) {
-                    ProgData.HarvestBushesUnlocked = true;
-                    Util.SendMessage(GetSuccessText("HarvestBushes"));
-                }
-            }
-
-            if (!ProgData.HarvestForageCropsUnlocked && ProgData.HarvestForageCropsPrompted) {
-                if (ReceiveItems(chest, Config.Progression.HarvestForageCrops.Stack, Config.Progression.HarvestForageCrops.Item)) {
-                    ProgData.HarvestForageCropsUnlocked = true;
-                    Util.SendMessage(GetSuccessText("HarvestForageCrops"));
-                }
-            }
-
-            if (!ProgData.PlantCropsUnlocked && ProgData.PlantCropsPrompted) {
-                if (ReceiveItems(chest, Config.Progression.PlantCrops.Stack, Config.Progression.PlantCrops.Item)) {
-                    ProgData.PlantCropsUnlocked = true;
-                    Util.SendMessage(GetSuccessText("PlantCrops"));
-                }
-            }
-
-            if (!ProgData.WaterUnlocked && ProgData.WaterPrompted) {
-                if (ReceiveItems(chest, Config.Progression.Water.Stack, Config.Progression.Water.Item)) {
-                    ProgData.WaterUnlocked = true;
-                    Util.SendMessage(GetSuccessText("Water"));
-                }
+            foreach (var ability in Progressions().Where(LockedAndPrompted).Where(ability => ReceiveItems(chest, ability)))
+            {
+                SetUnlocked(ability);
+                Util.SendMessage(GetSuccessText(ability));
             }
         }
 
+        private int ItemForAbility(string ability) {
+            if (UnlockCosts.ContainsKey(ability)) return UnlockCosts[ability].Item;
+            _monitor.Log($"ItemForAbility got a request for unknown {ability}", LogLevel.Warn);
+            return 268;
+        }
+
+        private int StackForAbility(string ability) {
+            return !UnlockCosts.ContainsKey(ability) ? 1 : UnlockCosts[ability].Stack;
+        }
+
+        private bool ReceiveItems(Chest chest, string ability) {
+            return ReceiveItems(chest, StackForAbility(ability), ItemForAbility(ability));
+        }
+
         private bool ReceiveItems(Chest chest, int needed, int index) {
-            // Monitor.Log($"ReceiveItems wants {needed} of [{index}]", LogLevel.Debug);
+             //Monitor.Log($"ReceiveItems wants {needed} of [{index}]", LogLevel.Debug);
 
             if (needed == 0) return true;
-            List<int> items;
-            if (!JunimoPaymentsToday.TryGetValue(index, out items)) {
+            if (!_junimoPaymentsToday.TryGetValue(index, out var items)) {
                 items = new List<int>();
-                JunimoPaymentsToday[index] = items;
+                _junimoPaymentsToday[index] = items;
             }
-            int paidSoFar = items.Count();
-            // Monitor.Log($"ReceiveItems got {paidSoFar} of [{index}] already", LogLevel.Debug);
-
+            var paidSoFar = items.Count;
+            //Monitor.Log($"ReceiveItems got {paidSoFar} of [{index}] already", LogLevel.Debug);
+            
             if (paidSoFar == needed) return true;
 
-            foreach (int i in Enumerable.Range(paidSoFar, needed)) {
-                Item foundItem = chest.items.FirstOrDefault(item => item != null && item.ParentSheetIndex == index);
-                if (foundItem != null) {
-                    items.Add(foundItem.ParentSheetIndex);
-                    Util.RemoveItemFromChest(chest, foundItem);
+            foreach (var unused in Enumerable.Range(paidSoFar, needed)) {
+                var foundItem = chest.items.FirstOrDefault(item => item != null && item.ParentSheetIndex == index);
+                if (foundItem == null) continue;
+                items.Add(foundItem.ParentSheetIndex);
+                Util.RemoveItemFromChest(chest, foundItem);
+            }
+             //Monitor.Log($"ReceiveItems finished with {items.Count()} of [{index}]", LogLevel.Debug);
+            return items.Count >= needed;
+        }
+
+        
+        
+        private int UnlockedCount() {
+            var unlocked = 0.0f;
+            foreach (var unused in Progressions().Where(Unlocked))
+            {
+                unlocked++;
+            }
+            var pc = unlocked / Progressions().Count * 100;
+            return (int)Math.Round(pc);
+        }
+
+        private string ActiveQuests() {
+            var quests = (from progression in Progressions() where Prompted(progression) && !Unlocked(progression) select $"= {GetPromptText(progression)}").ToList();
+            return Join("^", quests);
+        }
+
+        private string PaymentsDetail() {
+            var detail = "Payments: ";
+            if (!BetterJunimos.Config.JunimoPayment.WorkForWages) detail += "working for free";
+            else if (Util.Payments.WereJunimosPaidToday) detail += "working for free";
+            else detail += "unpaid, on strike!";
+            return detail;
+        }
+        
+        private string QuestsDetail() {
+            var quests = new List<string> {
+                PaymentsDetail(),
+                $"Max Junimos per hut: {Util.Progression.MaxJunimosUnlocked} current, {BetterJunimos.Config.JunimoHuts.MaxJunimos} set in config",
+                $"Working radius: {Util.CurrentWorkingRadius} current, {BetterJunimos.Config.JunimoHuts.MaxRadius} set in config"
+            };
+
+            foreach (var progression in Progressions()) {
+                var ps = progression;
+                if (!Enabled(progression)) ps += ": disabled by configuration";
+                else if (!BetterJunimos.Config.Progression.Enabled) ps += ": enabled";
+                else if (Unlocked(progression)) ps += ": unlocked";
+                else if (Prompted(progression)) ps += ": prompted";
+                else ps += ": not triggered";
+                quests.Add(ps);
+            }
+            return Join("^", quests);
+        }
+
+        internal void PromptAllQuests() {
+            _monitor.Log("Prompting all quests", LogLevel.Info);
+            foreach (var progression in Progressions()) {
+                SetPrompted(progression);
+                _monitor.Log($"    {progression}", LogLevel.Debug);
+            }
+        }
+        
+        public void ShowPerfectionTracker() {
+            var quests = ActiveQuests();
+            var percentage = UnlockedCount().ToString();
+
+            var prompt = _helper.Translation.Get("ProgressionTrackerText").ToString();
+            
+            if (quests.Length == 0) quests = "No abilities to unlock at the moment";
+
+            var message = prompt
+                .Replace("{{percentage}}", percentage)
+                .Replace("{{quests}}", quests)
+                .Replace("{{details}}", QuestsDetail());
+            Game1.drawLetterMessage(message);
+        }
+
+        private List<string> Progressions() {
+            return UnlockCosts.Keys.ToList();
+        }
+
+        internal void ListHuts() {
+            _monitor.Log("Huts:", LogLevel.Debug);
+
+            foreach (JunimoHut hut in Util.GetAllHuts()) {
+                _monitor.Log($"    [{hut.tileX} {hut.tileY}] {Util.GetHutIdFromHut(hut)}", LogLevel.Debug);
+            }
+        }
+
+        internal void ListAllAvailableActions() {
+            foreach (JunimoHut hut in Util.GetAllHuts()) {
+                ListAvailableActions(Util.GetHutIdFromHut(hut));
+            }
+        }
+        
+        // search for crops + open plantable spots
+        internal void ListAvailableActions(Guid id) {
+            JunimoHut hut = Util.GetHutFromId(id);
+            int radius = Util.CurrentWorkingRadius;
+            
+            _monitor.Log($"Available actions for hut at [{hut.tileX} {hut.tileY}] ({id}):", LogLevel.Debug);
+            for (var x = hut.tileX.Value + 1 - radius; x < hut.tileX.Value + 2 + radius; ++x) {
+                for (var y = hut.tileY.Value + 1 - radius; y < hut.tileY.Value + 2 + radius; ++y) {
+                    var pos = new Vector2(x, y);
+                    
+                    var ability = Util.Abilities.IdentifyJunimoAbility(pos, id);
+                    if (ability == null) {
+                        continue;
+                    }
+
+                    // if (ability.AbilityName() != "HoeAroundTrees") {
+                    //     if (!JunimoAbilities.ItemInHut(id, ability.RequiredItems())) continue;
+                    // }
+                    
+                    var cooldown = JunimoAbilities.ActionCoolingDown(ability, pos) ? "[cooling down]" : "";
+                    var itemsAvail = JunimoAbilities.ItemInHut(id, ability.RequiredItems()) ? "" : "[required item unavailable]";
+                    var progLocked = Util.Progression.CanUseAbility(ability) ? "" : "[progression locked]";
+                    
+                    _monitor.Log($"    [{pos.X} {pos.Y}] {ability.AbilityName()} {cooldown} {itemsAvail} {progLocked}", LogLevel.Debug);
                 }
             }
-            // Monitor.Log($"ReceiveItems finished with {items.Count()} of [{index}]", LogLevel.Debug);
-            return items.Count() >= needed;
+            
+            Util.SendMessage("Available actions logged to the console");
+        }
+        
+        public static bool HutOnTile(Vector2 pos) {
+            return Game1.getFarm().buildings.Any(b => b is JunimoHut && b.occupiesTile(pos));
         }
     }
 }
