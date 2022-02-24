@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using StardewValley;
-using StardewValley.Buildings;
 using StardewValley.Characters;
-using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 
 namespace BetterJunimos.Abilities {

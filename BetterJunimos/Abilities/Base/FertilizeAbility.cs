@@ -4,15 +4,13 @@ using System.Collections.Generic;
 using BetterJunimos.Utils;
 using Microsoft.Xna.Framework;
 using StardewValley;
-using StardewValley.Buildings;
 using StardewValley.Characters;
-using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using SObject = StardewValley.Object;
 
 namespace BetterJunimos.Abilities {
     public class FertilizeAbility : IJunimoAbility {
-        int ItemCategory = SObject.fertilizerCategory;
+        private const int ItemCategory = SObject.fertilizerCategory;
 
         public string AbilityName() {
             return "Fertilize";
@@ -30,8 +28,8 @@ namespace BetterJunimos.Abilities {
         }
 
         public bool PerformAction(Farm farm, Vector2 pos, JunimoHarvester junimo, Guid guid) {
-            Chest chest = Util.GetHutFromId(guid).output.Value;
-            Item foundItem = chest.items.FirstOrDefault(item => item != null && item.Category == ItemCategory);
+            var chest = Util.GetHutFromId(guid).output.Value;
+            var foundItem = chest.items.FirstOrDefault(item => item is {Category: ItemCategory});
             if (foundItem == null) return false;
 
             Fertilize(farm, pos, foundItem.ParentSheetIndex);
@@ -40,52 +38,54 @@ namespace BetterJunimos.Abilities {
         }
 
         public List<int> RequiredItems() {
-            return new List<int> { ItemCategory };
+            return new() { ItemCategory };
         }
 
-        private void Fertilize(Farm farm, Vector2 pos, int index) {
-            if (farm.terrainFeatures[pos] is HoeDirt hd) {
-                hd.fertilizer.Value = index;
-                CheckSpeedGro(hd, hd.crop);
-                if (Utility.isOnScreen(Utility.Vector2ToPoint(pos), 64, farm)) {
-                    farm.playSound("dirtyHit");
-                }
+        private static void Fertilize(Farm farm, Vector2 pos, int index) {
+            if (farm.terrainFeatures[pos] is not HoeDirt hd) return;
+            hd.fertilizer.Value = index;
+            CheckSpeedGro(hd, hd.crop);
+            if (Utility.isOnScreen(Utility.Vector2ToPoint(pos), 64, farm)) {
+                farm.playSound("dirtyHit");
             }
         }
 
         // taken from SDV planting code [applySpeedIncreases()], updated for 1.5
-        protected void CheckSpeedGro(HoeDirt hd, Crop crop) {
-            int fertilizer = hd.fertilizer.Value;
-            Farmer who = Game1.player;
+        private static void CheckSpeedGro(HoeDirt hd, Crop crop) {
+            var fertilizer = hd.fertilizer.Value;
+            var who = Game1.player;
 
             if (crop == null) {
                 return;
             }
-            if (!(((int)fertilizer == 465 || (int)fertilizer == 466 || (int)fertilizer == 918 || who.professions.Contains(5)))) {
+            if (!(fertilizer is 465 or 466 or 918 || who.professions.Contains(5))) {
                 return;
             }
             crop.ResetPhaseDays();
-            int totalDaysOfCropGrowth = 0;
-            for (int j = 0; j < crop.phaseDays.Count - 1; j++) {
+            var totalDaysOfCropGrowth = 0;
+            for (var j = 0; j < crop.phaseDays.Count - 1; j++) {
                 totalDaysOfCropGrowth += crop.phaseDays[j];
             }
-            float speedIncrease = 0f;
-            if ((int)fertilizer == 465) {
-                speedIncrease += 0.1f;
-            }
-            else if ((int)fertilizer == 466) {
-                speedIncrease += 0.25f;
-            }
-            else if ((int)fertilizer == 918) {
-                speedIncrease += 0.33f;
+            var speedIncrease = 0f;
+            switch (fertilizer)
+            {
+                case 465:
+                    speedIncrease += 0.1f;
+                    break;
+                case 466:
+                    speedIncrease += 0.25f;
+                    break;
+                case 918:
+                    speedIncrease += 0.33f;
+                    break;
             }
             if (who.professions.Contains(5)) {
                 speedIncrease += 0.1f;
             }
-            int daysToRemove = (int)Math.Ceiling((float)totalDaysOfCropGrowth * speedIncrease);
-            int tries = 0;
+            var daysToRemove = (int)Math.Ceiling(totalDaysOfCropGrowth * speedIncrease);
+            var tries = 0;
             while (daysToRemove > 0 && tries < 3) {
-                for (int i = 0; i < crop.phaseDays.Count; i++) {
+                for (var i = 0; i < crop.phaseDays.Count; i++) {
                     if ((i > 0 || crop.phaseDays[i] > 1) && crop.phaseDays[i] != 99999) {
                         crop.phaseDays[i]--;
                         daysToRemove--;
