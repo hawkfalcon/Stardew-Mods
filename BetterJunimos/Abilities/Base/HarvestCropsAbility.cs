@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using BetterJunimos.Utils;
 using Microsoft.Xna.Framework;
 using StardewValley;
@@ -54,7 +54,28 @@ namespace BetterJunimos.Abilities {
         }
 
         private bool ShouldAvoidHarvesting(Vector2 pos, HoeDirt hd) {
-            return Util.Config.JunimoImprovements.AvoidHarvestingFlowers && new StardewValley.Object(pos, hd.crop.indexOfHarvest.Value, 0).Category == StardewValley.Object.flowersCategory;
+            var item = new StardewValley.Object(pos, hd.crop.indexOfHarvest.Value, 0);
+
+            // TODO: check properly if the crop will die tomorrow instead of special-casing 
+            if (item.ParentSheetIndex == 421) {
+                // if it's the last day of Fall, harvest sunflowers
+                if (Game1.IsFall && Game1.dayOfMonth >= 28) return false;
+            }
+            else {
+                // if it's the last day of the month, harvest whatever it is
+                if (Game1.dayOfMonth >= 28) return false;
+            }
+
+            if (BetterJunimos.Config.JunimoImprovements.AvoidHarvestingGiants && giantCrops.Contains(item.ParentSheetIndex)) {
+                return true;
+            }
+
+            if (BetterJunimos.Config.JunimoImprovements.AvoidHarvestingFlowers &&
+                item.Category == StardewValley.Object.flowersCategory) {
+                return true;
+            }
+
+            return false;
         }
     }
 }
