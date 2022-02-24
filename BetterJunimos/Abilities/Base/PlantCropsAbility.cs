@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using BetterJunimos.Utils;
 using Microsoft.Xna.Framework;
@@ -144,15 +144,17 @@ namespace BetterJunimos.Abilities {
             SObject o = new SObject(index, 1);
             Crop crop = new Crop(index, (int)pos.X, (int)pos.Y);
 
-            if (!crop.seasonsToGrowIn.Contains(Game1.currentSeason)) return false;
+            if (!crop.seasonsToGrowIn.Contains(Game1.currentSeason)) {
+                Monitor.Log($"Crop {crop} ({index}) cannot be planted in {Game1.currentSeason}]", LogLevel.Warn);
+                return false;
+            }
 
             if (farm.terrainFeatures[pos] is HoeDirt hd) {
                 CheckSpeedGro(hd, crop);
                 hd.crop = crop;
 
                 if (Utility.isOnScreen(Utility.Vector2ToPoint(pos), 64, farm)) {
-                    if (crop.raisedSeeds.Value)
-                        farm.playSound("stoneStep");
+                    if (crop.raisedSeeds.Value) farm.playSound("stoneStep");
                     farm.playSound("dirtyHit");
                 }
 
@@ -161,26 +163,48 @@ namespace BetterJunimos.Abilities {
             return true;
         }
 
-        // taken from planting code
-        private void CheckSpeedGro(HoeDirt hd, Crop crop) {
-            if (hd.fertilizer.Value == 465 || hd.fertilizer.Value == 466 || Game1.player.professions.Contains(5)) {
-                int num1 = 0;
-                for (int index1 = 0; index1 < crop.phaseDays.Count - 1; ++index1)
-                    num1 += crop.phaseDays[index1];
-                float num2 = hd.fertilizer.Value == 465 ? 0.1f : (hd.fertilizer.Value == 466 ? 0.25f : 0.0f);
-                if (Game1.player.professions.Contains(5))
-                    num2 += 0.1f;
-                int num3 = (int)Math.Ceiling((double)num1 * (double)num2);
-                for (int index1 = 0; num3 > 0 && index1 < 3; ++index1) {
-                    for (int index2 = 0; index2 < crop.phaseDays.Count; ++index2) {
-                        if (index2 > 0 || crop.phaseDays[index2] > 1) {
-                            crop.phaseDays[index2]--;
-                            --num3;
-                        }
-                        if (num3 <= 0)
-                            break;
+        // taken from SDV planting code [applySpeedIncreases()], updated for 1.5
+        protected void CheckSpeedGro(HoeDirt hd, Crop crop) {
+            int fertilizer = hd.fertilizer.Value;
+            Farmer who = Game1.player;
+
+            if (crop == null) {
+                return;
+            }
+            if (!(((int)fertilizer == 465 || (int)fertilizer == 466 || (int)fertilizer == 918 || who.professions.Contains(5)))) {
+                return;
+            }
+            crop.ResetPhaseDays();
+            int totalDaysOfCropGrowth = 0;
+            for (int j = 0; j < crop.phaseDays.Count - 1; j++) {
+                totalDaysOfCropGrowth += crop.phaseDays[j];
+            }
+            float speedIncrease = 0f;
+            if ((int)fertilizer == 465) {
+                speedIncrease += 0.1f;
+            }
+            else if ((int)fertilizer == 466) {
+                speedIncrease += 0.25f;
+            }
+            else if ((int)fertilizer == 918) {
+                speedIncrease += 0.33f;
+            }
+            if (who.professions.Contains(5)) {
+                speedIncrease += 0.1f;
+            }
+            int daysToRemove = (int)Math.Ceiling((float)totalDaysOfCropGrowth * speedIncrease);
+            int tries = 0;
+            while (daysToRemove > 0 && tries < 3) {
+                for (int i = 0; i < crop.phaseDays.Count; i++) {
+                    if ((i > 0 || crop.phaseDays[i] > 1) && crop.phaseDays[i] != 99999) {
+                        crop.phaseDays[i]--;
+                        daysToRemove--;
+                    }
+                    if (daysToRemove <= 0) {
+                        break;
                     }
                 }
+                tries++;
             }
         }
     }

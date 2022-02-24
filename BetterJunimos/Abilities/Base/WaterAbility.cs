@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using BetterJunimos.Utils;
 using Microsoft.Xna.Framework;
 using StardewValley;
