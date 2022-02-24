@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using BetterJunimos.Utils;
 using Microsoft.Xna.Framework;
-using Newtonsoft.Json;
-using StardewValley;
 using StardewValley.Buildings;
 
 namespace BetterJunimos {
@@ -37,7 +34,7 @@ namespace BetterJunimos {
 
         private static Dictionary<Vector2, CropMap> HutCropMap = new Dictionary<Vector2, CropMap>();
     }
-    
+
     public class CropMap {
         public string[,] Map { get; set; }
 
@@ -51,13 +48,13 @@ namespace BetterJunimos {
             }
 
             int radius = BetterJunimos.Config.JunimoHuts.MaxRadius;
-            
-            int dx = (int)pos.X - hut.tileX.Value;
-            int dy = (int)pos.Y - hut.tileY.Value;
+
+            int dx = (int) pos.X - hut.tileX.Value;
+            int dy = (int) pos.Y - hut.tileY.Value;
 
             int mx = radius - 1 + dx;
             int my = radius - 1 + dy;
-        
+
 
             string ct;
             try {
@@ -67,10 +64,9 @@ namespace BetterJunimos {
                 // BetterJunimos.SMonitor.Log($"CropTypeAt: [{mx} {my}] out of bounds", LogLevel.Warn);
                 ct = null;
             }
-            
+
             // BetterJunimos.SMonitor.Log($"CropTypeAt: hut [{hut.tileX} {hut.tileY}] pos [{pos.X} {pos.Y}] radius {radius} d [{dx} {dy}] m [{mx} {my}]: {ct}", LogLevel.Debug);
             return ct;
-            
-        } 
+        }
     }
 }

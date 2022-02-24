@@ -12,19 +12,17 @@ using SObject = StardewValley.Object;
 
 namespace BetterJunimos.Utils {
     public class Util {
-        internal const int DefaultRadius = 8;
-        internal const int UnpaidRadius = 3;
+        private const int UnpaidRadius = 3;
         public const int CoffeeId = 433;
 
-        public const int GemCategory = -2;
-        public const int MineralCategory = -12;
+        private const int GemCategory = -2;
+        private const int MineralCategory = -12;
 
         public const int ForageCategory = -81;
         public const int FlowerCategory = -80;
         public const int FruitCategory = -79;
         public const int WineCategory = -26;
 
-        //internal static ModConfig Config;
         internal static IReflectionHelper Reflection;
         internal static JunimoAbilities Abilities;
         internal static JunimoPayments Payments;
@@ -85,7 +83,7 @@ namespace BetterJunimos.Utils {
              */
             bool isPrismatic = false;
             Color?
-                gemColor = getGemColor(ref isPrismatic,
+                gemColor = GetGemColor(ref isPrismatic,
                     hut); //Reflection.GetMethod(hut, "getGemColor").Invoke<Color>(isPrismatic);
             /*
              * End added By Mizzion
@@ -110,9 +108,9 @@ namespace BetterJunimos.Utils {
  * Added by Mizzion. This method is used to get the gem color, so the junimos can be colored
  * I ripped this from SDV and edited it to work with this mod.
 */
-        public static Color? getGemColor(ref bool isPrismatic, JunimoHut hut) {
-            List<Color> colorList = new List<Color>();
-            Chest chest = hut.output.Value;
+        private static Color? GetGemColor(ref bool isPrismatic, JunimoHut hut) {
+            var colorList = new List<Color>();
+            var chest = hut.output.Value;
             foreach (Item dyeObject in chest.items) {
                 if (dyeObject != null &&
                     (dyeObject.Category == MineralCategory || dyeObject.Category == GemCategory)) {
@@ -125,7 +123,7 @@ namespace BetterJunimos.Utils {
             }
 
             if (colorList.Count > 0)
-                return new Color?(colorList[Game1.random.Next(colorList.Count)]);
+                return colorList[Game1.random.Next(colorList.Count)];
             return new Color?();
         }
 
@@ -140,13 +138,13 @@ namespace BetterJunimos.Utils {
 
         public static void SpawnParticles(Vector2 pos) {
             Multiplayer multiplayer = Reflection.GetField<Multiplayer>(typeof(Game1), "multiplayer").GetValue();
-            multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite[1] {
+            multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite[] {
                 new TemporaryAnimatedSprite(17, new Vector2(pos.X * 64f, pos.Y * 64f), Color.White, 7,
-                    Game1.random.NextDouble() < 0.5, 125f, 0, -1, -1f, -1, 0)
+                    Game1.random.NextDouble() < 0.5, 125f)
             });
-            multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite[1] {
+            multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite[] {
                 new TemporaryAnimatedSprite(14, new Vector2(pos.X * 64f, pos.Y * 64f), Color.White, 7,
-                    Game1.random.NextDouble() < 0.5, 50f, 0, -1, -1f, -1, 0)
+                    Game1.random.NextDouble() < 0.5, 50f)
             });
         }
     }

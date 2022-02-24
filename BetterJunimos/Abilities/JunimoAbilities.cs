@@ -49,7 +49,7 @@ namespace BetterJunimos.Utils {
                 new WaterAbility(),
                 new FertilizeAbility(),
                 new PlantCropsAbility(_monitor),
-                new HarvestCropsAbility(_monitor),
+                new HarvestCropsAbility(),
                 new HarvestBushesAbility(),
                 new HarvestForageCropsAbility(), 
                 new ClearDeadCropsAbility()
