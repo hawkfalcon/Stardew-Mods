@@ -58,13 +58,13 @@ namespace BetterJunimos.Utils {
                     farm);
         }
 
-        public static void RemoveItemFromChest(Chest chest, Item item) {
+        public static void RemoveItemFromChest(Chest chest, Item item, int count = 1) {
             if (BetterJunimos.Config.FunChanges.InfiniteJunimoInventory) {
                 return;
             }
 
-            item.Stack--;
-            if (item.Stack == 0) {
+            item.Stack -= count;
+            if (item.Stack <= 0) {
                 chest.items.Remove(item);
             }
         }
@@ -134,6 +134,14 @@ namespace BetterJunimos.Utils {
                 noIcon = true,
                 timeLeft = HUDMessage.defaultTime
             });
+
+            // try {
+            //     var multiplayer = Reflection.GetField<Multiplayer>(typeof(Game1), "multiplayer").GetValue();
+            //     multiplayer.broadcastGlobalMessage("Strings\\StringsFromCSFiles:"+msg);
+            // }
+            // catch (InvalidOperationException) {
+            //     BetterJunimos.SMonitor.Log($"SendMessage: multiplayer unavailable", LogLevel.Error);
+            // }
         }
 
         public static void SpawnParticles(Vector2 pos) {

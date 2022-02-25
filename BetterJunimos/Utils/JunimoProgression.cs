@@ -24,21 +24,19 @@ namespace BetterJunimos.Utils {
     }
 
     public class ProgressionData {
-        public Dictionary<string, ProgressionItem> Progress { get; set; } = new Dictionary<string, ProgressionItem>();
+        
+        // do not use, deprecated
+        public Dictionary<string, ProgressionItem> Progress { get; set; } = new();
     }
 
     public class JunimoProgression {
         private const int InitialJunimosLimit = 3;
         private const int MoreJunimosLimit = 6;
-
-        private ProgressionData _progData;
-        private Dictionary<string, UnlockCost> UnlockCosts { get; set; }
+        internal Dictionary<string, UnlockCost> UnlockCosts { get; set; }
 
         private readonly IMonitor _monitor;
         private readonly IModHelper _helper;
-
-        private readonly Dictionary<int, List<int>> _junimoPaymentsToday = new();
-
+        
         internal JunimoProgression(IMonitor monitor, IModHelper helper) {
             _monitor = monitor;
             _helper = helper;
@@ -53,76 +51,35 @@ namespace BetterJunimos.Utils {
             monitor.Log($"JunimoProgression: current UnlockCosts.Keys {keys}", LogLevel.Debug);
         }
 
-        internal void Configure(ModConfig config, ProgressionData progData) {
-            BetterJunimos.Config = config;
-            _progData = progData;
-            foreach (var progression in Progressions()) {
-                if (!progData.Progress.ContainsKey(progression)) {
-                    progData.Progress[progression] = new ProgressionItem();
-                }
-            }
-        }
-
-        private bool Unlocked(IJunimoAbility ability) {
-            if (!_progData.Progress.ContainsKey(ability.AbilityName())) {
-                return true;
-            }
-
-            return Unlocked(ability.AbilityName());
-        }
-
         private bool Unlocked(string progression) {
-            if (_progData == null) {
-                _monitor.Log("Unlocked: ProgData is null", LogLevel.Warn);
-                return false;
+            var farm = Game1.getFarm();
+            if (farm == null) return false;
+            var k = $"hawkfalcon.BetterJunimos.ProgressionData.{progression}.Unlocked";
+            if (farm.modData.TryGetValue(k, out var v)) {
+                return v == "1";
             }
-
-            if (_progData.Progress == null) {
-                _monitor.Log("Unlocked: ProgData.Progress is null", LogLevel.Warn);
-                return false;
-            }
-
-            if (!_progData.Progress.ContainsKey(progression)) {
-                _monitor.Log($"Unlocked: unknown progression {progression}", LogLevel.Warn);
-                return true;
-            }
-
-            return _progData.Progress[progression].Unlocked;
+            return false;
         }
 
         public void SetUnlocked(string progression) {
-            if (!_progData.Progress.ContainsKey(progression)) {
-                _monitor.Log($"SetUnlocked: unknown progression {progression}", LogLevel.Error);
-                return;
-            }
-
-            _progData.Progress[progression].Unlocked = true;
-        }
-
-        private bool Prompted(IJunimoAbility ability) {
-            if (!_progData.Progress.ContainsKey(ability.AbilityName())) {
-                return false;
-            }
-
-            return Prompted(ability.AbilityName());
+            var farm = Game1.getFarm();
+            var k = $"hawkfalcon.BetterJunimos.ProgressionData.{progression}.Unlocked";
+            farm.modData[k] = "1";
         }
 
         private bool Prompted(string progression) {
-            if (!_progData.Progress.ContainsKey(progression)) {
-                _monitor.Log($"Prompted: unknown progression {progression}", LogLevel.Warn);
-                return false;
+            var farm = Game1.getFarm();
+            var k = $"hawkfalcon.BetterJunimos.ProgressionData.{progression}.Prompted";
+            if (farm.modData.TryGetValue(k, out var v)) {
+                return v == "1";
             }
-
-            return _progData.Progress[progression].Prompted;
+            return false;
         }
 
         public void SetPrompted(string progression) {
-            if (!_progData.Progress.ContainsKey(progression)) {
-                _monitor.Log($"SetPrompted: unknown progression {progression}", LogLevel.Error);
-                throw new ArgumentOutOfRangeException($"SetPrompted: unknown progression {progression}");
-            }
-
-            _progData.Progress[progression].Prompted = true;
+            var farm = Game1.getFarm();
+            var k = $"hawkfalcon.BetterJunimos.ProgressionData.{progression}.Prompted";
+            farm.modData[k] = "1";
         }
 
         private bool LockedAndPrompted(string progression) {
@@ -134,24 +91,24 @@ namespace BetterJunimos.Utils {
         }
 
         // is it enabled in config?
-        private bool Enabled(string progression) {
+        private (bool configurable, bool enabled) Enabled(string progression) {
             switch (progression) {
                 case "MoreJunimos":
-                    return BetterJunimos.Config.JunimoHuts.MaxJunimos > InitialJunimosLimit;
+                    return (true, BetterJunimos.Config.JunimoHuts.MaxJunimos > InitialJunimosLimit);
                 case "UnlimitedJunimos":
-                    return BetterJunimos.Config.JunimoHuts.MaxJunimos > MoreJunimosLimit;
+                    return (true, BetterJunimos.Config.JunimoHuts.MaxJunimos > MoreJunimosLimit);
                 case "WorkFaster":
-                    return BetterJunimos.Config.JunimoImprovements.WorkFaster;
+                    return (true, BetterJunimos.Config.JunimoImprovements.WorkFaster);
                 case "CanWorkInWinter":
-                    return BetterJunimos.Config.JunimoImprovements.CanWorkInWinter;
+                    return (true, BetterJunimos.Config.JunimoImprovements.CanWorkInWinter);
                 case "CanWorkInRain":
-                    return BetterJunimos.Config.JunimoImprovements.CanWorkInRain;
+                    return (true, BetterJunimos.Config.JunimoImprovements.CanWorkInRain);
                 case "CanWorkInEvenings":
-                    return BetterJunimos.Config.JunimoImprovements.CanWorkInEvenings;
+                    return (true, BetterJunimos.Config.JunimoImprovements.CanWorkInEvenings);
                 case "ReducedCostToConstruct":
-                    return BetterJunimos.Config.JunimoHuts.ReducedCostToConstruct;
+                    return (true, BetterJunimos.Config.JunimoHuts.ReducedCostToConstruct);
                 default:
-                    return true;
+                    return (false, true);
             }
         }
 
@@ -169,7 +126,6 @@ namespace BetterJunimos.Utils {
             get {
                 if (!BetterJunimos.Config.JunimoHuts.ReducedCostToConstruct) return false;
                 if (!BetterJunimos.Config.Progression.Enabled) return true;
-                if (_progData is null) return BetterJunimos.Config.JunimoHuts.ReducedCostToConstruct;
                 return Unlocked("ReducedCostToConstruct");
             }
         }
@@ -208,8 +164,14 @@ namespace BetterJunimos.Utils {
 
         public bool CanUseAbility(IJunimoAbility ability) {
             if (!BetterJunimos.Config.Progression.Enabled) return true;
-            PromptForAbility(ability);
-            return Unlocked(ability);
+
+            var an = ability.AbilityName();
+            if (Unlocked(an)) return true;
+            if (Prompted(an)) return false;
+            
+            _monitor.Log($"CanUseAbility: prompting for {an} due CanUseAbility request", LogLevel.Debug);
+            DisplayPromptFor(an);
+            return false;
         }
 
         public void PromptForCanWorkInEvenings() {
@@ -247,17 +209,6 @@ namespace BetterJunimos.Utils {
             }
         }
 
-        private void PromptForAbility(IJunimoAbility ability) {
-            if (Unlocked(ability) || Prompted(ability)) return;
-            var an = ability.AbilityName();
-            if (!_progData.Progress.ContainsKey(an)) {
-                _monitor.Log($"PromptForAbility: unknown ability {an}", LogLevel.Warn);
-                return;
-            }
-
-            DisplayPromptFor(an);
-        }
-
         private void DisplayPromptFor(string progression) {
             var prompt = GetPromptText(progression);
             if (prompt.Length == 0) {
@@ -278,7 +229,7 @@ namespace BetterJunimos.Utils {
             var displayName = new SObject(item, stack).DisplayName;
             var prompt = Get(textKey);
             if (prompt.Contains("no translation")) {
-                prompt = $"For {{{{qty}}}} {{{{item}}}}, the Junimos can {ability.ToLower()}";
+                prompt = $"For {{{{qty}}}} {{{{item}}}}, the Junimos can {ability.SplitCamelCase().ToLower()}";
                 _monitor.Log($"GetPromptText: no translation for {textKey}", LogLevel.Debug);
             }
 
@@ -289,7 +240,7 @@ namespace BetterJunimos.Utils {
             var textKey = $"success.{ability}";
             var prompt = Get(textKey);
             if (!prompt.Contains("no translation")) return prompt;
-            prompt = $"Now the Junimos can {ability.ToLower()}";
+            prompt = $"Now the Junimos can {ability.SplitCamelCase().ToLower()}";
             _monitor.Log($"GetSuccessText: no translation for {textKey}", LogLevel.Debug);
             return prompt;
         }
@@ -297,8 +248,8 @@ namespace BetterJunimos.Utils {
         public void ReceiveProgressionItems(JunimoHut hut) {
             var chest = hut.output.Value;
 
-            foreach (var ability in Progressions().Where(LockedAndPrompted)
-                .Where(ability => ReceiveItems(chest, ability))) {
+            foreach (var ability in Progressions().Where(LockedAndPrompted)) {
+                if (!ReceiveItems(chest, ability)) continue;
                 SetUnlocked(ability);
                 Util.SendMessage(GetSuccessText(ability));
             }
@@ -307,11 +258,15 @@ namespace BetterJunimos.Utils {
         private int ItemForAbility(string ability) {
             if (UnlockCosts.ContainsKey(ability)) return UnlockCosts[ability].Item;
             _monitor.Log($"ItemForAbility got a request for unknown {ability}", LogLevel.Warn);
-            return 268;
+            UnlockCosts[ability] = new UnlockCost {Item = 268, Stack = 1, Remarks = "Starfruit"};
+            return UnlockCosts[ability].Item;
         }
 
         private int StackForAbility(string ability) {
-            return !UnlockCosts.ContainsKey(ability) ? 1 : UnlockCosts[ability].Stack;
+            if (UnlockCosts.ContainsKey(ability)) return UnlockCosts[ability].Stack;
+            _monitor.Log($"StackForAbility got a request for unknown {ability}", LogLevel.Warn);
+            UnlockCosts[ability] = new UnlockCost {Item = 268, Stack = 1, Remarks = "Starfruit"};
+            return UnlockCosts[ability].Stack;
         }
 
         private bool ReceiveItems(Chest chest, string ability) {
@@ -319,31 +274,23 @@ namespace BetterJunimos.Utils {
         }
 
         private bool ReceiveItems(Chest chest, int needed, int index) {
-            //Monitor.Log($"ReceiveItems wants {needed} of [{index}]", LogLevel.Debug);
+            // BetterJunimos.SMonitor.Log($"ReceiveItems wants {needed} of [{index}]", LogLevel.Debug);
+            if (needed <= 0) return true;
 
-            if (needed == 0) return true;
-            if (!_junimoPaymentsToday.TryGetValue(index, out var items)) {
-                items = new List<int>();
-                _junimoPaymentsToday[index] = items;
+            var inChest = chest.items.Where(item => item != null && item.ParentSheetIndex == index).ToList();
+
+            foreach (var itemStack in inChest) {
+                if (itemStack.Stack >= needed) {
+                    // BetterJunimos.SMonitor.Log($"    At least {itemStack.Stack} in stack, removing some and unlocking", LogLevel.Debug);
+                    Util.RemoveItemFromChest(chest, itemStack, needed);
+                    return true;
+                } 
+                // BetterJunimos.SMonitor.Log($"    Only {itemStack.Stack} in stack, not unlocking", LogLevel.Debug);
             }
 
-            var paidSoFar = items.Count;
-            //Monitor.Log($"ReceiveItems got {paidSoFar} of [{index}] already", LogLevel.Debug);
-
-            if (paidSoFar == needed) return true;
-
-            foreach (var unused in Enumerable.Range(paidSoFar, needed)) {
-                var foundItem = chest.items.FirstOrDefault(item => item != null && item.ParentSheetIndex == index);
-                if (foundItem == null) continue;
-                items.Add(foundItem.ParentSheetIndex);
-                Util.RemoveItemFromChest(chest, foundItem);
-            }
-
-            //Monitor.Log($"ReceiveItems finished with {items.Count()} of [{index}]", LogLevel.Debug);
-            return items.Count >= needed;
+            return false;
         }
-
-
+        
         private int UnlockedCount() {
             var unlocked = 0.0f;
             foreach (var unused in Progressions().Where(Unlocked)) {
@@ -378,7 +325,9 @@ namespace BetterJunimos.Utils {
 
             foreach (var progression in Progressions()) {
                 var ps = progression;
-                if (!Enabled(progression)) ps += $": {Get("tracker.current")}";
+                var (configurable, enabled) = Enabled(progression);
+                
+                if (configurable && !enabled) ps += $": {Get("tracker.disabled")}";  // user has disabled
                 else if (!BetterJunimos.Config.Progression.Enabled) ps += $": {Get("tracker.enabled")}";
                 else if (Unlocked(progression)) ps += $": {Get("tracker.unlocked")}";
                 else if (Prompted(progression)) ps += $": {Get("tracker.prompted")}";
@@ -435,7 +384,7 @@ namespace BetterJunimos.Utils {
             JunimoHut hut = Util.GetHutFromId(id);
             int radius = Util.CurrentWorkingRadius;
 
-            _monitor.Log($"{Get("debug.locked-by-progression")} [{hut.tileX} {hut.tileY}] ({id}):",
+            _monitor.Log($"{Get("debug.available-actions-for-hut-at")} [{hut.tileX} {hut.tileY}] ({id}):",
                 LogLevel.Debug);
             for (var x = hut.tileX.Value + 1 - radius; x < hut.tileX.Value + 2 + radius; ++x) {
                 for (var y = hut.tileY.Value + 1 - radius; y < hut.tileY.Value + 2 + radius; ++y) {
