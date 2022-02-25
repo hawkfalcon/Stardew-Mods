@@ -3,7 +3,6 @@
   "msg.cannot-spawn-here": "Can only spawn Junimos on Farm",
   "msg.cannot-spawn-without-hut": "Build a Junimo hut before you spawn a Junimo",
   "msg.happy-with-payment": "Junimos are happy with their payment!",
-  
   "prompt.CanWorkInEvenings": "For {{qty}} {{item}}, the Junimos can work in the evening",
   "success.CanWorkInEvenings": "Now the Junimos can work in the evening",
   "prompt.CanWorkInRain": "For {{qty}} {{item}}, the Junimos can work in the rain",
@@ -30,7 +29,6 @@
   "success.Water": "Now the Junimos can water your crops",
   "prompt.WorkFaster": "For {{qty}} {{item}}, the Junimos can work faster",
   "success.WorkFaster": "Now the Junimos can work faster",
-  
   "cfg.hut-settings": "Hut Settings",
   "cfg.max-junimos": "Max Junimos",
   "cfg.max-radius": "Max Radius",
@@ -57,6 +55,8 @@
   "cfg.fruit": "Fruit",
   "cfg.wine": "Wine",
   "cfg.other": "Other",
+  "cfg.give-experience": "Harvesting gives experience",
+  "cfg.give-experience.tooltip": "XP from Junimo harvesting adds to Farming skill",
   "cfg.rainy-spirit-factor": "Rainy Spirit Factor",
   "cfg.rainy-spirit-factor.tooltip": "Rainy Junimo Spirit Factor",
   "cfg.always-have-umbrellas": "Always Have Umbrellas",
@@ -67,7 +67,6 @@
   "cfg.infinite-inventory.tooltip": "Infinite Junimo Inventory",
   "cfg.spawn-junimo-keybind": "Spawn Junimo Keybind",
   "cfg.receive-messages": "Receive Messages",
-  
   "tracker.tracker-title": "Junimo Progression Tracker: {{percentage}}%^^Quests:^{{quests}}^^Spoilers/troubleshooting:^{{details}}",
   "tracker.no-abilities-to-unlock": "No abilities to unlock at the moment",
   "tracker.payments": "Payments",
@@ -83,7 +82,6 @@
   "tracker.unlocked": "unlocked",
   "tracker.prompted": "prompted",
   "tracker.not-triggered": "not triggered",
-  
   "debug.prompting-all-quests": "Prompting all quests",
   "debug.available-actions-for-hut-at": "Available actions for hut at",
   "debug.actions-logged": "Available actions logged to the console",

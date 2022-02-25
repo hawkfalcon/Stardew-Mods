@@ -36,6 +36,9 @@ namespace BetterJunimos {
                 public int Fruit { get; set; }
                 public int Wine { get; set; }
             }
+            
+            public bool GiveExperience { get; set; }
+
         }
 
         public FunSettings FunChanges { get; set; } = new();
