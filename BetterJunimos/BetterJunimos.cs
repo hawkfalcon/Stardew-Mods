@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley.Buildings;
@@ -424,6 +424,12 @@ namespace BetterJunimos {
                 () => "",
                 0,
                 20
+            );
+            configMenu.AddBoolOption(ModManifest,
+                () => Config.JunimoPayment.GiveExperience,
+                val => Config.JunimoPayment.GiveExperience = val,
+                () => Helper.Translation.Get("cfg.give-experience"),
+                () => Helper.Translation.Get("cfg.give-experience.tooltip")
             );
 
             configMenu.AddSectionTitle(ModManifest,

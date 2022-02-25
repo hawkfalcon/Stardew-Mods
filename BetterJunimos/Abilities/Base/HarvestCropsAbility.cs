@@ -4,6 +4,8 @@ using StardewValley;
 using StardewValley.Characters;
 using StardewValley.TerrainFeatures;
 using System.Collections.Generic;
+using System.Configuration;
+using SObject = StardewValley.Object;
 
 namespace BetterJunimos.Abilities {
     public class HarvestCropsAbility : IJunimoAbility {
@@ -11,7 +13,7 @@ namespace BetterJunimos.Abilities {
 
         internal HarvestCropsAbility() {
         }
-        
+
         public string AbilityName() {
             return "HarvestCrops";
         }
@@ -24,6 +26,12 @@ namespace BetterJunimos.Abilities {
         }
 
         public bool PerformAction(Farm farm, Vector2 pos, JunimoHarvester junimo, Guid guid) {
+            // calculate the experience from this harvest
+            if (!BetterJunimos.Config.JunimoPayment.GiveExperience) return true;
+            if (farm.terrainFeatures.ContainsKey(pos) && farm.terrainFeatures[pos] is HoeDirt {crop: { }} hd) {
+                Game1.player.gainExperience(0, ExperienceForCrop(hd.crop));
+            }
+
             // Don't do anything, as the base junimo handles this already (see PatchHarvestAttemptToCustom)
             return true;
         }
@@ -45,7 +53,8 @@ namespace BetterJunimos.Abilities {
                 if (Game1.dayOfMonth >= 28) return false;
             }
 
-            if (BetterJunimos.Config.JunimoImprovements.AvoidHarvestingGiants && giantCrops.Contains(item.ParentSheetIndex)) {
+            if (BetterJunimos.Config.JunimoImprovements.AvoidHarvestingGiants &&
+                giantCrops.Contains(item.ParentSheetIndex)) {
                 return true;
             }
 
@@ -55,6 +64,20 @@ namespace BetterJunimos.Abilities {
             }
 
             return false;
+        }
+
+        private static int ExperienceForCrop(Crop crop) {
+            if (crop.forageCrop.Value) {
+                return 3;
+            }
+
+            var ioh = crop.indexOfHarvest.Value;
+            var oi = Game1.objectInformation[ioh];
+            var num = oi.Split("/")[1];
+            var int32 = Convert.ToInt32(num);
+
+            var num56 = (float) (16.0 * Math.Log(0.018 * int32 + 1.0, Math.E));
+            return (int) Math.Round(num56);
         }
     }
 }
