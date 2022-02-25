@@ -1,4 +1,4 @@
-using HarmonyLib;
+﻿using HarmonyLib;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley.Buildings;
@@ -11,32 +11,27 @@ using StardewValley;
 using StardewValley.Characters;
 using StardewValley.Menus;
 using BetterJunimos.Utils;
+using Newtonsoft.Json;
 
 namespace BetterJunimos {
     // ReSharper disable once ClassNeverInstantiated.Global
     public class BetterJunimos : Mod {
         internal static ModConfig Config;
         internal static IMonitor SMonitor;
-        private ProgressionData _progData;
         internal static Maps CropMaps;
 
         /// <summary>The mod entry point, called after the mod is first loaded.</summary>
         /// <param name="helper">Provides simplified APIs for writing mods.</param>
         public override void Entry(IModHelper helper) {
-            // Only run if the master game
-            if (!Context.IsMainPlayer) return;
-
             SMonitor = Monitor;
 
             Config = helper.ReadConfig<ModConfig>();
+            SaveConfig();
 
             Util.Reflection = helper.Reflection;
 
             Util.Abilities = new JunimoAbilities(Config.JunimoAbilities, Monitor);
-            helper.WriteConfig(Config);
-
             Util.Payments = new JunimoPayments(Config.JunimoPayment);
-
             Util.Progression = new JunimoProgression(Monitor, Helper);
 
             helper.Content.AssetEditors.Add(new JunimoEditor(helper.Content));
@@ -125,9 +120,7 @@ namespace BetterJunimos {
             if (!Context.IsWorldReady) {
                 return;
             }
-
-            if (!Context.IsMainPlayer) return;
-
+            
             if (e.Button == Config.Other.SpawnJunimoKeybind) {
                 SpawnJunimoCommand();
             }
@@ -149,10 +142,8 @@ namespace BetterJunimos {
         /// <param name="e">The event arguments.</param>
         void OnSaving(object sender, SavingEventArgs e) {
             if (!Context.IsMainPlayer) return;
-
-            Helper.Data.WriteSaveData("hawkfalcon.BetterJunimos.ProgressionData", _progData);
             Helper.Data.WriteSaveData("hawkfalcon.BetterJunimos.CropMaps", CropMaps);
-            Helper.WriteConfig(Config);
+            SaveConfig();
         }
 
         // BUG: player warps back to wizard hut after use
@@ -172,9 +163,7 @@ namespace BetterJunimos {
             //
             // check that e.NewMenu is null because this event also fires when items are added to the chest
             // caution: this runs after any chest is closed, not just Junimo huts
-
-            if (!Context.IsMainPlayer) return;
-
+            
             if (e.OldMenu is ItemGrabMenu menu && e.NewMenu is null) {
                 if (menu.context is JunimoHut || menu.context is StardewValley.Objects.Chest) {
                     CheckHutsForWagesAndProgressionItems();
@@ -199,11 +188,9 @@ namespace BetterJunimos {
         void OnDayStarted(object sender, DayStartedEventArgs e) {
             if (!Context.IsMainPlayer) {
                 Monitor.Log(
-                    $"Better Junimos is a single-player mod. For multi-player games, only the host can have it installed.",
-                    LogLevel.Error);
+                    $"Better Junimos is a single-player mod. It is not well-tested in multiplayer",
+                    LogLevel.Warn);
             }
-
-            // Game1.player.gainExperience(10);
 
             if (Config.JunimoPayment.WorkForWages) {
                 Util.Payments.JunimoPaymentsToday.Clear();
@@ -249,8 +236,6 @@ namespace BetterJunimos {
         /// <param name="sender">The event sender.</param>
         /// <param name="e">The event arguments.</param>
         private void OnBuildingListChanged(object sender, BuildingListChangedEventArgs e) {
-            if (!Context.IsMainPlayer) return;
-
             foreach (Building building in e.Added) {
                 if (building is JunimoHut hut) {
                     Util.Abilities.UpdateHutItems(Util.GetHutIdFromHut(hut));
@@ -262,30 +247,43 @@ namespace BetterJunimos {
         /// <param name="sender">The event sender.</param>
         /// <param name="e">The event arguments.</param>
         private void OnSaveLoaded(object sender, EventArgs e) {
-            if (!Context.IsMainPlayer) return;
-
             // reload the config to pick up any changes made in Generic Mod Config Menu on the title screen
             Config = Helper.ReadConfig<ModConfig>();
             AllowJunimoHutPurchasing();
-
+            
+            // make sure crop harvesting is on for everyone
+            var farm = Game1.getFarm();
+            var k = $"hawkfalcon.BetterJunimos.ProgressionData.HarvestCrops.Unlocked";
+            farm.modData[k] = "1";
+            
             if (!Context.IsMainPlayer) return;
-
-            // load progression data from the save file
-            _progData = Helper.Data.ReadSaveData<ProgressionData>("hawkfalcon.BetterJunimos.ProgressionData") ??
-                        new ProgressionData();
-            Util.Progression.Configure(Config, _progData);
-
+            
+            // check for old progression data stored in the save, migrate it
+            MigrateProgData();
+            
+            // load crop maps from save (TODO: not MP-safe)
             CropMaps = Helper.Data.ReadSaveData<Maps>("hawkfalcon.BetterJunimos.CropMaps") ?? new Maps();
         }
 
-        private void OnLaunched(object sender, GameLaunchedEventArgs e) {
-            if (!Context.IsMainPlayer) return;
+        // copy any progress made from the SaveData into modData
+        private void MigrateProgData() {
+            var pd = Helper.Data.ReadSaveData<ProgressionData>("hawkfalcon.BetterJunimos.ProgressionData");
+            if (pd?.Progress is null) return;
+            var farm = Game1.getFarm();
+            foreach (var (key, value) in pd.Progress) {
+                var k = $"hawkfalcon.BetterJunimos.ProgressionData.{key}.Prompted";
+                if (value.Prompted) farm.modData[k] = "1";
+                k = $"hawkfalcon.BetterJunimos.ProgressionData.{key}.Unlocked";
+                if (value.Unlocked) farm.modData[k] = "1";
+            }
+        }
 
+        private void OnLaunched(object sender, GameLaunchedEventArgs e) {
             Config = Helper.ReadConfig<ModConfig>();
             var configMenu = Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
             if (configMenu is null) return;
 
-            configMenu.Register(ModManifest, () => Config = new ModConfig(), () => Helper.WriteConfig(Config));
+            configMenu.Register(ModManifest, () => Config = new ModConfig(), SaveConfig);
             configMenu.SetTitleScreenOnlyForNextOptions(ModManifest, false);
 
             configMenu.AddSectionTitle(ModManifest,
@@ -331,10 +329,10 @@ namespace BetterJunimos {
                 () => ""
             );
 
-            configMenu.AddSectionTitle(ModManifest, 
-                () => Helper.Translation.Get("cfg.improvements"), 
+            configMenu.AddSectionTitle(ModManifest,
+                () => Helper.Translation.Get("cfg.improvements"),
                 () => ""
-                );
+            );
             configMenu.AddBoolOption(ModManifest,
                 () => Config.Progression.Enabled,
                 val => Config.Progression.Enabled = val,
@@ -473,6 +471,14 @@ namespace BetterJunimos {
                 () => Helper.Translation.Get("cfg.receive-messages"),
                 () => ""
             );
+        }
+
+        // save config.json and invalidate caches
+        private void SaveConfig()
+        {
+            Helper.WriteConfig(Config);
+            Helper.Content.InvalidateCache(@"Characters\Junimo");
+            Helper.Content.InvalidateCache(@"Data/Blueprints");
         }
 
         private static void AllowJunimoHutPurchasing() {
