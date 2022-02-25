@@ -71,6 +71,19 @@ namespace BetterJunimos.Utils {
             if (!BetterJunimos.Config.JunimoAbilities[name]) return;
             _junimoCapabilities.Add(junimoAbility);
             _requiredItems.UnionWith(junimoAbility.RequiredItems());
+            
+            // add placeholder for ability in progressions system
+            if (Util.Progression is null) {
+                // BetterJunimos.SMonitor.Log($"RegisterJunimoAbility [for {name}]: Progression is null", LogLevel.Warn);
+                return;
+            }
+            if (Util.Progression.UnlockCosts is null) {
+                // BetterJunimos.SMonitor.Log($"RegisterJunimoAbility [for {name}]: Progression.UnlockCosts is null", LogLevel.Warn);
+                return;
+            }
+            if (!Util.Progression.UnlockCosts.ContainsKey(name)) {
+                Util.Progression.UnlockCosts[name] = new UnlockCost {Item = 268, Stack = 1, Remarks = "Starfruit"};
+            } 
         }
 
         // Can the Junimo use a capability/ability here
