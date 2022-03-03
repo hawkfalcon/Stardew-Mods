@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using BetterJunimos.Abilities;
@@ -351,6 +351,11 @@ namespace BetterJunimos.Utils {
             }
         }
 
+        public void ShowConfigurationMenu() {
+            var configMenu = _helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+            configMenu.OpenModMenu(_manifest);
+        }
+        
         public void ShowPerfectionTracker() {
             var quests = ActiveQuests();
             var percentage = UnlockedCount().ToString();
