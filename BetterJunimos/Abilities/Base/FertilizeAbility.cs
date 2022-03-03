@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using BetterJunimos.Utils;
 using Microsoft.Xna.Framework;
+using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Characters;
 using StardewValley.TerrainFeatures;
@@ -11,7 +12,8 @@ using SObject = StardewValley.Object;
 namespace BetterJunimos.Abilities {
     public class FertilizeAbility : IJunimoAbility {
         private const int ItemCategory = SObject.fertilizerCategory;
-
+        private List<int> _RequiredItems;
+        
         public string AbilityName() {
             return "Fertilize";
         }
@@ -38,7 +40,17 @@ namespace BetterJunimos.Abilities {
         }
 
         public List<int> RequiredItems() {
-            return new() { ItemCategory };
+            // this is heavy, cache it
+            if (_RequiredItems is not null) return _RequiredItems;
+            var fertilizers = Game1.objectInformation
+                    .Where(pair => pair.Value.Split('/')[3].EndsWith(StardewValley.Object.fertilizerCategory.ToString()))
+                    .Where(pair => int.Parse(pair.Value.Split('/')[3].Split(' ').Last()) == StardewValley.Object.fertilizerCategory)
+                    .Where(pair => pair.Value.Split('/')[0] != "Tree Fertilizer")
+                ;
+            // BetterJunimos.SMonitor.Log("RequiredItems called for Fertilize", LogLevel.Debug);
+            _RequiredItems = (from kvp in fertilizers select kvp.Key).ToList();
+
+            return _RequiredItems;
         }
 
         private static void Fertilize(Farm farm, Vector2 pos, int index) {
@@ -58,17 +70,19 @@ namespace BetterJunimos.Abilities {
             if (crop == null) {
                 return;
             }
+
             if (!(fertilizer is 465 or 466 or 918 || who.professions.Contains(5))) {
                 return;
             }
+
             crop.ResetPhaseDays();
             var totalDaysOfCropGrowth = 0;
             for (var j = 0; j < crop.phaseDays.Count - 1; j++) {
                 totalDaysOfCropGrowth += crop.phaseDays[j];
             }
+
             var speedIncrease = 0f;
-            switch (fertilizer)
-            {
+            switch (fertilizer) {
                 case 465:
                     speedIncrease += 0.1f;
                     break;
@@ -79,10 +93,12 @@ namespace BetterJunimos.Abilities {
                     speedIncrease += 0.33f;
                     break;
             }
+
             if (who.professions.Contains(5)) {
                 speedIncrease += 0.1f;
             }
-            var daysToRemove = (int)Math.Ceiling(totalDaysOfCropGrowth * speedIncrease);
+
+            var daysToRemove = (int) Math.Ceiling(totalDaysOfCropGrowth * speedIncrease);
             var tries = 0;
             while (daysToRemove > 0 && tries < 3) {
                 for (var i = 0; i < crop.phaseDays.Count; i++) {
@@ -90,10 +106,12 @@ namespace BetterJunimos.Abilities {
                         crop.phaseDays[i]--;
                         daysToRemove--;
                     }
+
                     if (daysToRemove <= 0) {
                         break;
                     }
                 }
+
                 tries++;
             }
         }
