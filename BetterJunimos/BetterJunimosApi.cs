@@ -16,6 +16,8 @@ namespace BetterJunimos {
         public bool GetWereJunimosPaidToday();
 
         public void ShowPerfectionTracker();
+        public void ShowConfigurationMenu();
+
         public void ListAvailableActions(Guid hutGuid);
         public CropMap GetCropMapForHut(Guid hutGuid);
         public void SetCropMapForHut(Guid hutGuid, CropMap map);
@@ -45,6 +47,10 @@ namespace BetterJunimos {
 
         public void ShowPerfectionTracker() {
             Util.Progression.ShowPerfectionTracker();
+        }
+        
+        public void ShowConfigurationMenu() {
+            Util.Progression.ShowConfigurationMenu();
         }
 
         public void ListAvailableActions(Guid hutGuid) {
