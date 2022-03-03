@@ -21,6 +21,7 @@ namespace BetterJunimos {
             public bool CanWorkInWinter { get; set; } = true;
             public bool CanWorkInEvenings { get; set; } = true;
             public bool WorkFaster { get; set; } = true;
+            public bool WorkRidiculouslyFast { get; set; }
             public bool AvoidHarvestingFlowers { get; set; } = true;
             public bool AvoidHarvestingGiants { get; set; }
             public bool AvoidPlantingCoffee { get; set; } = true;

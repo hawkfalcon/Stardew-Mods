@@ -1,4 +1,4 @@
-using HarmonyLib;
+﻿using HarmonyLib;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley.Buildings;
@@ -372,8 +372,15 @@ namespace BetterJunimos {
                 () => Config.JunimoImprovements.WorkFaster,
                 val => Config.JunimoImprovements.WorkFaster = val,
                 () => Helper.Translation.Get("cfg.work-faster"),
-                () => ""
+                () => Helper.Translation.Get("cfg.work-faster.tooltip")
             );
+            configMenu.AddBoolOption(ModManifest,
+                () => Config.JunimoImprovements.WorkRidiculouslyFast,
+                val => Config.JunimoImprovements.WorkRidiculouslyFast = val,
+                () => Helper.Translation.Get("cfg.work-ridiculously-fast"),
+                () => Helper.Translation.Get("cfg.work-ridiculously-fast.tooltip")
+            );
+
             configMenu.AddBoolOption(ModManifest,
                 () => Config.JunimoImprovements.AvoidHarvestingFlowers,
                 val => Config.JunimoImprovements.AvoidHarvestingFlowers = val,

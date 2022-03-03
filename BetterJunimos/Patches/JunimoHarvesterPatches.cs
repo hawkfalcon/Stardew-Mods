@@ -2,7 +2,6 @@
 using Microsoft.Xna.Framework;
 using StardewValley.Buildings;
 using StardewValley.Characters;
-using System.Collections.Generic;
 using HarmonyLib;
 using BetterJunimos.Utils;
 using System;
@@ -59,7 +58,10 @@ namespace BetterJunimos.Patches {
                 else {
                     // succeeded, shake
                     if (junimoAbility is HarvestCropsAbility) time = 2000;
+                    else if (BetterJunimos.Config.JunimoImprovements.WorkRidiculouslyFast) time = 20;
                     else time = Util.Progression.WorkFaster ? 300 : 998;
+                    
+                    // BetterJunimos.SMonitor.Log($"PatchHarvestAttemptToCustom performing {junimoAbility.AbilityName()} time {time}]", LogLevel.Debug);
                 }
             }
             else {
@@ -84,8 +86,8 @@ namespace BetterJunimos.Patches {
                 // skip last second of harvesting if faster
                 ___harvestTimer = 0;
             }
-            else if (___harvestTimer > 500 && ___harvestTimer < 1000 ||
-                     (Util.Progression.WorkFaster && ___harvestTimer > 5)) {
+            else if (___harvestTimer is > 500 and < 1000 ||
+                     Util.Progression.WorkFaster && ___harvestTimer > 5) {
                 __instance.shake(50);
             }
         }
@@ -140,8 +142,8 @@ namespace BetterJunimos.Patches {
             }
             else {
                 __instance.controller = new PathFindController(__instance, __instance.currentLocation,
-                    new PathFindController.isAtEnd(__instance.foundCropEndFunction), -1, false,
-                    new PathFindController.endBehavior(__instance.reachFirstDestinationFromHut), 100, Point.Zero);
+                    __instance.foundCropEndFunction, -1, false,
+                    __instance.reachFirstDestinationFromHut, 100, Point.Zero);
 
                 int radius = Util.CurrentWorkingRadius;
                 if (__instance.controller.pathToEndPoint == null ||
@@ -150,7 +152,7 @@ namespace BetterJunimos.Patches {
                     if (Game1.random.NextDouble() < 0.5 && !hut.lastKnownCropLocation.Equals(Point.Zero)) {
                         __instance.controller = new PathFindController(__instance, __instance.currentLocation,
                             hut.lastKnownCropLocation, -1,
-                            new PathFindController.endBehavior(__instance.reachFirstDestinationFromHut), 100);
+                            __instance.reachFirstDestinationFromHut, 100);
                     }
                     else if (Game1.random.NextDouble() < 0.25) {
                         ___netAnimationEvent.Fire(0);
