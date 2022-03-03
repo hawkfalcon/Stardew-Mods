@@ -5,6 +5,7 @@ using StardewValley.Characters;
 using StardewValley.TerrainFeatures;
 using System.Collections.Generic;
 using System.Configuration;
+using BetterJunimos.Utils;
 using SObject = StardewValley.Object;
 
 namespace BetterJunimos.Abilities {
@@ -29,7 +30,7 @@ namespace BetterJunimos.Abilities {
             // calculate the experience from this harvest
             if (!BetterJunimos.Config.JunimoPayment.GiveExperience) return true;
             if (farm.terrainFeatures.ContainsKey(pos) && farm.terrainFeatures[pos] is HoeDirt {crop: { }} hd) {
-                Game1.player.gainExperience(0, ExperienceForCrop(hd.crop));
+                Game1.player.gainExperience(0, Util.ExperienceForCrop(hd.crop));
             }
 
             // Don't do anything, as the base junimo handles this already (see PatchHarvestAttemptToCustom)
@@ -64,20 +65,6 @@ namespace BetterJunimos.Abilities {
             }
 
             return false;
-        }
-
-        private static int ExperienceForCrop(Crop crop) {
-            if (crop.forageCrop.Value) {
-                return 3;
-            }
-
-            var ioh = crop.indexOfHarvest.Value;
-            var oi = Game1.objectInformation[ioh];
-            var num = oi.Split("/")[1];
-            var int32 = Convert.ToInt32(num);
-
-            var num56 = (float) (16.0 * Math.Log(0.018 * int32 + 1.0, Math.E));
-            return (int) Math.Round(num56);
         }
     }
 }

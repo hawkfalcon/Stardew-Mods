@@ -155,5 +155,19 @@ namespace BetterJunimos.Utils {
                     Game1.random.NextDouble() < 0.5, 50f)
             });
         }
+
+        internal static int ExperienceForCrop(Crop crop) {
+            if (crop.forageCrop.Value) {
+                return 3;
+            }
+
+            var ioh = crop.indexOfHarvest.Value;
+            var oi = Game1.objectInformation[ioh];
+            var num = oi.Split("/")[1];
+            var int32 = Convert.ToInt32(num);
+
+            var num56 = (float) (16.0 * Math.Log(0.018 * int32 + 1.0, Math.E));
+            return (int) Math.Round(num56);
+        }
     }
 }
