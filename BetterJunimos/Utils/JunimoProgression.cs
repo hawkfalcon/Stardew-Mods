@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BetterJunimos.Abilities;
@@ -34,10 +34,12 @@ namespace BetterJunimos.Utils {
         private const int MoreJunimosLimit = 6;
         internal Dictionary<string, UnlockCost> UnlockCosts { get; set; }
 
+        private readonly IManifest _manifest;
         private readonly IMonitor _monitor;
         private readonly IModHelper _helper;
         
-        internal JunimoProgression(IMonitor monitor, IModHelper helper) {
+        internal JunimoProgression(IManifest manifest, IMonitor monitor, IModHelper helper) {
+            _manifest = manifest;
             _monitor = monitor;
             _helper = helper;
 
@@ -48,7 +50,7 @@ namespace BetterJunimos.Utils {
             }
 
             var keys = Join(", ", UnlockCosts.Keys);
-            monitor.Log($"JunimoProgression: current UnlockCosts.Keys {keys}", LogLevel.Debug);
+            // monitor.Log($"JunimoProgression: current UnlockCosts.Keys {keys}", LogLevel.Debug);
         }
 
         private bool Unlocked(string progression) {
@@ -169,7 +171,7 @@ namespace BetterJunimos.Utils {
             if (Unlocked(an)) return true;
             if (Prompted(an)) return false;
             
-            _monitor.Log($"CanUseAbility: prompting for {an} due CanUseAbility request", LogLevel.Debug);
+            // _monitor.Log($"CanUseAbility: prompting for {an} due CanUseAbility request", LogLevel.Debug);
             DisplayPromptFor(an);
             return false;
         }
@@ -296,8 +298,10 @@ namespace BetterJunimos.Utils {
             foreach (var unused in Progressions().Where(Unlocked)) {
                 unlocked++;
             }
-
+            
             var pc = unlocked / Progressions().Count * 100;
+            
+            // BetterJunimos.SMonitor.Log($"UnlockedCount {unlocked} {Progressions().Count} {pc}", LogLevel.Debug);
             return (int) Math.Round(pc);
         }
 
@@ -324,14 +328,15 @@ namespace BetterJunimos.Utils {
             };
 
             foreach (var progression in Progressions()) {
-                var ps = progression;
                 var (configurable, enabled) = Enabled(progression);
                 
+                var ps = progression.SplitCamelCase();
                 if (configurable && !enabled) ps += $": {Get("tracker.disabled")}";  // user has disabled
                 else if (!BetterJunimos.Config.Progression.Enabled) ps += $": {Get("tracker.enabled")}";
                 else if (Unlocked(progression)) ps += $": {Get("tracker.unlocked")}";
                 else if (Prompted(progression)) ps += $": {Get("tracker.prompted")}";
                 else ps += $": {Get("tracker.not-triggered")}";
+                
                 quests.Add(ps);
             }
 

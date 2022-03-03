@@ -40,11 +40,10 @@ namespace BetterJunimos.Utils {
         public JunimoAbilities(Dictionary<string, bool> enabledAbilities, IMonitor monitor) {
             _enabledAbilities = enabledAbilities;
             _monitor = monitor;
-            RegisterDefaultAbilities();
         }
 
         // register built in abilities, in order
-        private void RegisterDefaultAbilities() {
+        internal void RegisterDefaultAbilities() {
             var defaultAbilities = new List<IJunimoAbility> {
                 new WaterAbility(),
                 new FertilizeAbility(),
@@ -70,8 +69,9 @@ namespace BetterJunimos.Utils {
 
             if (!BetterJunimos.Config.JunimoAbilities[name]) return;
             _junimoCapabilities.Add(junimoAbility);
+            // BetterJunimos.SMonitor.Log($"RegisterJunimoAbility: {name} requires {string.Join(" ", junimoAbility.RequiredItems())}", LogLevel.Debug);
             _requiredItems.UnionWith(junimoAbility.RequiredItems());
-            
+
             // add placeholder for ability in progressions system
             if (Util.Progression is null) {
                 // BetterJunimos.SMonitor.Log($"RegisterJunimoAbility [for {name}]: Progression is null", LogLevel.Warn);
@@ -163,17 +163,14 @@ namespace BetterJunimos.Utils {
             }
             return false;
         }
-        
-        public static bool ItemInHut(Guid id, int item) {
-            return ItemsInHuts[id][item];
+
+        private static bool ItemInHut(Guid id, int item) {
+            return ItemsInHuts[id].TryGetValue(item, out var present) && present;
         }
 
         public static bool ItemInHut(Guid id, List<int> items) {
             if (items.Count == 0) return true;
-            foreach (var item in items) {
-                if (ItemInHut(id, item)) return true;
-            }
-            return false;
+            return items.Any(item => ItemInHut(id, item));
         }
 
         internal void UpdateHutItems(Guid id) {
