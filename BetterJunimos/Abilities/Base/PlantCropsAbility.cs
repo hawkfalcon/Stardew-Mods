@@ -7,32 +7,19 @@ using StardewValley.Characters;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using System.Collections.Generic;
-using Newtonsoft.Json;
 using StardewModdingAPI;
-using StardewModdingAPI.Events;
 using StardewValley.Buildings;
 using SObject = StardewValley.Object;
 
 namespace BetterJunimos.Abilities {
-
-    struct CropSeason {
-        private int crop;
-        private string season;
-
-        public CropSeason(int c, string s) {
-            crop = c;
-            season = s;
-        }
-    }
-
     public class PlantCropsAbility : IJunimoAbility {
         int ItemCategory = SObject.SeedsCategory;
         private readonly IMonitor Monitor;
 
         private const int SunflowerSeeds = 431;
         
-        static Dictionary<int, int> WildTreeSeeds = new Dictionary<int, int> {{292, 8}, {309, 1}, {310, 2}, {311, 3}, {891, 7}};
-        static Dictionary<string, Dictionary<int, bool>> cropSeasons = new Dictionary<string, Dictionary<int, bool>>();
+        static Dictionary<int, int> WildTreeSeeds = new() {{292, 8}, {309, 1}, {310, 2}, {311, 3}, {891, 7}};
+        static Dictionary<string, Dictionary<int, bool>> cropSeasons = new();
         
         internal PlantCropsAbility(IMonitor Monitor) {
             this.Monitor = Monitor;

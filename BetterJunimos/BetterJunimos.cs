@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley.Buildings;
@@ -20,11 +20,14 @@ namespace BetterJunimos {
         internal static IMonitor SMonitor;
         internal static Maps CropMaps;
 
+        internal IGenericModConfigMenuApi configMenu;
+
+
         /// <summary>The mod entry point, called after the mod is first loaded.</summary>
         /// <param name="helper">Provides simplified APIs for writing mods.</param>
         public override void Entry(IModHelper helper) {
             SMonitor = Monitor;
-
+            
             Config = helper.ReadConfig<ModConfig>();
             SaveConfig();
 
@@ -32,7 +35,7 @@ namespace BetterJunimos {
 
             Util.Abilities = new JunimoAbilities(Config.JunimoAbilities, Monitor);
             Util.Payments = new JunimoPayments(Config.JunimoPayment);
-            Util.Progression = new JunimoProgression(Monitor, Helper);
+            Util.Progression = new JunimoProgression(ModManifest, Monitor, Helper);
 
             helper.Content.AssetEditors.Add(new JunimoEditor(helper.Content));
             helper.Content.AssetEditors.Add(new BlueprintEditor());
@@ -165,7 +168,7 @@ namespace BetterJunimos {
             // caution: this runs after any chest is closed, not just Junimo huts
             
             if (e.OldMenu is ItemGrabMenu menu && e.NewMenu is null) {
-                if (menu.context is JunimoHut || menu.context is StardewValley.Objects.Chest) {
+                if (menu.context is JunimoHut or StardewValley.Objects.Chest) {
                     CheckHutsForWagesAndProgressionItems();
                     Util.Abilities.ResetCooldowns();
                 }
@@ -214,7 +217,8 @@ namespace BetterJunimos {
 
         private void CheckHutsForWagesAndProgressionItems() {
             var huts = Game1.getFarm().buildings.OfType<JunimoHut>();
-            foreach (JunimoHut hut in huts) {
+            // Monitor.Log("Updating hut items", LogLevel.Debug);
+            foreach (var hut in huts) {
                 // this might be getting called a bit too much
                 // but since OnMenuChanged doesn't tell us reliably which hut has changed
                 // it's safer to update items from all huts here
@@ -279,8 +283,16 @@ namespace BetterJunimos {
         }
 
         private void OnLaunched(object sender, GameLaunchedEventArgs e) {
+            // only register after the game is launched so we can query the object registry
+            Util.Abilities.RegisterDefaultAbilities();
+
             Config = Helper.ReadConfig<ModConfig>();
-            var configMenu = Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+            setupGMCM();
+        }
+
+        private void setupGMCM()
+        {
+            configMenu = Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
             if (configMenu is null) return;
 
             configMenu.Register(ModManifest, () => Config = new ModConfig(), SaveConfig);
@@ -381,7 +393,6 @@ namespace BetterJunimos {
                 () => ""
             );
 
-            configMenu.SetTitleScreenOnlyForNextOptions(ModManifest, true);
             configMenu.AddSectionTitle(ModManifest,
                 () => Helper.Translation.Get("cfg.payment"),
                 () => "");
