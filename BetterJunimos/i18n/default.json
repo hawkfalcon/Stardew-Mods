@@ -56,7 +56,7 @@
   "cfg.wine": "Wine",
   "cfg.other": "Other",
   "cfg.give-experience": "Harvesting gives experience",
-  "cfg.give-experience.tooltip": "XP from Junimo harvesting adds to Farming skill",
+  "cfg.give-experience.tooltip": "XP from Junimo harvesting adds to Farming and Foraging skills",
   "cfg.rainy-spirit-factor": "Rainy Spirit Factor",
   "cfg.rainy-spirit-factor.tooltip": "Rainy Junimo Spirit Factor",
   "cfg.always-have-umbrellas": "Always Have Umbrellas",

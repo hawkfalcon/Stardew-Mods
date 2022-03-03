@@ -47,6 +47,11 @@ namespace BetterJunimos.Abilities {
 
                     Util.SpawnParticles(nextPos);
                     farm.objects.Remove(nextPos);
+                    
+                    // calculate the forage experience from this harvest
+                    if (!BetterJunimos.Config.JunimoPayment.GiveExperience) return true;
+                    Game1.player.gainExperience(2, 7);
+                    
                     return true;
                 }
                 direction++;
@@ -56,7 +61,7 @@ namespace BetterJunimos.Abilities {
         }
 
         public List<int> RequiredItems() {
-            return new List<int>();
+            return new();
         }
 
         // adapted from GameLocation.checkAction
@@ -65,6 +70,7 @@ namespace BetterJunimos.Abilities {
             Random random = new Random((int)Game1.uniqueIDForThisGame / 2 + (int)Game1.stats.DaysPlayed + (int)pos.X + (int)pos.Y * 777);
 
             foreach (Farmer farmer in Game1.getOnlineFarmers()) {
+                var f = farmer.Stamina;
                 int maxQuality = quality;
                 if (farmer.professions.Contains(16))
                     maxQuality = 4;
