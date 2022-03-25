@@ -19,21 +19,21 @@ namespace BetterJunimos.Abilities {
             return "HarvestCrops";
         }
 
-        public bool IsActionAvailable(Farm farm, Vector2 pos, Guid guid) {
-            if (!farm.terrainFeatures.ContainsKey(pos) || farm.terrainFeatures[pos] is not HoeDirt hd) return false;
+        public bool IsActionAvailable(GameLocation location, Vector2 pos, Guid guid) {
+            if (!location.terrainFeatures.ContainsKey(pos) || location.terrainFeatures[pos] is not HoeDirt hd) return false;
             if (hd.crop is null) return false;
             if (!hd.readyForHarvest()) return false;
             return !ShouldAvoidHarvesting(pos, hd);
         }
 
-        public bool PerformAction(Farm farm, Vector2 pos, JunimoHarvester junimo, Guid guid) {
+        public bool PerformAction(GameLocation location, Vector2 pos, JunimoHarvester junimo, Guid guid) {
             // calculate the experience from this harvest
             if (!BetterJunimos.Config.JunimoPayment.GiveExperience) return true;
-            if (farm.terrainFeatures.ContainsKey(pos) && farm.terrainFeatures[pos] is HoeDirt {crop: { }} hd) {
+            if (location.terrainFeatures.ContainsKey(pos) && location.terrainFeatures[pos] is HoeDirt {crop: { }} hd) {
                 Game1.player.gainExperience(0, Util.ExperienceForCrop(hd.crop));
             }
 
-            // Don't do anything, as the base junimo handles this already (see PatchHarvestAttemptToCustom)
+            // Don't do anything, as the base junimo handles this already (see PatchTryToHarvestHere)
             return true;
         }
 
@@ -65,6 +65,15 @@ namespace BetterJunimos.Abilities {
             }
 
             return false;
+        }
+        
+        /* older API compat */
+        public bool IsActionAvailable(Farm farm, Vector2 pos, Guid guid) {
+            return IsActionAvailable((GameLocation) farm, pos, guid);
+        }
+        
+        public bool PerformAction(Farm farm, Vector2 pos, JunimoHarvester junimo, Guid guid) {
+            return PerformAction((GameLocation) farm, pos, junimo, guid);
         }
     }
 }

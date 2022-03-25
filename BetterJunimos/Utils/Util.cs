@@ -8,6 +8,7 @@ using StardewValley.Buildings;
 using StardewValley.Characters;
 using StardewValley.Menus;
 using StardewValley.Objects;
+using xTile.Dimensions;
 using SObject = StardewValley.Object;
 
 namespace BetterJunimos.Utils {
@@ -27,6 +28,7 @@ namespace BetterJunimos.Utils {
         internal static JunimoAbilities Abilities;
         internal static JunimoPayments Payments;
         internal static JunimoProgression Progression;
+        internal static JunimoGreenhouse Greenhouse;
 
         public static int CurrentWorkingRadius {
             get {
@@ -48,7 +50,7 @@ namespace BetterJunimos.Utils {
             return Game1.getFarm().buildings[id] as JunimoHut;
         }
 
-        public static void AddItemToChest(Farm farm, Chest chest, SObject item) {
+        public static void AddItemToChest(GameLocation farm, Chest chest, SObject item) {
             Item obj = chest.addItem(item);
             if (obj == null)
                 return;
@@ -70,38 +72,56 @@ namespace BetterJunimos.Utils {
         }
 
         public static void SpawnJunimoAtHut(JunimoHut hut) {
-            Vector2 pos = new Vector2((float) hut.tileX.Value + 1, (float) hut.tileY.Value + 1) * 64f +
-                          new Vector2(0.0f, 32f);
-            SpawnJunimoAtPosition(pos, hut, hut.getUnusedJunimoNumber());
+            // I don't know why we're multiplying by 64 here
+            var pos = new Vector2((float) hut.tileX.Value + 1, (float) hut.tileY.Value + 1) * 64f + new Vector2(0.0f, 32f);
+            SpawnJunimoAtPosition(Game1.getFarm(), pos, hut, hut.getUnusedJunimoNumber());
         }
 
-        public static void SpawnJunimoAtPosition(Vector2 pos, JunimoHut hut, int junimoNumber) {
-            if (hut == null) return;
-            Farm farm = Game1.getFarm();
+        public static void SpawnJunimoAtPosition(GameLocation location, Vector2 pos, JunimoHut hut, int junimoNumber) {
+            if (hut == null) {
+                BetterJunimos.SMonitor.Log($"SpawnJunimoAtPosition: hut is null", LogLevel.Warn);    
+                return;
+            }
+            
             /*
              * Added by Mizzion. This will set the color of the junimos based on what gem is inside the hut.
              */
-            bool isPrismatic = false;
-            Color?
-                gemColor = GetGemColor(ref isPrismatic,
-                    hut); //Reflection.GetMethod(hut, "getGemColor").Invoke<Color>(isPrismatic);
+            var isPrismatic = false;
+            var gemColor = GetGemColor(ref isPrismatic, hut); 
             /*
              * End added By Mizzion
              */
 
-            JunimoHarvester junimoHarvester = new JunimoHarvester(pos, hut, junimoNumber, gemColor);
-            junimoHarvester.isPrismatic.Value = isPrismatic; //Added by Mizzion, Fixes the Prismatic Junimos.
-            farm.characters.Add(junimoHarvester);
-            hut.myJunimos.Add(junimoHarvester);
+            BetterJunimos.SMonitor.Log($"SpawnJunimoAtPosition: spawning #{junimoNumber} in {location.Name} at [{pos.X} {pos.Y}]", LogLevel.Trace);
 
+            var junimoHarvester = new JunimoHarvester(pos, hut, junimoNumber, gemColor);
+
+            // the JunimoHarvester constructor sets the location to Farm and calls pathfindToRandomSpotAroundHut immediately
+            // so we have to set the location explicitly then re-do pathfinding
+            if (!location.Equals(Game1.getFarm())) {
+                BetterJunimos.SMonitor.Log($"SpawnJunimoAtPosition: forcing #{junimoNumber} to {location.Name} at [{pos.X} {pos.Y}]", LogLevel.Trace);
+
+                junimoHarvester.currentLocation = location;
+                junimoHarvester.Position = pos;
+                junimoHarvester.pathfindToRandomSpotAroundHut();
+            }
+            
+            
+            BetterJunimos.SMonitor.Log($"SpawnJunimoAtPosition: spawned #{junimoNumber} " +
+                                       $"in {junimoHarvester.currentLocation.Name} " +
+                                       $"at [{junimoHarvester.getTileX()} {junimoHarvester.getTileX()}]", LogLevel.Trace);
+
+            junimoHarvester.isPrismatic.Value = isPrismatic; //Added by Mizzion, Fixes the Prismatic Junimos.
+            location.characters.Add(junimoHarvester);
+            hut.myJunimos.Add(junimoHarvester);
+            
             if (Game1.isRaining) {
                 var alpha = Reflection.GetField<float>(junimoHarvester, "alpha");
                 alpha.SetValue(BetterJunimos.Config.FunChanges.RainyJunimoSpiritFactor);
             }
 
-            if (!Utility.isOnScreen(Utility.Vector2ToPoint(pos), 64, farm))
-                return;
-            farm.playSound("junimoMeep1");
+            if (!Utility.isOnScreen(Utility.Vector2ToPoint(pos), 64, location)) return;
+            location.playSound("junimoMeep1");
         }
 
 /*

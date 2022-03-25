@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AssemblyName>BetterJunimos</AssemblyName>
     <RootNamespace>BetterJunimos</RootNamespace>
-    <Version>2.0.5-beta7</Version>
+    <Version>2.0.6-beta4</Version>
     <LangVersion>latest</LangVersion>
     <TargetFramework>net5.0</TargetFramework>
     <EnableHarmony>true</EnableHarmony>

@@ -18,9 +18,9 @@ namespace BetterJunimos.Abilities {
             return "Fertilize";
         }
 
-        public bool IsActionAvailable(Farm farm, Vector2 pos, Guid guid) {
-            if (!farm.terrainFeatures.ContainsKey(pos)) return false;
-            if (farm.terrainFeatures[pos] is not HoeDirt hd) return false;
+        public bool IsActionAvailable(GameLocation location, Vector2 pos, Guid guid) {
+            if (!location.terrainFeatures.ContainsKey(pos)) return false;
+            if (location.terrainFeatures[pos] is not HoeDirt hd) return false;
             if (hd.fertilizer.Value > 0) return false;
             if (hd.crop is null) return true;
 
@@ -29,12 +29,12 @@ namespace BetterJunimos.Abilities {
             return true;
         }
 
-        public bool PerformAction(Farm farm, Vector2 pos, JunimoHarvester junimo, Guid guid) {
+        public bool PerformAction(GameLocation location, Vector2 pos, JunimoHarvester junimo, Guid guid) {
             var chest = Util.GetHutFromId(guid).output.Value;
             var foundItem = chest.items.FirstOrDefault(item => item is {Category: ItemCategory});
             if (foundItem == null) return false;
 
-            Fertilize(farm, pos, foundItem.ParentSheetIndex);
+            Fertilize(location, pos, foundItem.ParentSheetIndex);
             Util.RemoveItemFromChest(chest, foundItem);
             return true;
         }
@@ -53,12 +53,12 @@ namespace BetterJunimos.Abilities {
             return _RequiredItems;
         }
 
-        private static void Fertilize(Farm farm, Vector2 pos, int index) {
-            if (farm.terrainFeatures[pos] is not HoeDirt hd) return;
+        private static void Fertilize(GameLocation location, Vector2 pos, int index) {
+            if (location.terrainFeatures[pos] is not HoeDirt hd) return;
             hd.fertilizer.Value = index;
             CheckSpeedGro(hd, hd.crop);
-            if (Utility.isOnScreen(Utility.Vector2ToPoint(pos), 64, farm)) {
-                farm.playSound("dirtyHit");
+            if (Utility.isOnScreen(Utility.Vector2ToPoint(pos), 64, location)) {
+                location.playSound("dirtyHit");
             }
         }
 
@@ -114,6 +114,16 @@ namespace BetterJunimos.Abilities {
 
                 tries++;
             }
+        }
+        
+        
+        /* older API compat */
+        public bool IsActionAvailable(Farm farm, Vector2 pos, Guid guid) {
+            return IsActionAvailable((GameLocation) farm, pos, guid);
+        }
+        
+        public bool PerformAction(Farm farm, Vector2 pos, JunimoHarvester junimo, Guid guid) {
+            return PerformAction((GameLocation) farm, pos, junimo, guid);
         }
     }
 }
