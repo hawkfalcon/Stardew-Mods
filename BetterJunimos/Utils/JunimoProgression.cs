@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
+using StardewValley.Locations;
 using StardewValley.Objects;
 using static System.String;
 using SObject = StardewValley.Object;
@@ -24,7 +25,6 @@ namespace BetterJunimos.Utils {
     }
 
     public class ProgressionData {
-        
         // do not use, deprecated
         public Dictionary<string, ProgressionItem> Progress { get; set; } = new();
     }
@@ -37,7 +37,7 @@ namespace BetterJunimos.Utils {
         private readonly IManifest _manifest;
         private readonly IMonitor _monitor;
         private readonly IModHelper _helper;
-        
+
         internal JunimoProgression(IManifest manifest, IMonitor monitor, IModHelper helper) {
             _manifest = manifest;
             _monitor = monitor;
@@ -60,6 +60,7 @@ namespace BetterJunimos.Utils {
             if (farm.modData.TryGetValue(k, out var v)) {
                 return v == "1";
             }
+
             return false;
         }
 
@@ -75,6 +76,7 @@ namespace BetterJunimos.Utils {
             if (farm.modData.TryGetValue(k, out var v)) {
                 return v == "1";
             }
+
             return false;
         }
 
@@ -170,7 +172,7 @@ namespace BetterJunimos.Utils {
             var an = ability.AbilityName();
             if (Unlocked(an)) return true;
             if (Prompted(an)) return false;
-            
+
             // _monitor.Log($"CanUseAbility: prompting for {an} due CanUseAbility request", LogLevel.Debug);
             DisplayPromptFor(an);
             return false;
@@ -286,21 +288,21 @@ namespace BetterJunimos.Utils {
                     // BetterJunimos.SMonitor.Log($"    At least {itemStack.Stack} in stack, removing some and unlocking", LogLevel.Debug);
                     Util.RemoveItemFromChest(chest, itemStack, needed);
                     return true;
-                } 
+                }
                 // BetterJunimos.SMonitor.Log($"    Only {itemStack.Stack} in stack, not unlocking", LogLevel.Debug);
             }
 
             return false;
         }
-        
+
         private int UnlockedCount() {
             var unlocked = 0.0f;
             foreach (var unused in Progressions().Where(Unlocked)) {
                 unlocked++;
             }
-            
+
             var pc = unlocked / Progressions().Count * 100;
-            
+
             // BetterJunimos.SMonitor.Log($"UnlockedCount {unlocked} {Progressions().Count} {pc}", LogLevel.Debug);
             return (int) Math.Round(pc);
         }
@@ -327,19 +329,24 @@ namespace BetterJunimos.Utils {
                 $"{Get("tracker.working-radius")}: {Util.CurrentWorkingRadius} {Get("tracker.current")}, {BetterJunimos.Config.JunimoHuts.MaxRadius} {Get("tracker.configured")}"
             };
 
-            foreach (var progression in Progressions()) {
-                var (configurable, enabled) = Enabled(progression);
-                
-                var ps = progression.SplitCamelCase();
-                if (configurable && !enabled) ps += $": {Get("tracker.disabled")}";  // user has disabled
-                else if (!BetterJunimos.Config.Progression.Enabled) ps += $": {Get("tracker.enabled")}";
-                else if (Unlocked(progression)) ps += $": {Get("tracker.unlocked")}";
-                else if (Prompted(progression)) ps += $": {Get("tracker.prompted")}";
-                else ps += $": {Get("tracker.not-triggered")}";
-                
-                quests.Add(ps);
+            if (!Context.IsMainPlayer) {
+                quests.Add(Get("tracker.progression-info-host-only"));
             }
+            else {
+                foreach (var progression in Progressions().OrderBy(item => item)) {
+                    var (configurable, enabled) = Enabled(progression);
 
+                    var ps = progression.SplitCamelCase();
+                    if (configurable && !enabled) ps += $": {Get("tracker.disabled")}"; // user has disabled
+                    else if (!BetterJunimos.Config.Progression.Enabled) ps += $": {Get("tracker.enabled")}";
+                    else if (Unlocked(progression)) ps += $": {Get("tracker.unlocked")}";
+                    else if (Prompted(progression)) ps += $": {Get("tracker.prompted")}";
+                    else ps += $": {Get("tracker.not-triggered")}";
+
+                    quests.Add(ps);
+                }
+            }
+            
             return Join("^", quests);
         }
 
@@ -352,10 +359,11 @@ namespace BetterJunimos.Utils {
         }
 
         public void ShowConfigurationMenu() {
+            Game1.playSound("shwip");
             var configMenu = _helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
             configMenu.OpenModMenu(_manifest);
         }
-        
+
         public void ShowPerfectionTracker() {
             var quests = ActiveQuests();
             var percentage = UnlockedCount().ToString();
@@ -388,25 +396,37 @@ namespace BetterJunimos.Utils {
                 ListAvailableActions(Util.GetHutIdFromHut(hut));
             }
         }
+        
+        internal void ListConfigurableAbilities() {
+            _monitor.Log($"Configurable abilities:", LogLevel.Debug);
+
+            foreach (var (key, value) in BetterJunimos.Config.JunimoAbilities) {
+                var loadStatus = value ? "registration enabled" : "registration disabled by configuration";
+                _monitor.Log($"    {key}: {loadStatus}", LogLevel.Debug);
+            }
+        }
 
         // search for crops + open plantable spots
         internal void ListAvailableActions(Guid id) {
-            JunimoHut hut = Util.GetHutFromId(id);
-            int radius = Util.CurrentWorkingRadius;
-
-            _monitor.Log($"{Get("debug.available-actions-for-hut-at")} [{hut.tileX} {hut.tileY}] ({id}):",
+            var hut = Util.GetHutFromId(id);
+            var radius = Util.CurrentWorkingRadius;
+            var farm = Game1.getFarm();
+            
+            _monitor.Log(
+                $"{Get("debug.available-actions-for-hut-at")} [{hut.tileX} {hut.tileY}] ({id}):",
                 LogLevel.Debug);
+            
             for (var x = hut.tileX.Value + 1 - radius; x < hut.tileX.Value + 2 + radius; ++x) {
                 for (var y = hut.tileY.Value + 1 - radius; y < hut.tileY.Value + 2 + radius; ++y) {
                     var pos = new Vector2(x, y);
 
-                    var ability = Util.Abilities.IdentifyJunimoAbility(pos, id);
+                    var ability = Util.Abilities.IdentifyJunimoAbility(farm, pos, id);
                     if (ability == null) {
                         continue;
                     }
 
                     // these 3 statements don't run unless you remove the `continue` above
-                    var cooldown = JunimoAbilities.ActionCoolingDown(ability, pos)
+                    var cooldown = JunimoAbilities.ActionCoolingDown(farm, ability, pos)
                         ? Get("debug.in-cooldown")
                         : "";
                     var itemsAvail = JunimoAbilities.ItemInHut(id, ability.RequiredItems())
@@ -416,14 +436,52 @@ namespace BetterJunimos.Utils {
                         ? ""
                         : Get("debug.locked-by-progression");
 
-                    _monitor.Log($"    [{pos.X} {pos.Y}] {ability.AbilityName()} {cooldown} {itemsAvail} {progLocked}",
+                    _monitor.Log($"    {farm.Name} [{pos.X} {pos.Y}] {ability.AbilityName()} {cooldown} {itemsAvail} {progLocked}",
                         LogLevel.Debug);
                 }
             }
 
-            Util.SendMessage(Get("debug.actions-logged"));
+            if (!Util.Greenhouse.HutHasGreenhouse(id)) {
+                // _monitor.Log($"Hut has no greenhouse", LogLevel.Debug);
+                return;
+            }
+            
+            _monitor.Log($"{Get("debug.available-actions-for-greenhouse")}:", LogLevel.Debug);
+            
+            var gh = Game1.getLocationFromName("Greenhouse");
+            for (var x = 0; x < gh.map.Layers[0].LayerWidth; x++)
+            {
+                for (var y = 0; y < gh.map.Layers[0].LayerHeight; y++)
+                {
+                    var pos = new Vector2(x, y);
+
+                    // _monitor.Log($"    {gh.Name} [{pos.X} {pos.Y}] checking", LogLevel.Debug);
+                    
+                    var ability = Util.Abilities.IdentifyJunimoAbility(gh, pos, id);
+                    if (ability == null) {
+                        continue;
+                    }
+
+                    // these 3 statements don't run unless you remove the `continue` above
+                    var cooldown = JunimoAbilities.ActionCoolingDown(gh, ability, pos)
+                        ? Get("debug.in-cooldown")
+                        : "";
+                    var itemsAvail = JunimoAbilities.ItemInHut(id, ability.RequiredItems())
+                        ? ""
+                        : Get("debug.required-item-unavailable");
+                    var progLocked = Util.Progression.CanUseAbility(ability)
+                        ? ""
+                        : Get("debug.locked-by-progression");
+
+                    _monitor.Log($"    {gh.Name} [{pos.X} {pos.Y}] {ability.AbilityName()} {cooldown} {itemsAvail} {progLocked}",
+                        LogLevel.Debug);
+                }
+            }
+
+            // Util.SendMessage(Get("debug.actions-logged"));
         }
 
+        
         public static bool HutOnTile(Vector2 pos) {
             return Game1.getFarm().buildings.Any(b => b is JunimoHut && b.occupiesTile(pos));
         }

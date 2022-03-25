@@ -22,7 +22,7 @@ namespace BetterJunimos.Utils {
                 ), 
                 @"(\p{Ll})(\P{Ll})", 
                 "$1 $2" 
-            );
+            ).Replace("  ", " ");
         }
     }
 }

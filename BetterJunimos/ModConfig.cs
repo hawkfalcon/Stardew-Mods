@@ -20,6 +20,7 @@ namespace BetterJunimos {
             public bool CanWorkInRain { get; set; } = true;
             public bool CanWorkInWinter { get; set; } = true;
             public bool CanWorkInEvenings { get; set; } = true;
+            public bool CanWorkInGreenhouse { get; set; } = true;
             public bool WorkFaster { get; set; } = true;
             public bool WorkRidiculouslyFast { get; set; }
             public bool AvoidHarvestingFlowers { get; set; } = true;
@@ -54,6 +55,8 @@ namespace BetterJunimos {
         internal class OtherSettings {
             public SButton SpawnJunimoKeybind { get; set; } = SButton.J;
             public bool ReceiveMessages { get; set; } = true;
+            public bool HutClickEnabled { get; set; } = true;
+            public SButton HutMenuKeybind { get; set; } = SButton.None;
         }
 
         public JunimoProgression Progression { get; set; } = new();

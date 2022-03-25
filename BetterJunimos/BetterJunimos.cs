@@ -11,7 +11,6 @@ using StardewValley;
 using StardewValley.Characters;
 using StardewValley.Menus;
 using BetterJunimos.Utils;
-using Newtonsoft.Json;
 
 namespace BetterJunimos {
     // ReSharper disable once ClassNeverInstantiated.Global
@@ -20,14 +19,13 @@ namespace BetterJunimos {
         internal static IMonitor SMonitor;
         internal static Maps CropMaps;
 
-        internal IGenericModConfigMenuApi configMenu;
-
+        private IGenericModConfigMenuApi configMenu;
 
         /// <summary>The mod entry point, called after the mod is first loaded.</summary>
         /// <param name="helper">Provides simplified APIs for writing mods.</param>
         public override void Entry(IModHelper helper) {
             SMonitor = Monitor;
-            
+
             Config = helper.ReadConfig<ModConfig>();
             SaveConfig();
 
@@ -36,6 +34,7 @@ namespace BetterJunimos {
             Util.Abilities = new JunimoAbilities(Config.JunimoAbilities, Monitor);
             Util.Payments = new JunimoPayments(Config.JunimoPayment);
             Util.Progression = new JunimoProgression(ModManifest, Monitor, Helper);
+            Util.Greenhouse = new JunimoGreenhouse(ModManifest, Monitor, Helper);
 
             helper.Content.AssetEditors.Add(new JunimoEditor(helper.Content));
             helper.Content.AssetEditors.Add(new BlueprintEditor());
@@ -52,9 +51,12 @@ namespace BetterJunimos {
 
             helper.ConsoleCommands.Add("bj_list_huts", "List available huts", ListHuts);
             helper.ConsoleCommands.Add("bj_list_actions", "List available actions", ListActions);
+            helper.ConsoleCommands.Add("bj_list_abilities", "List configurable abilities", ListConfigurableAbilities);
             helper.ConsoleCommands.Add("bj_prompt_all", "Prompt all quests", PromptAllQuests);
             helper.ConsoleCommands.Add("bj_prompt", "Prompt a quest", PromptQuest);
             helper.ConsoleCommands.Add("bj_unlock", "Unlock a quest", UnlockQuest);
+            helper.ConsoleCommands.Add("bj_list_cooldowns", "List cooldowns", ListCooldowns);
+            helper.ConsoleCommands.Add("bj_reset_cooldowns", "Reset cooldowns", ResetCooldowns);
         }
 
         private void ListHuts(string command, string[] args) {
@@ -63,6 +65,10 @@ namespace BetterJunimos {
 
         private void ListActions(string command, string[] args) {
             Util.Progression.ListAllAvailableActions();
+        }
+
+        private void ListConfigurableAbilities(string command, string[] args) {
+            Util.Progression.ListConfigurableAbilities();
         }
 
         private void PromptAllQuests(string command, string[] args) {
@@ -77,24 +83,32 @@ namespace BetterJunimos {
             Util.Progression.SetUnlocked(args[0]);
         }
 
+        private void ListCooldowns(string command, string[] args) {
+            Util.Abilities.ListCooldowns();
+        }
+
+        private void ResetCooldowns(string command, string[] args) {
+            JunimoAbilities.ResetCooldowns();
+        }
+
         private static void DoHarmonyRegistration() {
-            Harmony harmony = new Harmony("com.hawkfalcon.BetterJunimos");
+            var harmony = new Harmony("com.hawkfalcon.BetterJunimos");
             // Thank you to Cat (danvolchek) for this harmony setup implementation
             // https://github.com/danvolchek/StardewMods/blob/master/BetterGardenPots/BetterGardenPots/BetterGardenPotsMod.cs#L29
             IList<Tuple<string, Type, Type>> replacements = new List<Tuple<string, Type, Type>>();
 
             // Junimo Harvester patches
-            Type junimoType = typeof(JunimoHarvester);
+            var junimoType = typeof(JunimoHarvester);
             replacements.Add("foundCropEndFunction", junimoType, typeof(PatchFindingCropEnd));
-            replacements.Add("tryToHarvestHere", junimoType, typeof(PatchHarvestAttemptToCustom));
+            replacements.Add("tryToHarvestHere", junimoType, typeof(PatchTryToHarvestHere));
             replacements.Add("update", junimoType, typeof(PatchJunimoShake));
 
             // improve pathfinding
-            replacements.Add("pathfindToRandomSpotAroundHut", junimoType, typeof(PatchPathfind));
+            replacements.Add("pathfindToRandomSpotAroundHut", junimoType, typeof(PatchPathfindToRandomSpotAroundHut));
             replacements.Add("pathFindToNewCrop_doWork", junimoType, typeof(PatchPathfindDoWork));
 
             // Junimo Hut patches
-            Type junimoHutType = typeof(JunimoHut);
+            var junimoHutType = typeof(JunimoHut);
             replacements.Add("areThereMatureCropsWithinRadius", junimoHutType, typeof(PatchSearchAroundHut));
 
             // replacements for hardcoded max junimos
@@ -119,31 +133,63 @@ namespace BetterJunimos {
         /// <summary>Raised after the player presses a button on the keyboard, controller, or mouse.</summary>
         /// <param name="sender">The event sender.</param>
         /// <param name="e">The event arguments.</param>
-        void OnButtonPressed(object sender, ButtonPressedEventArgs e) {
+        private void OnButtonPressed(object sender, ButtonPressedEventArgs e) {
             if (!Context.IsWorldReady) {
                 return;
             }
-            
+
+            if (e.Button.IsUseToolButton() && Config.Other.HutClickEnabled) {
+                if (!AlternativeTexturesActive() && ShowPerfectionTracker(e)) {
+                    Helper.Input.Suppress(e.Button);
+                    return;
+                }
+            }
+
+            if (e.Button == Config.Other.HutMenuKeybind) {
+                if (ShowPerfectionTracker(e)) {
+                    Helper.Input.Suppress(e.Button);
+                    return;
+                }
+            }
+
             if (e.Button == Config.Other.SpawnJunimoKeybind) {
                 SpawnJunimoCommand();
             }
+        }
 
-            if (e.Button == SButton.MouseLeft) {
-                if (Game1.player.currentLocation is not Farm) return;
-                if (Game1.activeClickableMenu != null) return;
-                if (!JunimoProgression.HutOnTile(e.Cursor.Tile)) return;
 
-                if (Helper.ModRegistry.Get("ceruleandeep.BetterJunimosForestry") != null) return;
+        private const string PAINT_BUCKET_FLAG = "AlternativeTextures.PaintBucketFlag";
+        private const string PAINT_BRUSH_FLAG = "AlternativeTextures.PaintBrushFlag";
+        private const string SCISSORS_FLAG = "AlternativeTextures.ScissorsFlag";
 
-                Util.Progression.ShowPerfectionTracker();
-                Helper.Input.Suppress(SButton.MouseLeft);
-            }
+        private static bool AlternativeTexturesActive() {
+            // make sure Alternative Textures still works
+
+            if (Game1.player.CurrentTool is null) return false;
+            if (Game1.player.CurrentTool.modData.ContainsKey(PAINT_BUCKET_FLAG))
+                return true;
+            if (Game1.player.CurrentTool.modData.ContainsKey(PAINT_BRUSH_FLAG))
+                return true;
+            if (Game1.player.CurrentTool.modData.ContainsKey(SCISSORS_FLAG))
+                return true;
+
+            return false;
+        }
+
+        private bool ShowPerfectionTracker(ButtonPressedEventArgs e) {
+            if (Game1.player.currentLocation is not Farm) return false;
+            if (Game1.activeClickableMenu != null) return false;
+            if (!JunimoProgression.HutOnTile(e.Cursor.Tile)) return false;
+            if (Helper.ModRegistry.Get("ceruleandeep.BetterJunimosForestry") != null) return false;
+
+            Util.Progression.ShowPerfectionTracker();
+            return true;
         }
 
         /// <summary>Raised after a the game is saved</summary>
         /// <param name="sender">The event sender.</param>
         /// <param name="e">The event arguments.</param>
-        void OnSaving(object sender, SavingEventArgs e) {
+        private void OnSaving(object sender, SavingEventArgs e) {
             if (!Context.IsMainPlayer) return;
             Helper.Data.WriteSaveData("hawkfalcon.BetterJunimos.CropMaps", CropMaps);
             SaveConfig();
@@ -166,11 +212,11 @@ namespace BetterJunimos {
             //
             // check that e.NewMenu is null because this event also fires when items are added to the chest
             // caution: this runs after any chest is closed, not just Junimo huts
-            
+
             if (e.OldMenu is ItemGrabMenu menu && e.NewMenu is null) {
                 if (menu.context is JunimoHut or StardewValley.Objects.Chest) {
                     CheckHutsForWagesAndProgressionItems();
-                    Util.Abilities.ResetCooldowns();
+                    JunimoAbilities.ResetCooldowns();
                 }
             }
 
@@ -189,12 +235,6 @@ namespace BetterJunimos {
         /// <param name="sender">The event sender.</param>
         /// <param name="e">The event arguments.</param>
         void OnDayStarted(object sender, DayStartedEventArgs e) {
-            if (!Context.IsMainPlayer) {
-                Monitor.Log(
-                    $"Better Junimos is a single-player mod. It is not well-tested in multiplayer",
-                    LogLevel.Warn);
-            }
-
             if (Config.JunimoPayment.WorkForWages) {
                 Util.Payments.JunimoPaymentsToday.Clear();
                 Util.Payments.WereJunimosPaidToday = false;
@@ -204,15 +244,24 @@ namespace BetterJunimos {
             if (huts.Any()) {
                 CheckHutsForWagesAndProgressionItems();
                 Util.Progression.DayStartedProgressionPrompt(Game1.IsWinter, Game1.isRaining);
-                Util.Abilities.ResetCooldowns();
+                JunimoAbilities.ResetCooldowns();
+            }
 
-                if (Config.JunimoPayment.WorkForWages && !Util.Payments.WereJunimosPaidToday) {
-                    Util.SendMessage(Helper.Translation.Get("msg.no-work-until-paid"));
+            foreach (var location in Game1.locations) {
+                var toRemove = location.characters.Where(npc => npc is JunimoHarvester).ToList();
+                if (toRemove.Count > 0) {
+                    Monitor.Log($"{location.Name} has {toRemove.Count} Junimos", LogLevel.Trace);
+                }
+
+                foreach (var npc in toRemove) {
+                    var junimo = (JunimoHarvester) npc;
+                    Monitor.Log($"    Removing Junimo {junimo.whichJunimoFromThisHut} from {location.Name}", LogLevel.Trace);
+                    location.characters.Remove(npc);
                 }
             }
 
             // reset for rainy days, winter, or Generic Mod Config Menu options change
-            Helper.Content.InvalidateCache(@"Characters\Junimo");
+            SaveConfig();
         }
 
         private void CheckHutsForWagesAndProgressionItems() {
@@ -234,6 +283,15 @@ namespace BetterJunimos {
 
                 Util.Abilities.UpdateHutItems(Util.GetHutIdFromHut(hut));
             }
+
+            if (!Config.JunimoPayment.WorkForWages) return;
+            if (Util.Payments.WereJunimosPaidToday) {
+                Util.SendMessage(Helper.Translation.Get("msg.happy-with-payment"));
+            }
+            else {
+                Util.SendMessage(
+                    Helper.Translation.Get("msg.no-work-until-paid") + " " + Util.Payments.PaymentOutstanding());
+            }
         }
 
         /// <summary>Raised after a building is added</summary>
@@ -251,20 +309,21 @@ namespace BetterJunimos {
         /// <param name="sender">The event sender.</param>
         /// <param name="e">The event arguments.</param>
         private void OnSaveLoaded(object sender, EventArgs e) {
-            // reload the config to pick up any changes made in Generic Mod Config Menu on the title screen
-            Config = Helper.ReadConfig<ModConfig>();
             AllowJunimoHutPurchasing();
-            
+
             // make sure crop harvesting is on for everyone
             var farm = Game1.getFarm();
             var k = $"hawkfalcon.BetterJunimos.ProgressionData.HarvestCrops.Unlocked";
             farm.modData[k] = "1";
-            
+
+            // rebuild the GMCM menu now we know who's host/farmhand
+            setupGMCM();
+
             if (!Context.IsMainPlayer) return;
-            
+
             // check for old progression data stored in the save, migrate it
             MigrateProgData();
-            
+
             // load crop maps from save (TODO: not MP-safe)
             CropMaps = Helper.Data.ReadSaveData<Maps>("hawkfalcon.BetterJunimos.CropMaps") ?? new Maps();
         }
@@ -283,39 +342,45 @@ namespace BetterJunimos {
         }
 
         private void OnLaunched(object sender, GameLaunchedEventArgs e) {
+            setupGMCM();
+
             // only register after the game is launched so we can query the object registry
             Util.Abilities.RegisterDefaultAbilities();
 
-            Config = Helper.ReadConfig<ModConfig>();
-            setupGMCM();
+            // write the config file again to populate JunimoAbilities with registered abilities
+            SaveConfig();
         }
 
-        private void setupGMCM()
-        {
+        private void setupGMCM() {
             configMenu = Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
             if (configMenu is null) return;
 
+            configMenu.Unregister(ModManifest);
             configMenu.Register(ModManifest, () => Config = new ModConfig(), SaveConfig);
             configMenu.SetTitleScreenOnlyForNextOptions(ModManifest, false);
 
             configMenu.AddSectionTitle(ModManifest,
                 () => Helper.Translation.Get("cfg.hut-settings"));
-            configMenu.AddNumberOption(ModManifest,
-                () => Config.JunimoHuts.MaxJunimos,
-                val => Config.JunimoHuts.MaxJunimos = val,
-                () => Helper.Translation.Get("cfg.max-junimos"),
-                () => "",
-                1,
-                40
-            );
-            configMenu.AddNumberOption(ModManifest,
-                () => Config.JunimoHuts.MaxRadius,
-                val => Config.JunimoHuts.MaxRadius = val,
-                () => Helper.Translation.Get("cfg.max-radius"),
-                () => "",
-                1,
-                40
-            );
+
+            if (Context.IsMainPlayer) {
+                configMenu.AddNumberOption(ModManifest,
+                    () => Config.JunimoHuts.MaxJunimos,
+                    val => Config.JunimoHuts.MaxJunimos = val,
+                    () => Helper.Translation.Get("cfg.max-junimos"),
+                    () => "",
+                    1,
+                    40
+                );
+                configMenu.AddNumberOption(ModManifest,
+                    () => Config.JunimoHuts.MaxRadius,
+                    val => Config.JunimoHuts.MaxRadius = val,
+                    () => Helper.Translation.Get("cfg.max-radius"),
+                    () => "",
+                    1,
+                    40
+                );
+            }
+
             configMenu.AddBoolOption(ModManifest,
                 () => Config.JunimoHuts.AvailableAfterCommunityCenterComplete,
                 val => Config.JunimoHuts.AvailableAfterCommunityCenterComplete = val,
@@ -350,55 +415,63 @@ namespace BetterJunimos {
                 val => Config.Progression.Enabled = val,
                 () => Helper.Translation.Get("cfg.skills-progression"),
                 () => Helper.Translation.Get("cfg.skills-progression.tooltip"));
-            configMenu.AddBoolOption(ModManifest,
-                () => Config.JunimoImprovements.CanWorkInRain,
-                val => Config.JunimoImprovements.CanWorkInRain = val,
-                () => Helper.Translation.Get("cfg.can-work-in-rain"),
-                () => ""
-            );
-            configMenu.AddBoolOption(ModManifest,
-                () => Config.JunimoImprovements.CanWorkInWinter,
-                val => Config.JunimoImprovements.CanWorkInWinter = val,
-                () => Helper.Translation.Get("cfg.can-work-in-winter"),
-                () => ""
-            );
-            configMenu.AddBoolOption(ModManifest,
-                () => Config.JunimoImprovements.CanWorkInEvenings,
-                val => Config.JunimoImprovements.CanWorkInEvenings = val,
-                () => Helper.Translation.Get("cfg.can-work-in-evenings"),
-                () => ""
-            );
-            configMenu.AddBoolOption(ModManifest,
-                () => Config.JunimoImprovements.WorkFaster,
-                val => Config.JunimoImprovements.WorkFaster = val,
-                () => Helper.Translation.Get("cfg.work-faster"),
-                () => Helper.Translation.Get("cfg.work-faster.tooltip")
-            );
-            configMenu.AddBoolOption(ModManifest,
-                () => Config.JunimoImprovements.WorkRidiculouslyFast,
-                val => Config.JunimoImprovements.WorkRidiculouslyFast = val,
-                () => Helper.Translation.Get("cfg.work-ridiculously-fast"),
-                () => Helper.Translation.Get("cfg.work-ridiculously-fast.tooltip")
-            );
+            if (Context.IsMainPlayer) {
+                configMenu.AddBoolOption(ModManifest,
+                    () => Config.JunimoImprovements.CanWorkInRain,
+                    val => Config.JunimoImprovements.CanWorkInRain = val,
+                    () => Helper.Translation.Get("cfg.can-work-in-rain"),
+                    () => ""
+                );
+                configMenu.AddBoolOption(ModManifest,
+                    () => Config.JunimoImprovements.CanWorkInWinter,
+                    val => Config.JunimoImprovements.CanWorkInWinter = val,
+                    () => Helper.Translation.Get("cfg.can-work-in-winter"),
+                    () => ""
+                );
+                configMenu.AddBoolOption(ModManifest,
+                    () => Config.JunimoImprovements.CanWorkInEvenings,
+                    val => Config.JunimoImprovements.CanWorkInEvenings = val,
+                    () => Helper.Translation.Get("cfg.can-work-in-evenings"),
+                    () => ""
+                );
+                configMenu.AddBoolOption(ModManifest,
+                    () => Config.JunimoImprovements.CanWorkInGreenhouse,
+                    val => Config.JunimoImprovements.CanWorkInGreenhouse = val,
+                    () => Helper.Translation.Get("cfg.can-work-in-greenhouse"),
+                    () => Helper.Translation.Get("cfg.can-work-in-greenhouse.tooltip")
+                );
+                configMenu.AddBoolOption(ModManifest,
+                    () => Config.JunimoImprovements.WorkFaster,
+                    val => Config.JunimoImprovements.WorkFaster = val,
+                    () => Helper.Translation.Get("cfg.work-faster"),
+                    () => Helper.Translation.Get("cfg.work-faster.tooltip")
+                );
+                configMenu.AddBoolOption(ModManifest,
+                    () => Config.JunimoImprovements.WorkRidiculouslyFast,
+                    val => Config.JunimoImprovements.WorkRidiculouslyFast = val,
+                    () => Helper.Translation.Get("cfg.work-ridiculously-fast"),
+                    () => Helper.Translation.Get("cfg.work-ridiculously-fast.tooltip")
+                );
 
-            configMenu.AddBoolOption(ModManifest,
-                () => Config.JunimoImprovements.AvoidHarvestingFlowers,
-                val => Config.JunimoImprovements.AvoidHarvestingFlowers = val,
-                () => Helper.Translation.Get("cfg.avoid-harvesting-flowers"),
-                () => ""
-            );
-            configMenu.AddBoolOption(ModManifest,
-                () => Config.JunimoImprovements.AvoidHarvestingGiants,
-                val => Config.JunimoImprovements.AvoidHarvestingGiants = val,
-                () => Helper.Translation.Get("cfg.avoid-harvesting-giant-crops"),
-                () => Helper.Translation.Get("cfg.avoid-harvesting-giant-crops.tooltip")
-            );
-            configMenu.AddBoolOption(ModManifest,
-                () => Config.JunimoImprovements.AvoidPlantingCoffee,
-                val => Config.JunimoImprovements.AvoidPlantingCoffee = val,
-                () => Helper.Translation.Get("cfg.avoid-planting-coffee"),
-                () => ""
-            );
+                configMenu.AddBoolOption(ModManifest,
+                    () => Config.JunimoImprovements.AvoidHarvestingFlowers,
+                    val => Config.JunimoImprovements.AvoidHarvestingFlowers = val,
+                    () => Helper.Translation.Get("cfg.avoid-harvesting-flowers"),
+                    () => ""
+                );
+                configMenu.AddBoolOption(ModManifest,
+                    () => Config.JunimoImprovements.AvoidHarvestingGiants,
+                    val => Config.JunimoImprovements.AvoidHarvestingGiants = val,
+                    () => Helper.Translation.Get("cfg.avoid-harvesting-giant-crops"),
+                    () => Helper.Translation.Get("cfg.avoid-harvesting-giant-crops.tooltip")
+                );
+                configMenu.AddBoolOption(ModManifest,
+                    () => Config.JunimoImprovements.AvoidPlantingCoffee,
+                    val => Config.JunimoImprovements.AvoidPlantingCoffee = val,
+                    () => Helper.Translation.Get("cfg.avoid-planting-coffee"),
+                    () => ""
+                );
+            }
 
             configMenu.AddSectionTitle(ModManifest,
                 () => Helper.Translation.Get("cfg.payment"),
@@ -441,12 +514,14 @@ namespace BetterJunimos {
                 0,
                 20
             );
-            configMenu.AddBoolOption(ModManifest,
-                () => Config.JunimoPayment.GiveExperience,
-                val => Config.JunimoPayment.GiveExperience = val,
-                () => Helper.Translation.Get("cfg.give-experience"),
-                () => Helper.Translation.Get("cfg.give-experience.tooltip")
-            );
+            if (Context.IsMainPlayer) {
+                configMenu.AddBoolOption(ModManifest,
+                    () => Config.JunimoPayment.GiveExperience,
+                    val => Config.JunimoPayment.GiveExperience = val,
+                    () => Helper.Translation.Get("cfg.give-experience"),
+                    () => Helper.Translation.Get("cfg.give-experience.tooltip")
+                );
+            }
 
             configMenu.AddSectionTitle(ModManifest,
                 () => Helper.Translation.Get("cfg.other"),
@@ -483,6 +558,18 @@ namespace BetterJunimos {
                 () => Helper.Translation.Get("cfg.spawn-junimo-keybind"),
                 () => ""
             );
+            configMenu.AddKeybind(ModManifest,
+                () => Config.Other.HutMenuKeybind,
+                val => Config.Other.HutMenuKeybind = val,
+                () => Helper.Translation.Get("cfg.hut-menu-keybind"),
+                () => Helper.Translation.Get("cfg.hut-menu-keybind.tooltip")
+            );
+            configMenu.AddBoolOption(ModManifest,
+                () => Config.Other.HutClickEnabled,
+                val => Config.Other.HutClickEnabled = val,
+                () => Helper.Translation.Get("cfg.hut-click-enabled"),
+                () => Helper.Translation.Get("cfg.hut-click-enabled.tooltip")
+            );
             configMenu.AddBoolOption(ModManifest,
                 () => Config.Other.ReceiveMessages,
                 val => Config.Other.ReceiveMessages = val,
@@ -492,8 +579,7 @@ namespace BetterJunimos {
         }
 
         // save config.json and invalidate caches
-        private void SaveConfig()
-        {
+        private void SaveConfig() {
             Helper.WriteConfig(Config);
             Helper.Content.InvalidateCache(@"Characters\Junimo");
             Helper.Content.InvalidateCache(@"Data/Blueprints");
@@ -508,33 +594,32 @@ namespace BetterJunimos {
         }
 
         private void SpawnJunimoCommand() {
-            if (Game1.player.currentLocation.IsFarm) {
-                var farm = Game1.getFarm();
-                var rand = new Random();
-
-                var huts = farm.buildings.OfType<JunimoHut>();
+            if (Game1.player.currentLocation.IsFarm || Game1.player.currentLocation.IsGreenhouse) {
+                var huts = Game1.getFarm().buildings.OfType<JunimoHut>();
                 var junimoHuts = huts.ToList();
                 if (!junimoHuts.Any()) {
                     Util.SendMessage(Helper.Translation.Get("msg.cannot-spawn-without-hut"));
                     return;
                 }
 
+                var rand = new Random();
                 var hut = junimoHuts.ElementAt(rand.Next(0, junimoHuts.Count));
-                Util.SpawnJunimoAtPosition(Game1.player.Position, hut, rand.Next(4, 100));
+                Util.SpawnJunimoAtPosition(Game1.player.currentLocation, Game1.player.Position, hut, rand.Next(4, 100));
             }
             else {
                 Util.SendMessage(Helper.Translation.Get("msg.cannot-spawn-here"));
             }
         }
 
-        private void CheckForWages(JunimoHut hut) {
+        private static void CheckForWages(JunimoHut hut) {
             if (!Config.JunimoPayment.WorkForWages) return;
-            if (Util.Payments.WereJunimosPaidToday || !Util.Payments.ReceivePaymentItems(hut)) return;
-            Util.Payments.WereJunimosPaidToday = true;
-            Util.SendMessage(Helper.Translation.Get("msg.happy-with-payment"));
+            if (Util.Payments.WereJunimosPaidToday) return;
+            if (Util.Payments.ReceivePaymentItems(hut)) {
+                Util.Payments.WereJunimosPaidToday = true;
+            }
         }
 
-        private void CheckForProgressionItems(JunimoHut hut) {
+        private static void CheckForProgressionItems(JunimoHut hut) {
             if (!Config.Progression.Enabled) return;
             Util.Progression.ReceiveProgressionItems(hut);
         }

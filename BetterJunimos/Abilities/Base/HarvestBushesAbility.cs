@@ -11,20 +11,29 @@ namespace BetterJunimos.Abilities {
             return "HarvestBushes";
         }
 
-        public bool IsActionAvailable(Farm farm, Vector2 pos, Guid guid) {
-            if (farm.terrainFeatures.ContainsKey(pos) && farm.terrainFeatures[pos] is Bush bush) {
+        public bool IsActionAvailable(GameLocation location, Vector2 pos, Guid guid) {
+            if (location.terrainFeatures.ContainsKey(pos) && location.terrainFeatures[pos] is Bush bush) {
                 return bush.tileSheetOffset.Value == 1;
             }
             return false;
         }
 
-        public bool PerformAction(Farm farm, Vector2 pos, JunimoHarvester junimo, Guid guid) {
-            // Don't do anything, as the base junimo handles this already (see PatchHarvestAttemptToCustom)
+        public bool PerformAction(GameLocation location, Vector2 pos, JunimoHarvester junimo, Guid guid) {
+            // Don't do anything, as the base junimo handles this already (see PatchTryToHarvestHere)
             return true;
         }
 
         public List<int> RequiredItems() {
             return new List<int>();
+        }
+        
+        /* older API compat */
+        public bool IsActionAvailable(Farm farm, Vector2 pos, Guid guid) {
+            return IsActionAvailable((GameLocation) farm, pos, guid);
+        }
+        
+        public bool PerformAction(Farm farm, Vector2 pos, JunimoHarvester junimo, Guid guid) {
+            return PerformAction((GameLocation) farm, pos, junimo, guid);
         }
     }
 }

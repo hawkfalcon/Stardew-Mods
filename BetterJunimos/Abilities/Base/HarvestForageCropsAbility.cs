@@ -12,7 +12,7 @@ namespace BetterJunimos.Abilities {
             return "HarvestForageCrops";
         }
 
-        public bool IsActionAvailable(Farm farm, Vector2 pos, Guid guid) {
+        public bool IsActionAvailable(GameLocation location, Vector2 pos, Guid guid) {
             Vector2 up = new Vector2(pos.X, pos.Y + 1);
             Vector2 right = new Vector2(pos.X + 1, pos.Y);
             Vector2 down = new Vector2(pos.X, pos.Y - 1);
@@ -20,14 +20,14 @@ namespace BetterJunimos.Abilities {
 
             Vector2[] positions = { up, right, down, left };
             foreach (Vector2 nextPos in positions) {
-                if (farm.objects.ContainsKey(nextPos) && farm.objects[nextPos].isForage(farm)) {
+                if (location.objects.ContainsKey(nextPos) && location.objects[nextPos].isForage(location)) {
                     return true;
                 }
             }
             return false;
         }
 
-        public bool PerformAction(Farm farm, Vector2 pos, JunimoHarvester junimo, Guid guid) {
+        public bool PerformAction(GameLocation location, Vector2 pos, JunimoHarvester junimo, Guid guid) {
             Chest chest = Util.GetHutFromId(guid).output.Value;
 
             Vector2 up = new Vector2(pos.X, pos.Y + 1);
@@ -38,15 +38,15 @@ namespace BetterJunimos.Abilities {
             int direction = 0;
             Vector2[] positions = { up, right, down, left };
             foreach (Vector2 nextPos in positions) {
-                if (farm.objects.ContainsKey(nextPos) && farm.objects[nextPos].isForage(farm)) {
+                if (location.objects.ContainsKey(nextPos) && location.objects[nextPos].isForage(location)) {
                     junimo.faceDirection(direction);
-                    SetForageQuality(farm, nextPos);
+                    SetForageQuality(location, nextPos);
 
-                    StardewValley.Object item = farm.objects[nextPos];
-                    Util.AddItemToChest(farm, chest, item);
+                    StardewValley.Object item = location.objects[nextPos];
+                    Util.AddItemToChest(location, chest, item);
 
                     Util.SpawnParticles(nextPos);
-                    farm.objects.Remove(nextPos);
+                    location.objects.Remove(nextPos);
                     
                     // calculate the forage experience from this harvest
                     if (!BetterJunimos.Config.JunimoPayment.GiveExperience) return true;
@@ -65,13 +65,13 @@ namespace BetterJunimos.Abilities {
         }
 
         // adapted from GameLocation.checkAction
-        private void SetForageQuality(Farm farm, Vector2 pos) {
-            int quality = farm.objects[pos].Quality;
-            Random random = new Random((int)Game1.uniqueIDForThisGame / 2 + (int)Game1.stats.DaysPlayed + (int)pos.X + (int)pos.Y * 777);
+        private void SetForageQuality(GameLocation location, Vector2 pos) {
+            var quality = location.objects[pos].Quality;
+            var random = new Random((int)Game1.uniqueIDForThisGame / 2 + (int)Game1.stats.DaysPlayed + (int)pos.X + (int)pos.Y * 777);
 
-            foreach (Farmer farmer in Game1.getOnlineFarmers()) {
+            foreach (var farmer in Game1.getOnlineFarmers()) {
                 var f = farmer.Stamina;
-                int maxQuality = quality;
+                var maxQuality = quality;
                 if (farmer.professions.Contains(16))
                     maxQuality = 4;
                 else if (random.NextDouble() < farmer.ForagingLevel / 30.0)
@@ -82,7 +82,16 @@ namespace BetterJunimos.Abilities {
                     quality = maxQuality;
             }
 
-            farm.objects[pos].Quality = quality;
+            location.objects[pos].Quality = quality;
+        }
+        
+        /* older API compat */
+        public bool IsActionAvailable(Farm farm, Vector2 pos, Guid guid) {
+            return IsActionAvailable((GameLocation) farm, pos, guid);
+        }
+        
+        public bool PerformAction(Farm farm, Vector2 pos, JunimoHarvester junimo, Guid guid) {
+            return PerformAction((GameLocation) farm, pos, junimo, guid);
         }
     }
 }

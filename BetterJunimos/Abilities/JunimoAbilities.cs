@@ -12,9 +12,9 @@ using StardewModdingAPI;
 
 namespace BetterJunimos.Utils {
     public class JunimoAbilities {
-        private Dictionary<String, bool> _enabledAbilities;
+        private Dictionary<string, bool> _enabledAbilities;
         private readonly IMonitor _monitor;
-        
+
         /* ACTION FAILURE COOLDOWNS:
          Intent: don't retry actions that failed recently (in the last game hour)
          
@@ -24,18 +24,29 @@ namespace BetterJunimos.Utils {
          predict all the ways that PerformAction could fail. 
 
          Registering a failed action:
-         Call ActionFailed. Currently called in the Harmony patch PatchHarvestAttemptToCustom
+         Call ActionFailed. Currently called in the Harmony patch PatchTryToHarvestHere
          
          Resetting cooldowns:
          Call ResetCooldowns. Currently called by the start-of-day event handler and the hut-menu-closed handler
          (player may have added seeds etc so that failed actions will now succeed)           
          */
-        private static readonly Dictionary<Tuple<IJunimoAbility, Vector2>, int> FailureCooldowns = new();
+        private static readonly Dictionary<(GameLocation, Vector2, IJunimoAbility), int> FailureCooldowns = new();
 
-        private readonly List<IJunimoAbility> _junimoCapabilities = new();
+
+        /*
+         * for each hut and map, the last known crop location/work to do
+         * because each hut could be servicing several locations (e.g. farm, greenhouse)
+         *
+         * used in pathFindToNewCrop_doWork
+         */
+        internal readonly Dictionary<(JunimoHut, GameLocation), Point> lastKnownCropLocations = new();
+
+
+        private readonly List<IJunimoAbility> _registeredJunimoAbilities = new();
 
         private static readonly Dictionary<Guid, Dictionary<int, bool>> ItemsInHuts = new();
-        private readonly HashSet<int> _requiredItems = new() { SObject.fertilizerCategory, SObject.SeedsCategory };
+        private readonly HashSet<int> _requiredItems = new() {SObject.fertilizerCategory, SObject.SeedsCategory};
+
 
         public JunimoAbilities(Dictionary<string, bool> enabledAbilities, IMonitor monitor) {
             _enabledAbilities = enabledAbilities;
@@ -50,10 +61,11 @@ namespace BetterJunimos.Utils {
                 new PlantCropsAbility(_monitor),
                 new HarvestCropsAbility(),
                 new HarvestBushesAbility(),
-                new HarvestForageCropsAbility(), 
-                new ClearDeadCropsAbility()
+                new HarvestForageCropsAbility(),
+                new ClearDeadCropsAbility(),
+                new VisitGreenhouseAbility(),
             };
-            foreach(var junimoAbility in defaultAbilities) {
+            foreach (var junimoAbility in defaultAbilities) {
                 RegisterJunimoAbility(junimoAbility);
             }
         }
@@ -64,104 +76,142 @@ namespace BetterJunimos.Utils {
         public void RegisterJunimoAbility(IJunimoAbility junimoAbility) {
             var name = junimoAbility.AbilityName();
             if (!BetterJunimos.Config.JunimoAbilities.ContainsKey(name)) {
+                // BetterJunimos.SMonitor.Log($"RegisterJunimoAbility [for {name}]: no entry in JunimoAbilities", LogLevel.Info);
                 BetterJunimos.Config.JunimoAbilities.Add(name, true);
             }
 
-            if (!BetterJunimos.Config.JunimoAbilities[name]) return;
-            _junimoCapabilities.Add(junimoAbility);
-            // BetterJunimos.SMonitor.Log($"RegisterJunimoAbility: {name} requires {string.Join(" ", junimoAbility.RequiredItems())}", LogLevel.Debug);
+            if (!BetterJunimos.Config.JunimoAbilities[name]) {
+                // BetterJunimos.SMonitor.Log($"RegisterJunimoAbility [for {name}]: disabled in JunimoAbilities", LogLevel.Info);
+                return;
+            }
+
+            // BetterJunimos.SMonitor.Log($"RegisterJunimoAbility [for {name}]: registering", LogLevel.Debug);
+
+            _registeredJunimoAbilities.Add(junimoAbility);
             _requiredItems.UnionWith(junimoAbility.RequiredItems());
 
             // add placeholder for ability in progressions system
-            if (Util.Progression is null) {
-                // BetterJunimos.SMonitor.Log($"RegisterJunimoAbility [for {name}]: Progression is null", LogLevel.Warn);
-                return;
-            }
             if (Util.Progression.UnlockCosts is null) {
-                // BetterJunimos.SMonitor.Log($"RegisterJunimoAbility [for {name}]: Progression.UnlockCosts is null", LogLevel.Warn);
                 return;
             }
+
             if (!Util.Progression.UnlockCosts.ContainsKey(name)) {
                 Util.Progression.UnlockCosts[name] = new UnlockCost {Item = 268, Stack = 1, Remarks = "Starfruit"};
-            } 
+            }
         }
 
         // Can the Junimo use a capability/ability here
-        public bool IsActionable(Vector2 pos, Guid id) {
-            return IdentifyJunimoAbility(pos, id) != null;
+        public bool IsActionable(GameLocation location, Vector2 pos, Guid id) {
+            return IdentifyJunimoAbility(location, pos, id) != null;
         }
 
-        public IJunimoAbility IdentifyJunimoAbility(Vector2 pos, Guid id) {
-            // Monitor.Log($"IdentifyJunimoAbility [for {caller}] at [{pos.X} {pos.Y}] for {id}", LogLevel.Info);
-            var farm = Game1.getFarm();
+        public IJunimoAbility IdentifyJunimoAbility(GameLocation location, Vector2 pos, Guid hutGuid) {
+            // BetterJunimos.SMonitor.Log($"IdentifyJunimoAbility at {location.Name} ({location.IsGreenhouse})", LogLevel.Debug);
+            // if (location.IsGreenhouse) {
+            //     BetterJunimos.SMonitor.Log($"IdentifyJunimoAbility at {location.Name} [{pos.X} {pos.Y}]",
+            //         LogLevel.Debug);
+            // }
 
-            foreach (var ability in _junimoCapabilities) {
-                if (ActionCoolingDown(ability, pos)) continue;
-                if (!ItemInHut(id, ability.RequiredItems())) continue;
-                if (!ability.IsActionAvailable(farm, pos, id)) continue;
-                if (!Util.Progression.CanUseAbility(ability)) continue;
+            foreach (var ability in _registeredJunimoAbilities) {
+                // if (location.IsGreenhouse && ability.AbilityName() == "HoeAroundTrees") {
+                //     BetterJunimos.SMonitor.Log($"  {ability.AbilityName()}");
+                // }
+
+                // TODO: cooldowns for greenhouse
+                if (ActionCoolingDown(location, ability, pos)) continue;
+
+                if (!ItemInHut(hutGuid, ability.RequiredItems())) {
+                    // if (location.IsGreenhouse && ability.AbilityName() == "HoeAroundTrees") {
+                    //     BetterJunimos.SMonitor.Log($"    items not in hut");
+                    // }
+
+                    continue;
+                }
+
+                if (!ability.IsActionAvailable(location, pos, hutGuid)) {
+                    // if (location.IsGreenhouse && ability.AbilityName() == "HoeAroundTrees") {
+                    //     BetterJunimos.SMonitor.Log($"    action not available");
+                    // }
+
+                    continue;
+                }
+
+                if (!Util.Progression.CanUseAbility(ability)) {
+                    // if (location.IsGreenhouse && ability.AbilityName() == "HoeAroundTrees") {
+                    //     BetterJunimos.SMonitor.Log($"    progression locked");
+                    // }
+
+                    continue;
+                }
+
+                // if (location.IsGreenhouse) {
+                //     BetterJunimos.SMonitor.Log(
+                //         $"    {ability.AbilityName()} available at {location.Name} [{pos.X} {pos.Y}]");
+                // }
+
                 return ability;
             }
 
+            // if (location.IsGreenhouse) {
+            //     BetterJunimos.SMonitor.Log($"  no work at {location.Name} {pos.X} {pos.Y}");
+            // }
+
             return null;
         }
 
-        public IJunimoAbility AvailableJunimoAbility(Vector2 pos, Guid id, string caller) {
-            var farm = Game1.getFarm();
-            if (caller == "ListAvailableActions") {
-                _monitor.Log($"      AvailableJunimoAbility [for {caller}] at [{pos.X} {pos.Y}]", LogLevel.Debug);
-            }
-            foreach (var ability in _junimoCapabilities) {
-                bool available = ability.IsActionAvailable(farm, pos, id);
-                if (caller == "ListAvailableActions") {
-                    // Monitor.Log($"    AvailableJunimoAbility [for {caller}] considering {ability.AbilityName()} at [{pos.X} {pos.Y}]", LogLevel.Debug);
-                    if (available || ability.AbilityName() == "HoeAroundTrees") {
-                        _monitor.Log($"            AvailableJunimoAbility [for {caller}]: {ability.AbilityName()} at [{pos.X} {pos.Y}] available {available}", LogLevel.Debug);
-                    }
-                }
-                if (available) return ability;
-            }
-            return null;
-        }
+        public bool PerformAction(IJunimoAbility ability, Guid id, GameLocation location, Vector2 pos,
+            JunimoHarvester junimo) {
+            var hut = Util.GetHutFromId(id);
+            var chest = hut.output.Value;
 
-        public bool PerformAction(IJunimoAbility ability, Guid id, Vector2 pos, JunimoHarvester junimo) {
-            JunimoHut hut = Util.GetHutFromId(id);
-            Chest chest = hut.output.Value;
-            Farm farm = Game1.getFarm();
+            var success = ability.PerformAction(location, pos, junimo, id);
 
-            bool success = ability.PerformAction(farm, pos, junimo, id);
-            List<int> requiredItems = ability.RequiredItems();
+            // if (location.IsGreenhouse) {
+            //     BetterJunimos.SMonitor.Log(
+            //         $"    PerformAction: {ability.AbilityName()} performed at {location.Name} [{pos.X} {pos.Y}] ({success})",
+            //         LogLevel.Trace);
+            // }
+
+            var requiredItems = ability.RequiredItems();
             if (requiredItems.Count > 0) {
                 UpdateHutContainsItems(id, chest, requiredItems);
             }
 
-            // Monitor.Log($"Performed {ability.AbilityName()} at [{pos.X} {pos.Y}]: {success}", LogLevel.Debug);
-            //
-            // if (!success) {
-            //     Monitor.Log($"Failed to do {ability.AbilityName()} at [{pos.X} {pos.Y}] {pos}");
-            // }
             return success;
         }
 
-        public void ActionFailed(IJunimoAbility ability, Vector2 pos) {
-            _monitor.Log($"Action {ability.AbilityName()} at [{pos.X} {pos.Y}] failed", LogLevel.Debug);
-            var cd = new Tuple<IJunimoAbility, Vector2>(ability, pos);
+        public void ActionFailed(GameLocation location, IJunimoAbility ability, Vector2 pos) {
+            _monitor.Log($"Action {ability.AbilityName()} at {location.Name} [{pos.X} {pos.Y}] failed", LogLevel.Debug);
+            var cd = (location, pos, ability);
             FailureCooldowns[cd] = Game1.timeOfDay;
         }
 
-        public void ResetCooldowns() {
+        public void ListCooldowns() {
+            _monitor.Log($"Cooldowns:", LogLevel.Debug);
+
+            foreach (var (key, timeOfDay) in FailureCooldowns) {
+                var (gameLocation, (x, y), junimoAbility) = key;
+                _monitor.Log($"    {junimoAbility} at {gameLocation} [{x} {y}] since {timeOfDay}", LogLevel.Debug);
+            }
+        }
+
+        public static void ResetCooldowns() {
             FailureCooldowns.Clear();
         }
 
-        public static bool ActionCoolingDown(IJunimoAbility ability, Vector2 pos) {
-            Tuple<IJunimoAbility, Vector2> cd = new Tuple<IJunimoAbility, Vector2>(ability, pos);
-            if (FailureCooldowns.TryGetValue(cd, out int failureTime)) {
-                if (failureTime > Game1.timeOfDay - 1000) {
-                    BetterJunimos.SMonitor.Log($"Action {ability.AbilityName()} at [{pos.X} {pos.Y}] is in cooldown");
-                    return true;
-                }
+        public static bool ActionCoolingDown(GameLocation location, IJunimoAbility ability, Vector2 pos) {
+            
+            // TODO: cooldowns for greenhouse
+            if (location.IsGreenhouse) {
+                // BetterJunimos.SMonitor.Log($"ActionCoolingDown allowing {ability.AbilityName()} at [{pos.X} {pos.Y}]", LogLevel.Debug);
+                return false;
             }
-            return false;
+
+            var cd = (location, pos, ability);
+            if (!FailureCooldowns.TryGetValue(cd, out var failureTime)) return false;
+            if (failureTime <= Game1.timeOfDay - 1000) return false;
+            BetterJunimos.SMonitor.Log($"Action {ability.AbilityName()} at [{pos.X} {pos.Y}] is in cooldown");
+            return true;
         }
 
         private static bool ItemInHut(Guid id, int item) {
@@ -180,7 +230,7 @@ namespace BetterJunimos.Utils {
         }
 
         private void UpdateHutContainsItems(Guid id, Chest chest, List<int> items) {
-            foreach (int itemId in items) {
+            foreach (var itemId in items) {
                 if (!ItemsInHuts.ContainsKey(id)) {
                     ItemsInHuts.Add(id, new Dictionary<int, bool>());
                 }
@@ -188,7 +238,8 @@ namespace BetterJunimos.Utils {
                 if (itemId > 0) {
                     ItemsInHuts[id][itemId] = chest.items.Any(item =>
                         item != null && item.ParentSheetIndex == itemId &&
-                        !(BetterJunimos.Config.JunimoImprovements.AvoidPlantingCoffee && item.ParentSheetIndex == Util.CoffeeId)
+                        !(BetterJunimos.Config.JunimoImprovements.AvoidPlantingCoffee &&
+                          item.ParentSheetIndex == Util.CoffeeId)
                     );
                 }
                 else {
@@ -197,12 +248,13 @@ namespace BetterJunimos.Utils {
             }
         }
 
-        public void UpdateHutContainsItemCategory(Guid id, Chest chest, int itemCategory) {
+        private static void UpdateHutContainsItemCategory(Guid id, Chest chest, int itemCategory) {
             if (!ItemsInHuts.ContainsKey(id)) {
                 ItemsInHuts.Add(id, new Dictionary<int, bool>());
             }
+
             ItemsInHuts[id][itemCategory] = chest.items.Any(item =>
-                item != null && item.Category == itemCategory && 
+                item != null && item.Category == itemCategory &&
                 !(BetterJunimos.Config.JunimoImprovements.AvoidPlantingCoffee && item.ParentSheetIndex == Util.CoffeeId)
             );
         }
