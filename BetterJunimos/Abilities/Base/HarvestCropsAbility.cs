@@ -47,11 +47,11 @@ namespace BetterJunimos.Abilities {
             // TODO: check properly if the crop will die tomorrow instead of special-casing 
             if (item.ParentSheetIndex == 421) {
                 // if it's the last day of Fall, harvest sunflowers
-                if (Game1.IsFall && Game1.dayOfMonth >= 28) return false;
+                if (Game1.IsFall && Game1.dayOfMonth >= 28 && BetterJunimos.Config.JunimoImprovements.HarvestEverythingOn28th) return false;
             }
             else {
                 // if it's the last day of the month, harvest whatever it is
-                if (Game1.dayOfMonth >= 28) return false;
+                if (Game1.dayOfMonth >= 28 && BetterJunimos.Config.JunimoImprovements.HarvestEverythingOn28th) return false;
             }
 
             if (BetterJunimos.Config.JunimoImprovements.AvoidHarvestingGiants &&

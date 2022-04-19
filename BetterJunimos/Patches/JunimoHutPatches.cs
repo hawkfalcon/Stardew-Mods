@@ -57,13 +57,22 @@ namespace BetterJunimos.Patches {
                 foundWork |= SearchGreenhouseGrid(hut, id);
                 Util.Abilities.lastKnownCropLocations.TryGetValue((hut, gh), out var lkc);
 
-                BetterJunimos.SMonitor.Log($"PatchSearchAroundHut: greenhouse lkc {lkc.X} {lkc.Y}", LogLevel.Trace);
+                // BetterJunimos.SMonitor.Log($"PatchSearchAroundHut: greenhouse lkc {lkc.X} {lkc.Y}", LogLevel.Trace);
             }
             
-            BetterJunimos.SMonitor.Log($"PatchSearchAroundHut: foundWork {foundWork}", LogLevel.Trace);
+            // BetterJunimos.SMonitor.Log($"PatchSearchAroundHut: foundWork {foundWork}", LogLevel.Trace);
             return foundWork;
         }
 
+        /// <summary>
+        /// Search the Greenhouse for work to do, and update
+        /// hut.lastKnownCropLocation and
+        /// Util.Abilities.lastKnownCropLocations
+        /// with the location of any work found
+        /// </summary>
+        /// <param name="hut">JunimoHut to search</param>
+        /// <param name="hut_guid">GUID of hut to search</param>
+        /// <returns>True if there's any work to do</returns>
         internal static bool SearchGreenhouseGrid(JunimoHut hut, Guid hut_guid)
         {
             var gh = Game1.getLocationFromName("Greenhouse");
