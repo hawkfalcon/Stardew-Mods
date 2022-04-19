@@ -48,16 +48,16 @@ namespace BetterJunimos.Abilities {
         }
 
         public bool PerformAction(GameLocation location, Vector2 pos, JunimoHarvester junimo, Guid guid) {
-            BetterJunimos.SMonitor.Log($"VisitGreenhouse #{junimo.whichJunimoFromThisHut}: PerformAction: begins",
-                LogLevel.Debug);
+            // BetterJunimos.SMonitor.Log($"VisitGreenhouse #{junimo.whichJunimoFromThisHut}: PerformAction: begins",
+            //     LogLevel.Debug);
             if (!IsActionAvailable(location, pos, guid)) {
-                BetterJunimos.SMonitor.Log($"VisitGreenhouse #{junimo.whichJunimoFromThisHut}: PerformAction: unavail",
-                    LogLevel.Debug);
+                // BetterJunimos.SMonitor.Log($"VisitGreenhouse #{junimo.whichJunimoFromThisHut}: PerformAction: unavail",
+                //     LogLevel.Debug);
                 return false;
             }
 
-            BetterJunimos.SMonitor.Log($"VisitGreenhouse #{junimo.whichJunimoFromThisHut}: PerformAction: doing",
-                LogLevel.Trace);
+            // BetterJunimos.SMonitor.Log($"VisitGreenhouse #{junimo.whichJunimoFromThisHut}: PerformAction: doing",
+            //     LogLevel.Trace);
 
             if (Utility.isOnScreen(Utility.Vector2ToPoint(pos), 64, location)) {
                 location.playSound("junimoMeep1");
@@ -73,9 +73,9 @@ namespace BetterJunimos.Abilities {
 
             var junimoNumber = rand.Next(4, 100);
             Util.SpawnJunimoAtPosition(greenhouse, spawnAt, hut, junimoNumber);
-            BetterJunimos.SMonitor.Log(
-                $"VisitGreenhouse PerformAction: #{junimoNumber} spawned in {greenhouse.Name} at {spawnAt.X} {spawnAt.Y}",
-                LogLevel.Trace);
+            // BetterJunimos.SMonitor.Log(
+            //     $"VisitGreenhouse PerformAction: #{junimoNumber} spawned in {greenhouse.Name} at {spawnAt.X} {spawnAt.Y}",
+            //     LogLevel.Trace);
 
             // schedule this Junimo for despawn
             junimo.junimoReachedHut(junimo, junimo.currentLocation);

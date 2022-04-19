@@ -11,6 +11,7 @@ using StardewValley;
 using StardewValley.Characters;
 using StardewValley.Menus;
 using BetterJunimos.Utils;
+using StardewValley.Objects;
 
 namespace BetterJunimos {
     // ReSharper disable once ClassNeverInstantiated.Global
@@ -213,21 +214,21 @@ namespace BetterJunimos {
             // check that e.NewMenu is null because this event also fires when items are added to the chest
             // caution: this runs after any chest is closed, not just Junimo huts
 
+            // closed menu
             if (e.OldMenu is ItemGrabMenu menu && e.NewMenu is null) {
-                if (menu.context is JunimoHut or StardewValley.Objects.Chest) {
-                    CheckHutsForWagesAndProgressionItems();
-                    JunimoAbilities.ResetCooldowns();
-                }
+                if (menu.context is not (JunimoHut or Chest)) return;
+                if (menu.context is Chest chest &&
+                    !chest.modData.ContainsKey($"{ModManifest.UniqueID}/JunimoChest")) return;
+                CheckHutsForWagesAndProgressionItems();
+                JunimoAbilities.ResetCooldowns();
             }
 
             // opened menu
-            else if (e.OldMenu == null && e.NewMenu is CarpenterMenu) {
-                if (Helper.Reflection.GetField<bool>(e.NewMenu, "magicalConstruction").GetValue()) {
-                    // limit to only junimo hut
-                    if (!Game1.MasterPlayer.mailReceived.Contains("hasPickedUpMagicInk")) {
-                        OpenJunimoHutMenu();
-                    }
-                }
+            if (e.OldMenu != null || e.NewMenu is not CarpenterMenu) return;
+            if (!Helper.Reflection.GetField<bool>(e.NewMenu, "magicalConstruction").GetValue()) return;
+            // limit to only junimo hut
+            if (!Game1.MasterPlayer.mailReceived.Contains("hasPickedUpMagicInk")) {
+                OpenJunimoHutMenu();
             }
         }
 
@@ -240,7 +241,13 @@ namespace BetterJunimos {
                 Util.Payments.WereJunimosPaidToday = false;
             }
 
-            var huts = Game1.getFarm().buildings.OfType<JunimoHut>();
+            var huts = Game1.getFarm().buildings.OfType<JunimoHut>().ToList();
+            
+            // tag each hut chest so later we can tell whether a GrabMenu close is for a Junimo chest or some other chest 
+            foreach (var hut in huts) {
+                hut.output.Value.modData[$"{ModManifest.UniqueID}/JunimoChest"] = "true";
+            }
+            
             if (huts.Any()) {
                 CheckHutsForWagesAndProgressionItems();
                 Util.Progression.DayStartedProgressionPrompt(Game1.IsWinter, Game1.isRaining);
@@ -255,7 +262,8 @@ namespace BetterJunimos {
 
                 foreach (var npc in toRemove) {
                     var junimo = (JunimoHarvester) npc;
-                    Monitor.Log($"    Removing Junimo {junimo.whichJunimoFromThisHut} from {location.Name}", LogLevel.Trace);
+                    Monitor.Log($"    Removing Junimo {junimo.whichJunimoFromThisHut} from {location.Name}",
+                        LogLevel.Trace);
                     location.characters.Remove(npc);
                 }
             }
@@ -265,9 +273,14 @@ namespace BetterJunimos {
         }
 
         private void CheckHutsForWagesAndProgressionItems() {
+            var alreadyPaid = Util.Payments.WereJunimosPaidToday;
+
             var huts = Game1.getFarm().buildings.OfType<JunimoHut>();
+            var junimoHuts = huts.ToList();
+            if (!junimoHuts.Any()) return;
+
             // Monitor.Log("Updating hut items", LogLevel.Debug);
-            foreach (var hut in huts) {
+            foreach (var hut in junimoHuts) {
                 // this might be getting called a bit too much
                 // but since OnMenuChanged doesn't tell us reliably which hut has changed
                 // it's safer to update items from all huts here
@@ -285,12 +298,15 @@ namespace BetterJunimos {
             }
 
             if (!Config.JunimoPayment.WorkForWages) return;
-            if (Util.Payments.WereJunimosPaidToday) {
-                Util.SendMessage(Helper.Translation.Get("msg.happy-with-payment"));
-            }
-            else {
-                Util.SendMessage(
-                    Helper.Translation.Get("msg.no-work-until-paid") + " " + Util.Payments.PaymentOutstanding());
+            switch (Util.Payments.WereJunimosPaidToday)
+            {
+                case false:
+                    Util.SendMessage(Helper.Translation.Get(
+                        "msg.no-work-until-paid") + " " + Util.Payments.PaymentOutstanding());
+                    break;
+                case true when !alreadyPaid:
+                    Util.SendMessage(Helper.Translation.Get("msg.happy-with-payment"));
+                    break;
             }
         }
 
@@ -466,9 +482,21 @@ namespace BetterJunimos {
                     () => Helper.Translation.Get("cfg.avoid-harvesting-giant-crops.tooltip")
                 );
                 configMenu.AddBoolOption(ModManifest,
+                    () => Config.JunimoImprovements.HarvestEverythingOn28th,
+                    val => Config.JunimoImprovements.HarvestEverythingOn28th = val,
+                    () => Helper.Translation.Get("cfg.harvest-everything-on-28th"),
+                    () => Helper.Translation.Get("cfg.harvest-everything-on-28th.tooltip")
+                );
+                configMenu.AddBoolOption(ModManifest,
                     () => Config.JunimoImprovements.AvoidPlantingCoffee,
                     val => Config.JunimoImprovements.AvoidPlantingCoffee = val,
                     () => Helper.Translation.Get("cfg.avoid-planting-coffee"),
+                    () => ""
+                );
+                configMenu.AddBoolOption(ModManifest,
+                    () => Config.JunimoImprovements.AvoidPlantingOutOfSeason,
+                    val => Config.JunimoImprovements.AvoidPlantingOutOfSeason = val,
+                    () => Helper.Translation.Get("cfg.avoid-planting-out-of-season"),
                     () => ""
                 );
             }
@@ -602,9 +630,8 @@ namespace BetterJunimos {
                     return;
                 }
 
-                var rand = new Random();
-                var hut = junimoHuts.ElementAt(rand.Next(0, junimoHuts.Count));
-                Util.SpawnJunimoAtPosition(Game1.player.currentLocation, Game1.player.Position, hut, rand.Next(4, 100));
+                var hut = junimoHuts.ElementAt(Game1.random.Next(0, junimoHuts.Count));
+                Util.SpawnJunimoAtPosition(Game1.player.currentLocation, Game1.player.Position, hut, Game1.random.Next(4, 100));
             }
             else {
                 Util.SendMessage(Helper.Translation.Get("msg.cannot-spawn-here"));

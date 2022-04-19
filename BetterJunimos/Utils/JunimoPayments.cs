@@ -63,9 +63,7 @@ namespace BetterJunimos.Utils {
                 Util.RemoveItemFromChest(chest, foundItem);
             }
 
-            BetterJunimos.SMonitor.Log($"ReceiveItems: need {needed} of category {type}, received {items.Count} today",
-                LogLevel.Debug);
-            return items.Count == needed;
+            return items.Count >= needed;
         }
     }
 }

@@ -17,6 +17,9 @@ namespace BetterJunimos.Abilities {
         private readonly IMonitor Monitor;
 
         private const int SunflowerSeeds = 431;
+        private const int SpeedGro = 465;
+        private const int DeluxeSpeedGro = 466;
+        private const int HyperSpeedGro = 918;
         
         static Dictionary<int, int> WildTreeSeeds = new() {{292, 8}, {309, 1}, {310, 2}, {311, 3}, {891, 7}};
         static Dictionary<string, Dictionary<int, bool>> cropSeasons = new();
@@ -100,6 +103,7 @@ namespace BetterJunimos.Abilities {
             
             if (foundItems.Count == 0) return null;
             if (location.IsGreenhouse) return foundItems.First();
+            if (!BetterJunimos.Config.JunimoImprovements.AvoidPlantingOutOfSeason) return foundItems.First();
             
             foreach (var foundItem in foundItems) {
                 // TODO: check if item can grow to harvest before end of season
@@ -143,18 +147,18 @@ namespace BetterJunimos.Abilities {
         }
 
         private bool Plant(GameLocation location, Vector2 pos, int index) {
-            SObject o = new SObject(index, 1);
             Crop crop = new Crop(index, (int)pos.X, (int)pos.Y);
 
-            if (!location.IsGreenhouse && !crop.seasonsToGrowIn.Contains(Game1.currentSeason)) {
+            if (!location.IsGreenhouse && !crop.seasonsToGrowIn.Contains(Game1.currentSeason) && BetterJunimos.Config.JunimoImprovements.AvoidPlantingOutOfSeason) {
                 Monitor.Log($"Crop {crop} ({index}) cannot be planted in {Game1.currentSeason}", LogLevel.Warn);
                 return false;
             }
 
             if (location.terrainFeatures[pos] is not HoeDirt hd) return true;
-            CheckSpeedGro(hd, crop);
             hd.crop = crop;
-
+            applySpeedIncreases(hd);
+            ApplyPaddy(hd, location);
+   
             if (Utility.isOnScreen(Utility.Vector2ToPoint(pos), 64, location)) {
                 if (crop.raisedSeeds.Value) location.playSound("stoneStep");
                 location.playSound("dirtyHit");
@@ -164,8 +168,66 @@ namespace BetterJunimos.Abilities {
             return true;
         }
 
+        private void ApplyPaddy(HoeDirt hd, GameLocation location) {
+            hd.nearWaterForPaddy.Value = -1;
+            if (!hd.hasPaddyCrop()) return;
+            if (!hd.paddyWaterCheck(location, new Vector2(hd.currentTileLocation.X, hd.currentTileLocation.Y))) return;
+            hd.state.Value = 1;
+            hd.updateNeighbors(location, new Vector2(hd.currentTileLocation.X, hd.currentTileLocation.Y));
+        }
+
+        private void applySpeedIncreases(HoeDirt hd)
+        {
+            var who = Game1.player;
+
+            if (hd.crop == null)
+                return;
+            
+            var paddyWaterCheck = hd.currentLocation != null && hd.paddyWaterCheck(hd.currentLocation, hd.currentTileLocation);
+            var fertilizer = hd.fertilizer.Value is SpeedGro or DeluxeSpeedGro or HyperSpeedGro;
+            var agriculturalist = who.professions.Contains(5);
+            
+            if (! (fertilizer || agriculturalist || paddyWaterCheck)) return;
+            
+            hd.crop.ResetPhaseDays();
+            var num1 = 0;
+            for (var index = 0; index < hd.crop.phaseDays.Count - 1; ++index)
+                num1 += hd.crop.phaseDays[index];
+            var num2 = 0.0f;
+            switch (hd.fertilizer.Value)
+            {
+                case 465:
+                    num2 += 0.1f;
+                    break;
+                case 466:
+                    num2 += 0.25f;
+                    break;
+                case 918:
+                    num2 += 0.33f;
+                    break;
+            }
+            if (paddyWaterCheck)
+                num2 += 0.25f;
+            if (who.professions.Contains(5))
+                num2 += 0.1f;
+            var num3 = (int) Math.Ceiling((double) num1 * num2);
+            for (var index1 = 0; num3 > 0 && index1 < 3; ++index1)
+            {
+                for (var index2 = 0; index2 < hd.crop.phaseDays.Count; ++index2)
+                {
+                    if ((index2 > 0 || hd.crop.phaseDays[index2] > 1) && hd.crop.phaseDays[index2] != 99999)
+                    {
+                        hd.crop.phaseDays[index2]--;
+                        --num3;
+                    }
+                    if (num3 <= 0)
+                        break;
+                }
+            }
+        }
+
         // taken from SDV planting code [applySpeedIncreases()], updated for 1.5
-        private void CheckSpeedGro(HoeDirt hd, Crop crop) {
+        private void OldApplyFertilizer(HoeDirt hd, Crop crop) {
             int fertilizer = hd.fertilizer.Value;
             Farmer who = Game1.player;
 

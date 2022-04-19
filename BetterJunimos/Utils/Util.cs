@@ -79,7 +79,7 @@ namespace BetterJunimos.Utils {
 
         public static void SpawnJunimoAtPosition(GameLocation location, Vector2 pos, JunimoHut hut, int junimoNumber) {
             if (hut == null) {
-                BetterJunimos.SMonitor.Log($"SpawnJunimoAtPosition: hut is null", LogLevel.Warn);    
+                // BetterJunimos.SMonitor.Log($"SpawnJunimoAtPosition: hut is null", LogLevel.Warn);    
                 return;
             }
             
@@ -92,24 +92,25 @@ namespace BetterJunimos.Utils {
              * End added By Mizzion
              */
 
-            BetterJunimos.SMonitor.Log($"SpawnJunimoAtPosition: spawning #{junimoNumber} in {location.Name} at [{pos.X} {pos.Y}]", LogLevel.Trace);
+            // BetterJunimos.SMonitor.Log($"SpawnJunimoAtPosition: spawning #{junimoNumber} in {location.Name} at [{pos.X} {pos.Y}]", LogLevel.Debug);
 
             var junimoHarvester = new JunimoHarvester(pos, hut, junimoNumber, gemColor);
 
             // the JunimoHarvester constructor sets the location to Farm and calls pathfindToRandomSpotAroundHut immediately
             // so we have to set the location explicitly then re-do pathfinding
             if (!location.Equals(Game1.getFarm())) {
-                BetterJunimos.SMonitor.Log($"SpawnJunimoAtPosition: forcing #{junimoNumber} to {location.Name} at [{pos.X} {pos.Y}]", LogLevel.Trace);
+                // BetterJunimos.SMonitor.Log($"SpawnJunimoAtPosition: forcing #{junimoNumber} to {location.Name} at [{pos.X} {pos.Y}]", LogLevel.Trace);
 
+                Reflection.GetField<bool>(junimoHarvester, "destroy").SetValue(false);
                 junimoHarvester.currentLocation = location;
                 junimoHarvester.Position = pos;
                 junimoHarvester.pathfindToRandomSpotAroundHut();
             }
             
             
-            BetterJunimos.SMonitor.Log($"SpawnJunimoAtPosition: spawned #{junimoNumber} " +
-                                       $"in {junimoHarvester.currentLocation.Name} " +
-                                       $"at [{junimoHarvester.getTileX()} {junimoHarvester.getTileX()}]", LogLevel.Trace);
+            // BetterJunimos.SMonitor.Log($"SpawnJunimoAtPosition: spawned #{junimoNumber} " +
+            //                            $"in {junimoHarvester.currentLocation.Name} " +
+            //                            $"at [{junimoHarvester.getTileX()} {junimoHarvester.getTileX()}]", LogLevel.Debug);
 
             junimoHarvester.isPrismatic.Value = isPrismatic; //Added by Mizzion, Fixes the Prismatic Junimos.
             location.characters.Add(junimoHarvester);
@@ -120,8 +121,20 @@ namespace BetterJunimos.Utils {
                 alpha.SetValue(BetterJunimos.Config.FunChanges.RainyJunimoSpiritFactor);
             }
 
+            var destroy = Reflection.GetField<bool>(junimoHarvester, "destroy").GetValue();
+            var onscreen = Utility.isOnScreen(Utility.Vector2ToPoint(pos), 64, location);
+            
+            // BetterJunimos.SMonitor.Log($"SpawnJunimoAtPosition: #{junimoNumber} general situation " +
+            //                            $"destroy: {destroy} " +
+            //                            $"isOnScreen: {onscreen} " +
+            //                            $"controller: {junimoHarvester.controller is not null} " +
+            //                            $"pathToEndPoint: {junimoHarvester.controller?.pathToEndPoint is not null} " +
+            //                            $"at [{junimoHarvester.getTileX()} {junimoHarvester.getTileX()}]", LogLevel.Debug);
+
             if (!Utility.isOnScreen(Utility.Vector2ToPoint(pos), 64, location)) return;
             location.playSound("junimoMeep1");
+            
+
         }
 
 /*
