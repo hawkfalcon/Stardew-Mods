@@ -102,5 +102,7 @@
   "debug.actions-logged": "Available actions logged to the console",
   "debug.in-cooldown": "[cooling down]",
   "debug.required-item-unavailable": "[required item unavailable]",
-  "debug.locked-by-progression": "[progression locked]"
+  "debug.locked-by-progression": "[progression locked]",
+  "wizard.edit-options": "To change options edit config.json in the Better Junimos folder.",
+  "wizard.install-gmcm": "For easy configuration install Generic Mod Config Menu."
 }
