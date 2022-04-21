@@ -6,6 +6,8 @@
 
 ## Changelog
 
+* 2.0.6-beta8
+  * Remove Event Repeater fields from configuration event. Otherwise event happens each day when Event Repeater installed.
 * 2.0.6-beta7
   * Add event when first hut is built to ask configuration questions. Sets up wages and progression, explains hut menu and greenhouse
 * 2.0.6-beta6
