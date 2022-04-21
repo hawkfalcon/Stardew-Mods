@@ -18,15 +18,18 @@ namespace BetterJunimos {
     public class BetterJunimos : Mod {
         internal static ModConfig Config;
         internal static IMonitor SMonitor;
+        internal static IModHelper SHelper;
         internal static Maps CropMaps;
 
         private IGenericModConfigMenuApi configMenu;
-
+        internal static IContentPatcherAPI ContentPatcherAPI;
+        
         /// <summary>The mod entry point, called after the mod is first loaded.</summary>
         /// <param name="helper">Provides simplified APIs for writing mods.</param>
         public override void Entry(IModHelper helper) {
             SMonitor = Monitor;
-
+            SHelper = helper;
+            
             Config = helper.ReadConfig<ModConfig>();
             SaveConfig();
 
@@ -40,6 +43,7 @@ namespace BetterJunimos {
             helper.Content.AssetEditors.Add(new JunimoEditor(helper.Content));
             helper.Content.AssetEditors.Add(new BlueprintEditor());
 
+            helper.Events.GameLoop.OneSecondUpdateTicked += Util.Progression.ConfigureFromWizard;
             helper.Events.Input.ButtonPressed += OnButtonPressed;
             helper.Events.Display.MenuChanged += OnMenuChanged;
             helper.Events.GameLoop.GameLaunched += OnLaunched;
@@ -358,6 +362,8 @@ namespace BetterJunimos {
         }
 
         private void OnLaunched(object sender, GameLaunchedEventArgs e) {
+            ContentPatcherAPI = Helper.ModRegistry.GetApi<IContentPatcherAPI>("Pathoschild.ContentPatcher");
+            
             setupGMCM();
 
             // only register after the game is launched so we can query the object registry
@@ -365,6 +371,9 @@ namespace BetterJunimos {
 
             // write the config file again to populate JunimoAbilities with registered abilities
             SaveConfig();
+
+            // register GMCM token
+            Util.Progression.SetupHutsToken();
         }
 
         private void setupGMCM() {
@@ -607,10 +616,10 @@ namespace BetterJunimos {
         }
 
         // save config.json and invalidate caches
-        private void SaveConfig() {
-            Helper.WriteConfig(Config);
-            Helper.Content.InvalidateCache(@"Characters\Junimo");
-            Helper.Content.InvalidateCache(@"Data/Blueprints");
+        internal static void SaveConfig() {
+            SHelper.WriteConfig(Config);
+            SHelper.Content.InvalidateCache(@"Characters\Junimo");
+            SHelper.Content.InvalidateCache(@"Data/Blueprints");
         }
 
         private static void AllowJunimoHutPurchasing() {

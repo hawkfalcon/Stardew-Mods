@@ -23,7 +23,7 @@ namespace BetterJunimos.Utils {
         public const int FlowerCategory = -80;
         public const int FruitCategory = -79;
         public const int WineCategory = -26;
-
+        
         internal static IReflectionHelper Reflection;
         internal static JunimoAbilities Abilities;
         internal static JunimoPayments Payments;
@@ -121,9 +121,9 @@ namespace BetterJunimos.Utils {
                 alpha.SetValue(BetterJunimos.Config.FunChanges.RainyJunimoSpiritFactor);
             }
 
-            var destroy = Reflection.GetField<bool>(junimoHarvester, "destroy").GetValue();
-            var onscreen = Utility.isOnScreen(Utility.Vector2ToPoint(pos), 64, location);
-            
+            // var destroy = Reflection.GetField<bool>(junimoHarvester, "destroy").GetValue();
+            // var onscreen = Utility.isOnScreen(Utility.Vector2ToPoint(pos), 64, location);
+            //
             // BetterJunimos.SMonitor.Log($"SpawnJunimoAtPosition: #{junimoNumber} general situation " +
             //                            $"destroy: {destroy} " +
             //                            $"isOnScreen: {onscreen} " +

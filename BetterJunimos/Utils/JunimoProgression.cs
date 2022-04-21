@@ -4,14 +4,21 @@ using System.Linq;
 using BetterJunimos.Abilities;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
+using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Locations;
 using StardewValley.Objects;
 using static System.String;
+using Object = System.Object;
 using SObject = StardewValley.Object;
 
 namespace BetterJunimos.Utils {
+    enum Configure { Yes, No, Rude, NotAnswered }
+    enum Progression { Yes, No, NotAnswered }
+    enum Wages { Fruit, Flowers, Forage, All, None, NotAnswered }
+    enum ShowGMCM { Yes, No, NotAnswered }
+    
     public class ProgressionItem {
         public bool Prompted;
         public bool Unlocked;
@@ -488,6 +495,112 @@ namespace BetterJunimos.Utils {
 
         private string Get(string key) {
             return _helper.Translation.Get(key);
+        }
+
+
+        internal void SetupHutsToken() {
+            var api = BetterJunimos.ContentPatcherAPI;
+
+            api?.RegisterToken(_manifest, "JunimoHuts", () =>
+            {
+                // save is loaded
+                if (!Context.IsWorldReady) return null;
+                var huts = Game1.getFarm().buildings.Any(b => b is JunimoHut);
+                return new[] { huts ? "true" : "false" };
+            });
+        }
+        
+        internal void ConfigureFromWizard(object o, OneSecondUpdateTickedEventArgs e) {
+            // check if host
+            if (!Context.IsWorldReady) return;
+            if (!Context.IsMainPlayer) return;
+
+            // see if event has run
+            if (! Game1.player.eventsSeen.Contains(22210001))
+            {
+                Game1.getFarm().modData.Remove($"{_manifest.UniqueID}/ConfigurationWizardDone");
+                return;
+            }
+
+            // see if already configured
+            if (Game1.getFarm().modData.ContainsKey($"{_manifest.UniqueID}/ConfigurationWizardDone")) {
+                return;
+            }
+            
+            // set marker that config is done
+            Game1.getFarm().modData[$"{_manifest.UniqueID}/ConfigurationWizardDone"] = "true";
+            
+            // collect answers from event
+            Configure c = Configure.NotAnswered;
+            if (Game1.player.dialogueQuestionsAnswered.Contains(22219010)) c = Configure.Yes;
+            if (Game1.player.dialogueQuestionsAnswered.Contains(22219011)) c = Configure.No;
+            if (Game1.player.dialogueQuestionsAnswered.Contains(22219012)) c = Configure.Rude;
+            
+            Progression p = Progression.NotAnswered;
+            if (Game1.player.dialogueQuestionsAnswered.Contains(22219020)) p = Progression.Yes;
+            if (Game1.player.dialogueQuestionsAnswered.Contains(22219021)) p = Progression.No;
+
+            Wages w = Wages.NotAnswered;
+            if (Game1.player.dialogueQuestionsAnswered.Contains(22219030)) w = Wages.Fruit;
+            if (Game1.player.dialogueQuestionsAnswered.Contains(22219031)) w = Wages.Flowers;
+            if (Game1.player.dialogueQuestionsAnswered.Contains(22219032)) w = Wages.Forage;
+            if (Game1.player.dialogueQuestionsAnswered.Contains(22219033)) w = Wages.All;
+            if (Game1.player.dialogueQuestionsAnswered.Contains(22219034)) w = Wages.None;
+            
+            ShowGMCM s = ShowGMCM.NotAnswered;
+            if (Game1.player.dialogueQuestionsAnswered.Contains(22219040)) s = ShowGMCM.Yes;
+            if (Game1.player.dialogueQuestionsAnswered.Contains(22219041)) s = ShowGMCM.No;
+
+            // set config accordingly
+            if (c is Configure.No or Configure.Rude or Configure.NotAnswered) {
+                return;
+            }
+
+            if (p == Progression.No) BetterJunimos.Config.Progression.Enabled = false;
+            else if (p == Progression.Yes) BetterJunimos.Config.Progression.Enabled = true;
+
+            switch (w)
+            {
+                case Wages.Flowers:
+                    BetterJunimos.Config.JunimoPayment.WorkForWages = true;
+                    BetterJunimos.Config.JunimoPayment.DailyWage = new ModConfig.JunimoPayments.PaymentAmount { Flowers = 1, Fruit = 0, ForagedItems = 0 };
+                    break;
+                case Wages.Fruit:
+                    BetterJunimos.Config.JunimoPayment.WorkForWages = true;
+                    BetterJunimos.Config.JunimoPayment.DailyWage = new ModConfig.JunimoPayments.PaymentAmount { Flowers = 0, Fruit = 1, ForagedItems = 0 };
+                    break;
+                case Wages.Forage:
+                    BetterJunimos.Config.JunimoPayment.WorkForWages = true;
+                    BetterJunimos.Config.JunimoPayment.DailyWage = new ModConfig.JunimoPayments.PaymentAmount { Flowers = 0, Fruit = 0, ForagedItems = 1 };
+                    break;
+                case Wages.All:
+                    BetterJunimos.Config.JunimoPayment.WorkForWages = true;
+                    BetterJunimos.Config.JunimoPayment.DailyWage = new ModConfig.JunimoPayments.PaymentAmount { Flowers = 1, Fruit = 1, ForagedItems = 1 };
+                    break;
+                case Wages.None:
+                    BetterJunimos.Config.JunimoPayment.WorkForWages = false;
+                    BetterJunimos.Config.JunimoPayment.DailyWage = new ModConfig.JunimoPayments.PaymentAmount { Flowers = 0, Fruit = 0, ForagedItems = 0 };
+                    break;
+                case Wages.NotAnswered:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            // save config
+            BetterJunimos.SaveConfig();
+            
+            // pop up GMCM if requested
+            if (s == ShowGMCM.Yes) {
+                var configMenu = _helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+                if (configMenu is null) {
+                    Util.SendMessage(_helper.Translation.Get("wizard.edit-options"));
+                    Util.SendMessage(_helper.Translation.Get("wizard.install-gmcm"));
+                    return;
+                }
+
+                ShowConfigurationMenu();
+            }
         }
     }
 }

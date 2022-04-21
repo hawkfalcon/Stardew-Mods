@@ -6,6 +6,8 @@
 
 ## Changelog
 
+* 2.0.6-beta7
+  * Add event when first hut is built to ask configuration questions. Sets up wages and progression, explains hut menu and greenhouse
 * 2.0.6-beta6
     * Add config option to disable harvesting of all remaining crops at end of season. For use when player has mod that allows crop survival across seasons esp. flowers.
     * Add config option to disable out-of-season check when planting seeds. For use when player has mod that allows all-season growing but doesn't update the seasons check properly.
