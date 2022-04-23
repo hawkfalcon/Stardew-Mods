@@ -6,6 +6,8 @@
 
 ## Changelog
 
+* 2.0.6 RELEASE
+  * Incorporate changes since 2.0.4 
 * 2.0.6-beta8
   * Remove Event Repeater fields from configuration event. Otherwise event happens each day when Event Repeater installed.
 * 2.0.6-beta7
