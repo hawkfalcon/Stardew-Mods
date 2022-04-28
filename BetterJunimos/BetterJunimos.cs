@@ -107,6 +107,7 @@ namespace BetterJunimos {
             replacements.Add("foundCropEndFunction", junimoType, typeof(PatchFindingCropEnd));
             replacements.Add("tryToHarvestHere", junimoType, typeof(PatchTryToHarvestHere));
             replacements.Add("update", junimoType, typeof(PatchJunimoShake));
+            replacements.Add("pokeToHarvest", junimoType, typeof(PatchPokeToHarvest));
 
             // improve pathfinding
             replacements.Add("pathfindToRandomSpotAroundHut", junimoType, typeof(PatchPathfindToRandomSpotAroundHut));
@@ -158,6 +159,7 @@ namespace BetterJunimos {
             }
 
             if (e.Button == Config.Other.SpawnJunimoKeybind) {
+                Monitor.Log($"spawn {e.Button} {Config.Other.SpawnJunimoKeybind}", LogLevel.Info);
                 SpawnJunimoCommand();
             }
         }
