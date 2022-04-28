@@ -6,6 +6,9 @@
 
 ## Changelog
 
+* 2.0.7 RELEASE
+  * Add a bit of logging to the Junimo spawn key
+  * Work Ridiculously Fast mode is now ridiculous
 * 2.0.6 RELEASE
   * Incorporate changes since 2.0.4 
 * 2.0.6-beta8
