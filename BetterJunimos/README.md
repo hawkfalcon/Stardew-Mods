@@ -6,6 +6,9 @@
 
 ## Changelog
 
+* 2.0.8 RELEASE
+  * Redo asset loaders for new SMAPI
+  * How bout we actually bundle the CP mod into the bundle this time
 * 2.0.7 RELEASE
   * Add a bit of logging to the Junimo spawn key
   * Work Ridiculously Fast mode is now ridiculous
