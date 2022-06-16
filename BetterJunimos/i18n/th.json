@@ -1,33 +1,110 @@
 {
-  "junimosWillNotWorkText": "เหล่าจูนิโม่จะไม่ทำงานจนกว่าจะได้ค่าจ้าง",
-  "spawnJunimoCommandText": "สามารถอัญเชิญจูนิโม่ได้ที่ฟาร์มเท่านั้น",
-  "spawnJunimoButNoHutsText": "สร้างกระท่อมจูนิโม่ ก่อนที่คุณจะอัญเชิญจูนิโม่",
-  "checkForWagesText": "เหล่าจูนิโม่มีความสุขกับค่าจ้างของพวกเขา!",
-  "CanWorkInEveningsPromptText": "เหล่าจูนิโม่จะสามารถทำงานในตอนค่ำ เพื่อแลกกับ {{item}} {{qty}} ชิ้น",
-  "CanWorkInEveningsSuccessText": "ตอนนี้เหล่าจูนิโม่สามารถทำงานในตอนค่ำได้แล้ว",
-  "CanWorkInRainPromptText": "เหล่าจูนิโม่จะสามารถทำงานในวันที่ฝนตก เพื่อแลกกับ {{item}} {{qty}} ชิ้น",
-  "CanWorkInRainSuccessText": "ตอนนี้เหล่าจูนิโม่สามารถทำงานในวันที่ฝนตกได้แล้ว",
-  "CanWorkInWinterPromptText": "เหล่าจูนิโม่จะสามารถทำงานในฤดูหนาว เพื่อแลกกับ {{item}} {{qty}} ชิ้น",
-  "CanWorkInWinterSuccessText": "ตอนนี้เหล่าจูนิโม่สามารถทำงานในฤดูหนาวได้แล้ว",
-  "ClearDeadCropsPromptText": "เหล่าจูนิโม่จะจัดการพืชพรรณที่ตายแล้ว เพื่อแลกกับ {{item}} {{qty}} ชิ้น",
-  "ClearDeadCropsSuccessText": "ตอนนี้เหล่าจูนิโม่จัดการพืชพรรณที่ตายแล้ว",
-  "FertilizePromptText": "เหล่าจูนิโม่จะใส่ปุ๋ยพืชพรรณของคุณ เพื่อแลกกับ {{item}} {{qty}} ชิ้น",
-  "FertilizeSuccessText": "ตอนนี้เหล่าจูนิโม่จะใส่ปุ๋ยพืชพรรณของคุณ",
-  "HarvestBushesPromptText": "เหล่าจูนิโม่จะเก็บผลผลิตจากพุ่มไม้ เพื่อแลกกับ {{item}} {{qty}} ชิ้น",
-  "HarvestBushesSuccessText": "ตอนนี้เหล่าจูนิโม่จะเก็บผลผลิตจากพุ่มไม้",
-  "HarvestForageCropsPromptText": "เหล่าจูนิโม่จะเก็บเกี่ยวพืชผักป่า เพื่อแลกกับ {{item}} {{qty}} ชิ้น",
-  "HarvestForageCropsSuccessText": "ตอนนี้เหล่าจูนิโม่จะเก็บเกี่ยวพืชผักป่า",
-  "MoreJunimosPromptText": "เหล่าจูนิโม่จะสามารถฝึกผู้ช่วยเพิ่มได้ เพื่อแลกกับ {{item}} {{qty}} ชิ้น",
-  "MoreJunimosSuccessText": "ตอนนี้เหล่าจูนิโม่สามารถฝึกผู้ช่วยเพิ่มได้แล้ว",
-  "PlantCropsPromptText": "เหล่าจูนิโม่จะสามารถปลูกพืชพรรณ เพื่อแลกกับ {{item}} {{qty}} ชิ้น",
-  "PlantCropsSuccessText": "ตอนนี้เหล่าจูนิโม่สามารถปลูกพืชพรรณได้แล้ว",
-  "ReducedCostToConstructPromptText": "กระท่อมจูนิโม่จะมีต้นทุนในการสร้างลดลง แลกกับ {{item}} {{qty}} ชิ้น",
-  "ReducedCostToConstructSuccessText": "ตอนนี้กระท่อมจูนิโม่มีต้นทุนในการสร้างลดลงแล้ว",
-  "UnlimitedJunimosPromptText": "คุณจะสามารถมีจูนิโม่ได้ไม่จำกัด แลกกับ {{item}} {{qty}} ชิ้น",
-  "UnlimitedJunimosSuccessText": "ตอนนี้คุณสามารถมีจูนิโม่ได้ไม่จำกัดแล้ว",
-  "WaterPromptText": "เหล่าจูนิโม่จะสามารถรดน้ำพืชพรรณ เพื่อแลกกับ {{item}} {{qty}} ชิ้น",
-  "WaterSuccessText": "ตอนนี้เหล่าจูนิโม่สามารถรดน้ำพืชพรรณได้แล้ว",
-  "WorkFasterPromptText": "เหล่าจูนิโม่จะทำงานเร็วขึ้น เพื่อแลกกับ {{item}} {{qty}} ชิ้น",
-  "WorkFasterSuccessText": "ตอนนี้เหล่าจูนิโม่ทำงานเร็วขึ้นแล้ว",
-  "ProgressionTrackerText": "ติดตามสถานะความก้าวหน้าของจูนิโม่: {{percentage}}%^^เควส:^{{quests}}^^สปอย (beta เท่านั้น):^{{details}}"
+  "msg.no-work-until-paid": "เหล่าจูนิโม่จะไม่ทำงานจนกว่าจะได้ค่าจ้าง",
+  "msg.cannot-spawn-here": "สามารถอัญเชิญจูนิโม่ได้ที่ฟาร์มหรือเรือนกระจกเท่านั้น",
+  "msg.cannot-spawn-without-hut": "สร้างกระท่อมจูนิโม่ ก่อนที่คุณจะอัญเชิญจูนิโม่",
+  "msg.happy-with-payment": "เหล่าจูนิโม่มีความสุขกับค่าจ้างของพวกเขา!",
+  "msg.need-more-payment": "Junimos need more payment", // TODO
+  "prompt.CanWorkInEvenings": "เหล่าจูนิโม่จะสามารถทำงานในตอนค่ำ เพื่อแลกกับ {{item}} {{qty}} ชิ้น",
+  "success.CanWorkInEvenings": "ตอนนี้เหล่าจูนิโม่สามารถทำงานในตอนค่ำได้แล้ว",
+  "prompt.CanWorkInRain": "เหล่าจูนิโม่จะสามารถทำงานในวันที่ฝนตก เพื่อแลกกับ {{item}} {{qty}} ชิ้น",
+  "success.CanWorkInRain": "ตอนนี้เหล่าจูนิโม่สามารถทำงานในวันที่ฝนตกได้แล้ว",
+  "prompt.CanWorkInWinter": "เหล่าจูนิโม่จะสามารถทำงานในฤดูหนาว เพื่อแลกกับ {{item}} {{qty}} ชิ้น",
+  "success.CanWorkInWinter": "ตอนนี้เหล่าจูนิโม่สามารถทำงานในฤดูหนาวได้แล้ว",
+  "prompt.ClearDeadCrops": "เหล่าจูนิโม่จะจัดการพืชพรรณที่ตายแล้ว เพื่อแลกกับ {{item}} {{qty}} ชิ้น",
+  "success.ClearDeadCrops": "ตอนนี้เหล่าจูนิโม่จัดการพืชพรรณที่ตายแล้ว",
+  "prompt.Fertilize": "เหล่าจูนิโม่จะใส่ปุ๋ยพืชพรรณของคุณ เพื่อแลกกับ {{item}} {{qty}} ชิ้น",
+  "success.Fertilize": "ตอนนี้เหล่าจูนิโม่จะใส่ปุ๋ยพืชพรรณของคุณ",
+  "prompt.HarvestBushes": "เหล่าจูนิโม่จะเก็บผลผลิตจากพุ่มไม้ เพื่อแลกกับ {{item}} {{qty}} ชิ้น",
+  "success.HarvestBushes": "ตอนนี้เหล่าจูนิโม่จะเก็บผลผลิตจากพุ่มไม้",
+  "prompt.HarvestForageCrops": "เหล่าจูนิโม่จะเก็บเกี่ยวพืชผักป่า เพื่อแลกกับ {{item}} {{qty}} ชิ้น",
+  "success.HarvestForageCrops": "ตอนนี้เหล่าจูนิโม่จะเก็บเกี่ยวพืชผักป่า",
+  "prompt.MoreJunimos": "เหล่าจูนิโม่จะสามารถฝึกผู้ช่วยเพิ่มได้ เพื่อแลกกับ {{item}} {{qty}} ชิ้น",
+  "success.MoreJunimos": "ตอนนี้เหล่าจูนิโม่สามารถฝึกผู้ช่วยเพิ่มได้แล้ว",
+  "prompt.PlantCrops": "เหล่าจูนิโม่จะสามารถปลูกพืชพรรณ เพื่อแลกกับ {{item}} {{qty}} ชิ้น",
+  "success.PlantCrops": "ตอนนี้เหล่าจูนิโม่สามารถปลูกพืชพรรณได้แล้ว",
+  "prompt.ReducedCostToConstruct": "กระท่อมจูนิโม่จะมีต้นทุนในการสร้างลดลง แลกกับ {{item}} {{qty}} ชิ้น",
+  "success.ReducedCostToConstruct": "ตอนนี้กระท่อมจูนิโม่มีต้นทุนในการสร้างลดลงแล้ว",
+  "prompt.UnlimitedJunimos": "คุณจะสามารถมีจูนิโม่ได้ไม่จำกัด แลกกับ {{item}} {{qty}} ชิ้น",
+  "success.UnlimitedJunimos": "ตอนนี้คุณสามารถมีจูนิโม่ได้ไม่จำกัดแล้ว",
+  "prompt.Water": "เหล่าจูนิโม่จะสามารถรดน้ำพืชพรรณ เพื่อแลกกับ {{item}} {{qty}} ชิ้น",
+  "success.Water": "ตอนนี้เหล่าจูนิโม่สามารถรดน้ำพืชพรรณได้แล้ว",
+  "prompt.WorkFaster": "เหล่าจูนิโม่จะทำงานเร็วขึ้น เพื่อแลกกับ {{item}} {{qty}} ชิ้น",
+  "success.WorkFaster": "ตอนนี้เหล่าจูนิโม่ทำงานเร็วขึ้นแล้ว",
+  "cfg.hut-settings": "Hut Settings", // TODO
+  "cfg.max-junimos": "Max Junimos", // TODO
+  "cfg.max-radius": "Max Radius", // TODO
+  "cfg.avail-after-cc": "Available After CC Complete", // TODO
+  "cfg.avail-after-cc.tooltip": "Available After Community Center Complete", // TODO
+  "cfg.avail-immediately": "Available Immediately", // TODO
+  "cfg.reduced-cost": "Reduced Cost To Construct", // TODO
+  "cfg.free": "Free To Construct", // TODO
+  "cfg.improvements": "Improvements", // TODO
+  "cfg.skills-progression": "Skills Progression", // TODO
+  "cfg.skills-progression.tooltip": "Require each skill to be unlocked", // TODO
+  "cfg.can-work-in-rain": "Can Work In Rain", // TODO
+  "cfg.can-work-in-winter": "Can Work In Winter", // TODO
+  "cfg.can-work-in-evenings": "Can Work In Evenings", // TODO
+  "cfg.can-work-in-greenhouse": "Can Work In Greenhouse", // TODO
+  "cfg.can-work-in-greenhouse.tooltip": "(experimental! only enable for testing)", // TODO
+  "cfg.work-faster": "Work Faster", // TODO
+  "cfg.work-faster.tooltip": "(does not apply to crop harvesting)", // TODO
+  "cfg.work-ridiculously-fast": "Work Ridiculously Fast", // TODO
+  "cfg.work-ridiculously-fast.tooltip": "(does not apply to crop harvesting)", // TODO
+  "cfg.avoid-harvesting-flowers": "Avoid Harvesting Flowers", // TODO
+  "cfg.avoid-harvesting-giant-crops": "Avoid Harvesting Giant Crops", // TODO
+  "cfg.avoid-harvesting-giant-crops.tooltip": "Leave cauliflower, melon, pumpkin unharvested, so there's more chance of getting giant crops", // TODO
+  "cfg.harvest-everything-on-28th": "Harvest Everything On 28th", // TODO
+  "cfg.harvest-everything-on-28th.tooltip": "If avoiding harvest of flowers or giant crops, harvest them on the last day of the month before they die", // TODO
+  "cfg.avoid-planting-coffee": "Avoid Planting Coffee", // TODO
+  "cfg.avoid-replanting-seeds": "Avoid Replanting Seeds", // TODO
+  "cfg.avoid-replanting-seeds.msg": "Avoid re-planting seeds we've harvested (coffee, ancient coffee, whatever other crazy self-replicating crops you add...)", // TODO
+  "cfg.avoid-planting-out-of-season": "Avoid Planting Out Of Season", // TODO
+  "cfg.payment": "Payment", // TODO
+  "cfg.work-for-wages": "Work For Wages", // TODO
+  "cfg.foraged-items": "Foraged items", // TODO
+  "cfg.flowers": "Flowers", // TODO
+  "cfg.fruit": "Fruit", // TODO
+  "cfg.wine": "Wine", // TODO
+  "cfg.other": "Other", // TODO
+  "cfg.give-experience": "Harvesting gives experience", // TODO
+  "cfg.give-experience.tooltip": "XP from Junimo harvesting adds to Farming and Foraging skills", // TODO
+  "cfg.rainy-spirit-factor": "Rainy spirit factor", // TODO
+  "cfg.rainy-spirit-factor.tooltip": "Rainy Junimo spirit factor", // TODO
+  "cfg.always-have-umbrellas": "Always have umbrellas", // TODO
+  "cfg.always-have-umbrellas.tooltip": "Junimos always have leaf umbrellas", // TODO
+  "cfg.more-colorful-umbrellas": "More colorful umbrellas", // TODO
+  "cfg.more-colorful-umbrellas.tooltip": "More Colorful Leaf Umbrellas", // TODO
+  "cfg.infinite-inventory": "Infinite inventory", // TODO
+  "cfg.infinite-inventory.tooltip": "Infinite Junimo inventory", // TODO
+  "cfg.spawn-junimo-keybind": "Spawn Junimo keybind", // TODO
+  "cfg.receive-messages": "Receive messages", // TODO
+  "cfg.hut-menu-keybind": "Progression tracker keybind", // TODO
+  "cfg.hut-menu-keybind.tooltip": "If set, you can open the progression tracker by pressing this key when the mouse is over a hut", // TODO
+  "cfg.hut-click-enabled": "Clicking hut opens tracker", // TODO
+  "cfg.hut-click-enabled.tooltip": "If set, you can open the progression tracker by clicking on a hut", // TODO
+  "tracker.tracker-title": "ติดตามสถานะความก้าวหน้าของจูนิโม่: {{percentage}}%^^เควส:^{{quests}}^^สปอย (beta เท่านั้น):^{{details}}",
+  "tracker.no-abilities-to-unlock": "No abilities to unlock at the moment", // TODO
+  "tracker.payments": "Payments", // TODO
+  "tracker.working-for-free": "working for free", // TODO
+  "tracker.paid-today": "paid today, happy", // TODO
+  "tracker.unpaid-not-working": "unpaid, on strike!", // TODO
+  "tracker.max-junimos-per-hut": "Max Junimos per hut", // TODO
+  "tracker.working-radius": "Working radius", // TODO
+  "tracker.current": "current", // TODO
+  "tracker.configured": "set in config", // TODO
+  "tracker.disabled": "disabled by configuration", // TODO
+  "tracker.enabled": "enabled", // TODO
+  "tracker.unlocked": "unlocked", // TODO
+  "tracker.prompted": "prompted", // TODO
+  "tracker.not-triggered": "not triggered", // TODO
+  "tracker.progression-info-host-only": "Progression info is only available to the host", // TODO
+  "debug.prompting-all-quests": "Prompting all quests", // TODO
+  "debug.available-actions-for-hut-at": "Available actions for hut at", // TODO
+  "debug.available-actions-for-greenhouse": "Available actions for greenhouse", // TODO
+  "debug.actions-logged": "Available actions logged to the console", // TODO
+  "debug.in-cooldown": "[cooling down]", // TODO
+  "debug.required-item-unavailable": "[required item unavailable]", // TODO
+  "debug.locked-by-progression": "[progression locked]", // TODO
+  "wizard.edit-options": "To change options edit config.json in the Better Junimos folder.", // TODO
+  "wizard.install-gmcm": "For easy configuration install Generic Mod Config Menu." // TODO
 }
