@@ -5,8 +5,11 @@
     <RootNamespace>BetterJunimos</RootNamespace>
     <Version>2.0.8</Version>
     <LangVersion>latest</LangVersion>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <EnableHarmony>true</EnableHarmony>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GamePath>B:\SteamGamesFaster\steamapps\common\Stardew Valley</GamePath>
   </PropertyGroup>
 
   <ItemGroup>

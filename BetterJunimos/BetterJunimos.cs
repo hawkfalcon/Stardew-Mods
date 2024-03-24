@@ -12,6 +12,7 @@ using StardewValley.Characters;
 using StardewValley.Menus;
 using BetterJunimos.Utils;
 using StardewValley.Objects;
+using StardewValley.Tools;
 
 namespace BetterJunimos {
     // ReSharper disable once ClassNeverInstantiated.Global
@@ -204,9 +205,10 @@ namespace BetterJunimos {
 
         // BUG: player warps back to wizard hut after use
         private void OpenJunimoHutMenu() {
-            var menu = new CarpenterMenu(true);
-            var blueprints = Helper.Reflection.GetField<List<BluePrint>>(menu, "blueprints");
-            var newBluePrints = new List<BluePrint> {new("Junimo Hut")};
+            var menu = new CarpenterMenu(Game1.builder_wizard) {
+            };
+            var blueprints = Helper.Reflection.GetField<List<Building>>(menu, "blueprints"); //this part is wrong
+            var newBluePrints = new List<Building> { };
             blueprints.SetValue(newBluePrints);
             Game1.activeClickableMenu = menu;
         }
@@ -251,7 +253,7 @@ namespace BetterJunimos {
             
             // tag each hut chest so later we can tell whether a GrabMenu close is for a Junimo chest or some other chest 
             foreach (var hut in huts) {
-                hut.output.Value.modData[$"{ModManifest.UniqueID}/JunimoChest"] = "true";
+                hut.GetOutputChest().modData[$"{ModManifest.UniqueID}/JunimoChest"] = "true";
             }
             
             if (huts.Any()) {

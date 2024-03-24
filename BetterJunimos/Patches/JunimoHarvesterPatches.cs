@@ -9,6 +9,7 @@ using Netcode;
 using BetterJunimos.Abilities;
 using StardewModdingAPI;
 using StardewValley.Buildings;
+using StardewValley.Pathfinding;
 
 namespace BetterJunimos.Patches {
     /* foundCropEndFunction
@@ -38,7 +39,7 @@ namespace BetterJunimos.Patches {
             if (!Context.IsMainPlayer) return true;
 
             var id = ___netHome.Value;
-            var pos = __instance.getTileLocation();
+            var pos = __instance.Tile;
 
             // if (__instance.currentLocation.IsGreenhouse) {
             //     BetterJunimos.SMonitor.Log($"PatchTryToHarvestHere: #{__instance.whichJunimoFromThisHut} looking in {__instance.currentLocation.Name} at [{pos.X} {pos.Y}]", LogLevel.Trace);
