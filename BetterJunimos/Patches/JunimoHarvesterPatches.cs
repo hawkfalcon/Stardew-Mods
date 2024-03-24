@@ -232,7 +232,6 @@ namespace BetterJunimos.Patches {
                     __instance.currentLocation,
                     __instance.foundCropEndFunction,
                     -1,
-                    false,
                     __instance.reachFirstDestinationFromHut,
                     100,
                     Point.Zero);

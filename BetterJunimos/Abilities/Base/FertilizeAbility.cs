@@ -21,7 +21,7 @@ namespace BetterJunimos.Abilities {
         public bool IsActionAvailable(GameLocation location, Vector2 pos, Guid guid) {
             if (!location.terrainFeatures.ContainsKey(pos)) return false;
             if (location.terrainFeatures[pos] is not HoeDirt hd) return false;
-            if (hd.fertilizer.Value != "0") return false;
+            if (hd.fertilizer.Value != null) return false;
             if (hd.crop is null) return true;
 
             // now we allow fertilizing just-planted crops

@@ -13,6 +13,8 @@ using StardewValley.Menus;
 using BetterJunimos.Utils;
 using StardewValley.Objects;
 using StardewValley.Tools;
+using static StardewValley.Menus.CarpenterMenu;
+using StardewValley.TerrainFeatures;
 
 namespace BetterJunimos {
     // ReSharper disable once ClassNeverInstantiated.Global
@@ -207,8 +209,8 @@ namespace BetterJunimos {
         private void OpenJunimoHutMenu() {
             var menu = new CarpenterMenu(Game1.builder_wizard) {
             };
-            var blueprints = Helper.Reflection.GetField<List<Building>>(menu, "blueprints"); //this part is wrong
-            var newBluePrints = new List<Building> { };
+            var blueprints = Helper.Reflection.GetField<List<BlueprintEntry>>(menu, "Junimo Hut");
+            var newBluePrints = new List<BlueprintEntry> { };
             blueprints.SetValue(newBluePrints);
             Game1.activeClickableMenu = menu;
         }
