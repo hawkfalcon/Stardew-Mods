@@ -17,7 +17,7 @@ using static StardewValley.Menus.CarpenterMenu;
 using StardewValley.TerrainFeatures;
 
 namespace BetterJunimos {
-    // ReSharper disable once ClassNeverInstantiated.Global
+
     public class BetterJunimos : Mod {
         internal static ModConfig Config;
         internal static IMonitor SMonitor;
@@ -99,7 +99,7 @@ namespace BetterJunimos {
             JunimoAbilities.ResetCooldowns();
         }
 
-        private static void DoHarmonyRegistration() {
+        private void DoHarmonyRegistration() {
             var harmony = new Harmony("com.hawkfalcon.BetterJunimos");
             // Thank you to Cat (danvolchek) for this harmony setup implementation
             // https://github.com/danvolchek/StardewMods/blob/master/BetterGardenPots/BetterGardenPots/BetterGardenPotsMod.cs#L29
@@ -114,7 +114,7 @@ namespace BetterJunimos {
 
             // improve pathfinding
             replacements.Add("pathfindToRandomSpotAroundHut", junimoType, typeof(PatchPathfindToRandomSpotAroundHut));
-            replacements.Add("pathFindToNewCrop_doWork", junimoType, typeof(PatchPathfindDoWork));
+            replacements.Add("pathfindToNewCrop", junimoType, typeof(PatchPathfindDoWork));
 
             // Junimo Hut patches
             var junimoHutType = typeof(JunimoHut);
@@ -133,6 +133,10 @@ namespace BetterJunimos {
                     .FirstOrDefault(item => item.Name == "Prefix");
                 MethodInfo postfix = replacement.Item3.GetMethods(BindingFlags.Static | BindingFlags.Public)
                     .FirstOrDefault(item => item.Name == "Postfix");
+
+                if (original == null) {
+                    Monitor.Log($"Missing method {replacement.Item1}", LogLevel.Error);
+                }
 
                 harmony.Patch(original, prefix == null ? null : new HarmonyMethod(prefix),
                     postfix == null ? null : new HarmonyMethod(postfix));

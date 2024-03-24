@@ -175,7 +175,7 @@ namespace BetterJunimos.Patches {
         }
     }
 
-    // pathFindToNewCrop_doWork - completely replace 
+    // pathfindToNewCrop - completely replace 
     // Remove the max distance boundary
     [HarmonyPriority(Priority.Low)]
     public class PatchPathfindDoWork {
