@@ -23,8 +23,8 @@ namespace BetterJunimos.Utils {
         }
         
         internal static GreenhouseBuilding GreenhouseBuildingAtPos(GameLocation location, Vector2 tile) {
-            if (location is not BuildableGameLocation buildableLocation) return null;
-            foreach (var building in buildableLocation.buildings) {
+            if (!location.IsBuildableLocation()) return null;
+            foreach (var building in location.buildings) {
                 if (building is not GreenhouseBuilding greenhouseBuilding) continue;
                 if (greenhouseBuilding.occupiesTile(tile)) {
                     return greenhouseBuilding;
@@ -52,8 +52,8 @@ namespace BetterJunimos.Utils {
         }
 
         internal bool IsGreenhouseAtPos(GameLocation location, Vector2 tile) {
-            if (location is not BuildableGameLocation buildableLocation) return false;
-            return buildableLocation.buildings.Any(building =>
+            if (!location.IsBuildableLocation()) return false;
+            return location.buildings.Any(building =>
                 building.occupiesTile(tile) && building is GreenhouseBuilding);
         }
     }
