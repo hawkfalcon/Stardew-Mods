@@ -249,10 +249,6 @@ namespace BetterJunimos.Utils {
         }
 
         private static void UpdateHutContainsItemCategory(Guid id, Chest chest, string itemCategory) {
-            if (!ItemsInHuts.ContainsKey(id)) {
-                ItemsInHuts.Add(id, new Dictionary<string, bool>());
-            }
-
             ItemsInHuts[id][itemCategory] = chest.Items.Any(item =>
                 item != null && item.Category.ToString() == itemCategory &&
                 !(BetterJunimos.Config.JunimoImprovements.AvoidPlantingCoffee && item.ParentSheetIndex == Util.CoffeeId)
