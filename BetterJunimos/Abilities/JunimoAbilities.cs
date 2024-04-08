@@ -235,7 +235,7 @@ namespace BetterJunimos.Utils {
                     ItemsInHuts.Add(id, new Dictionary<string, bool>());
                 }
 
-                if (itemId != "0") {
+                if (!itemId.StartsWith("-")) {
                     ItemsInHuts[id][itemId] = chest.Items.Any(item =>
                         item != null && item.ItemId.ToString() == itemId &&
                         !(BetterJunimos.Config.JunimoImprovements.AvoidPlantingCoffee &&
