@@ -236,16 +236,19 @@ namespace BetterJunimos.Utils {
                 }
 
                 if (!itemId.StartsWith("-")) {
-                    ItemsInHuts[id][itemId] = chest.Items.Any(item =>
-                        item != null && item.ItemId.ToString() == itemId &&
-                        !(BetterJunimos.Config.JunimoImprovements.AvoidPlantingCoffee &&
-                          item.ParentSheetIndex == Util.CoffeeId)
-                    );
+                    UpdateHutContainsItemId(id, chest, itemId);
                 }
                 else {
                     UpdateHutContainsItemCategory(id, chest, itemId);
                 }
             }
+        }
+
+        private static void UpdateHutContainsItemId(Guid id, Chest chest, string itemId) {
+            ItemsInHuts[id][itemId] = chest.Items.Any(item =>
+                item != null && item.ItemId.ToString() == itemId &&
+                !(BetterJunimos.Config.JunimoImprovements.AvoidPlantingCoffee && item.ParentSheetIndex == Util.CoffeeId)
+            );
         }
 
         private static void UpdateHutContainsItemCategory(Guid id, Chest chest, string itemCategory) {
