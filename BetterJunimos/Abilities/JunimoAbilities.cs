@@ -235,12 +235,11 @@ namespace BetterJunimos.Utils {
                     ItemsInHuts.Add(id, new Dictionary<string, bool>());
                 }
 
-                if (!itemId.StartsWith("-")) {
-                    UpdateHutContainsItemId(id, chest, itemId);
-                }
-                else {
+                // item categories start with a -
+                if (itemId.StartsWith("-"))
                     UpdateHutContainsItemCategory(id, chest, itemId);
-                }
+                else
+                    UpdateHutContainsItemId(id, chest, itemId);
             }
         }
 
