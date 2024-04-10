@@ -3,7 +3,7 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 
 namespace BetterJunimos {
-    public static class BlueprintEditor {
+    public static class BuildingEditor {
         private const string hutKey = "Junimo Hut";
 
         internal static void OnAssetRequested(object sender, AssetRequestedEventArgs e) {

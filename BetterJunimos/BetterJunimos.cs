@@ -43,7 +43,7 @@ namespace BetterJunimos {
             Util.Progression = new JunimoProgression(ModManifest, Monitor, Helper);
             Util.Greenhouse = new JunimoGreenhouse(ModManifest, Monitor, Helper);
             
-            helper.Events.Content.AssetRequested += BlueprintEditor.OnAssetRequested;
+            helper.Events.Content.AssetRequested += BuildingEditor.OnAssetRequested;
             helper.Events.Content.AssetRequested += JunimoEditor.OnAssetRequested;
 
             helper.Events.GameLoop.OneSecondUpdateTicked += Util.Progression.ConfigureFromWizard;
