@@ -630,8 +630,8 @@ namespace BetterJunimos {
             SHelper.WriteConfig(Config);
             SHelper.GameContent.InvalidateCache("Characters/Junimo");
             SHelper.GameContent.InvalidateCache($"Characters/Junimo.{SHelper.Translation.Locale}");
-            SHelper.GameContent.InvalidateCache("Data/Blueprints");
-            SHelper.GameContent.InvalidateCache($"Data/Blueprints.{SHelper.Translation.Locale}");
+            SHelper.GameContent.InvalidateCache("Data/Buildings");
+            SHelper.GameContent.InvalidateCache($"Data/Buildings.{SHelper.Translation.Locale}");
         }
 
         private static void AllowJunimoHutPurchasing() {
