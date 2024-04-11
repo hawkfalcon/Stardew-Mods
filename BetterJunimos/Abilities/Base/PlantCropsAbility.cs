@@ -21,7 +21,6 @@ namespace BetterJunimos.Abilities {
         private const string DeluxeSpeedGro = "466";
         private const string HyperSpeedGro = "918";
         
-        static Dictionary<string, int> WildTreeSeeds = new() {{"292", 8}, {"309", 1}, {"310", 2}, {"311", 3}, {"891", 7}};
         static Dictionary<string, Dictionary<string, bool>> cropSeasons = new();
         
         internal PlantCropsAbility(IMonitor Monitor) {
@@ -129,11 +128,6 @@ namespace BetterJunimos.Abilities {
             }
 
             return null;
-        }
-        
-        // TODO: look this up properly instead of keeping a list of base-game tree seed item IDs
-        protected bool IsTreeSeed(Item item) {
-            return WildTreeSeeds.ContainsKey(item.ItemId);
         }
 
         private bool IsTrellisCrop(Item item, GameLocation location) {
