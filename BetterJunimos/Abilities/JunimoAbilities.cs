@@ -245,7 +245,7 @@ namespace BetterJunimos.Utils {
 
         private static void UpdateHutContainsItemId(Guid id, Chest chest, string itemId) {
             ItemsInHuts[id][itemId] = chest.Items.Any(item =>
-                item != null && item.ItemId.ToString() == itemId &&
+                item != null && item.ItemId == itemId &&
                 !(BetterJunimos.Config.JunimoImprovements.AvoidPlantingCoffee && item.ParentSheetIndex == Util.CoffeeId)
             );
         }

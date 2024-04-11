@@ -69,7 +69,7 @@ namespace BetterJunimos.Abilities {
 
             // BetterJunimos.SMonitor.Log(
             //     $"PerformAction planting {foundItem.Name} in {location.Name} at at [{pos.X} {pos.Y}]", LogLevel.Debug);
-            if (Plant(location, pos, foundItem.itemId.ToString())) {
+            if (Plant(location, pos, foundItem.ItemId)) {
                 Util.RemoveItemFromChest(chest, foundItem);
                 // BetterJunimos.SMonitor.Log(
                     // $"PerformAction planted {foundItem.Name} in {location.Name} at at [{pos.X} {pos.Y}]", LogLevel.Debug);
@@ -85,9 +85,8 @@ namespace BetterJunimos.Abilities {
         /// <summary>Get an item from the chest that is a crop seed, plantable in this season</summary>
         private Item PlantableSeed(GameLocation location, Chest chest, string cropType=null) {
             var foundItems = chest.Items.ToList().FindAll(item =>
-                item != null 
-                && item.Category == ItemCategory
-                && !IsTreeSeed(item)
+                item != null
+                && (new StardewValley.Object(item.ItemId, 1)).Type == "Seeds"
                 && !(BetterJunimos.Config.JunimoImprovements.AvoidPlantingCoffee && item.ParentSheetIndex == Util.CoffeeId)
             );
             
@@ -112,17 +111,17 @@ namespace BetterJunimos.Abilities {
                     continue;
                 }
                 
-                var key = foundItem.itemId;
+                var key = foundItem.ItemId;
                 try {
-                    if (cropSeasons[Game1.currentSeason][key.ToString()]) {
+                    if (cropSeasons[Game1.currentSeason][key]) {
                         return foundItem;
                     }
                 } catch (KeyNotFoundException)
                 {
                     // Monitor.Log($"Cache miss: {key} {Game1.currentSeason}", LogLevel.Debug);
-                    var crop = new Crop(foundItem.itemId.ToString(), 0, 0, location);
-                    cropSeasons[Game1.currentSeason][key.ToString()] = crop.IsInSeason(location);
-                    if (cropSeasons[Game1.currentSeason][key.ToString()]) {
+                    var crop = new Crop(key, 0, 0, location);
+                    cropSeasons[Game1.currentSeason][key] = crop.IsInSeason(location);
+                    if (cropSeasons[Game1.currentSeason][key]) {
                         return foundItem;
                     }
                 }
@@ -134,11 +133,11 @@ namespace BetterJunimos.Abilities {
         
         // TODO: look this up properly instead of keeping a list of base-game tree seed item IDs
         protected bool IsTreeSeed(Item item) {
-            return WildTreeSeeds.ContainsKey(item.itemId.ToString());
+            return WildTreeSeeds.ContainsKey(item.ItemId);
         }
 
         private bool IsTrellisCrop(Item item, GameLocation location) {
-            Crop crop = new Crop(item.itemId.ToString(), 0, 0, location);
+            Crop crop = new Crop(item.ItemId, 0, 0, location);
             return crop.raisedSeeds.Value;
         }
 
