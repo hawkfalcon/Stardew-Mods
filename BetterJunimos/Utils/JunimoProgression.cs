@@ -294,7 +294,7 @@ namespace BetterJunimos.Utils {
             // BetterJunimos.SMonitor.Log($"ReceiveItems wants {needed} of [{index}]", LogLevel.Debug);
             if (needed <= 0) return true;
 
-            var inChest = chest.Items.Where(item => item != null && item.itemId.ToString() == itemID).ToList();
+            var inChest = chest.Items.Where(item => item != null && item.ItemId == itemID).ToList();
 
             foreach (var itemStack in inChest) {
                 if (itemStack.Stack >= needed) {
