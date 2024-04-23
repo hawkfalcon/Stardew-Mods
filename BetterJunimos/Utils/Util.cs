@@ -30,20 +30,8 @@ namespace BetterJunimos.Utils {
         internal static JunimoProgression Progression;
         internal static JunimoGreenhouse Greenhouse;
 
-        public static List<GameLocation> getFarms() {
-            // TODO: use the trick from Discord?
-
-            var farms = new List<GameLocation> { Game1.getFarm() };
-            
-            var ridgesideSummitFarm = Game1.getLocationFromName("Custom_Ridgeside_SummitFarm");
-            if (ridgesideSummitFarm != null) {
-                farms.Add(ridgesideSummitFarm);
-            }
-            
-            // BetterJunimos.SMonitor.Log($"Buildings found in main farm ${string.Join(",", farms[0].buildings)}", LogLevel.Debug);
-            // BetterJunimos.SMonitor.Log($"Buildings found in summit farm ${string.Join(",", farms[1].buildings)}", LogLevel.Debug);
-
-            return farms;
+        public static List<GameLocation> GetAllFarms() {
+            return Game1.locations.Where(loc => loc.IsFarm && loc.IsOutdoors).ToList();
         }
 
         public static int CurrentWorkingRadius {
@@ -55,15 +43,15 @@ namespace BetterJunimos.Utils {
         }
 
         public static List<JunimoHut> GetAllHuts() {
-            return getFarms().SelectMany(farm => farm.buildings.OfType<JunimoHut>().ToList()).ToList();
+            return GetAllFarms().SelectMany(farm => farm.buildings.OfType<JunimoHut>().ToList()).ToList();
         }
 
         public static Guid GetHutIdFromHut(JunimoHut hut) {
-            return getFarms().Select(farm => farm.buildings.GuidOf(hut)).ToList().Find(guid => guid != Guid.Empty);
+            return GetAllFarms().Select(farm => farm.buildings.GuidOf(hut)).ToList().Find(guid => guid != Guid.Empty);
         }
 
         public static JunimoHut GetHutFromId(Guid id) {
-            foreach (var farm in getFarms()) {
+            foreach (var farm in GetAllFarms()) {
                 if (farm.buildings.TryGetValue(id, out var hut)) {
                     return hut as JunimoHut;
                 }
@@ -71,7 +59,6 @@ namespace BetterJunimos.Utils {
             
             BetterJunimos.SMonitor.Log($"Could not get hut from id ${id}", LogLevel.Error);
             return null;
-            // return getFarms().Select(farm => farm.buildings[id]).ToList().Find(hut => hut != null) as JunimoHut;
         }
 
         public static void AddItemToChest(GameLocation farm, Chest chest, SObject item) {

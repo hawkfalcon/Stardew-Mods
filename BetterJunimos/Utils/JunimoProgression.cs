@@ -496,7 +496,7 @@ namespace BetterJunimos.Utils {
 
         
         public static bool HutOnTile(Vector2 pos) {
-            return Util.getFarms().Any(farm => farm.buildings.Any(b => b is JunimoHut && b.occupiesTile(pos)));
+            return Util.GetAllFarms().Any(farm => farm.buildings.Any(b => b is JunimoHut && b.occupiesTile(pos)));
         }
 
         private string Get(string key) {

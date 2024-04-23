@@ -647,7 +647,7 @@ namespace BetterJunimos {
             var currentLocation = Game1.player.currentLocation;
 
             if (currentLocation.IsFarm || currentLocation.IsGreenhouse) {
-                var junimoHuts = Util.getFarms()
+                var junimoHuts = Util.GetAllFarms()
                     .FindAll(farm => farm.Equals(currentLocation))
                     .SelectMany(farm => farm.buildings.OfType<JunimoHut>())
                     .ToList();
