@@ -297,8 +297,6 @@ namespace BetterJunimos {
                 // this might be getting called a bit too much
                 // but since OnMenuChanged doesn't tell us reliably which hut has changed
                 // it's safer to update items from all huts here
-                // SMonitor.Log($"Getting GUID for ${hut}...", LogLevel.Debug);
-                // SMonitor.Log($"\tGot GUID as ${Util.GetHutIdFromHut(hut)}", LogLevel.Debug);
                 Util.Abilities.UpdateHutItems(Util.GetHutIdFromHut(hut));
 
                 if (Config.JunimoPayment.WorkForWages) {
