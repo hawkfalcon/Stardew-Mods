@@ -30,6 +30,22 @@ namespace BetterJunimos.Utils {
         internal static JunimoProgression Progression;
         internal static JunimoGreenhouse Greenhouse;
 
+        public static List<GameLocation> getFarms() {
+            // TODO: use the trick from Discord?
+
+            var farms = new List<GameLocation> { Game1.getFarm() };
+            
+            var ridgesideSummitFarm = Game1.getLocationFromName("Custom_Ridgeside_SummitFarm");
+            if (ridgesideSummitFarm != null) {
+                farms.Add(ridgesideSummitFarm);
+            }
+            
+            // BetterJunimos.SMonitor.Log($"Buildings found in main farm ${string.Join(",", farms[0].buildings)}", LogLevel.Debug);
+            // BetterJunimos.SMonitor.Log($"Buildings found in summit farm ${string.Join(",", farms[1].buildings)}", LogLevel.Debug);
+
+            return farms;
+        }
+
         public static int CurrentWorkingRadius {
             get {
                 if (!BetterJunimos.Config.JunimoPayment.WorkForWages) return BetterJunimos.Config.JunimoHuts.MaxRadius;
@@ -39,15 +55,23 @@ namespace BetterJunimos.Utils {
         }
 
         public static List<JunimoHut> GetAllHuts() {
-            return Game1.getFarm().buildings.OfType<JunimoHut>().ToList();
+            return getFarms().SelectMany(farm => farm.buildings.OfType<JunimoHut>().ToList()).ToList();
         }
 
         public static Guid GetHutIdFromHut(JunimoHut hut) {
-            return Game1.getFarm().buildings.GuidOf(hut);
+            return getFarms().Select(farm => farm.buildings.GuidOf(hut)).ToList().Find(guid => guid != Guid.Empty);
         }
 
         public static JunimoHut GetHutFromId(Guid id) {
-            return Game1.getFarm().buildings[id] as JunimoHut;
+            foreach (var farm in getFarms()) {
+                if (farm.buildings.TryGetValue(id, out var hut)) {
+                    return hut as JunimoHut;
+                }
+            }
+            
+            BetterJunimos.SMonitor.Log($"Could not get hut from id ${id}", LogLevel.Error);
+            return null;
+            // return getFarms().Select(farm => farm.buildings[id]).ToList().Find(hut => hut != null) as JunimoHut;
         }
 
         public static void AddItemToChest(GameLocation farm, Chest chest, SObject item) {
@@ -74,7 +98,7 @@ namespace BetterJunimos.Utils {
         public static void SpawnJunimoAtHut(JunimoHut hut) {
             // I don't know why we're multiplying by 64 here
             var pos = new Vector2((float) hut.tileX.Value + 1, (float) hut.tileY.Value + 1) * 64f + new Vector2(0.0f, 32f);
-            SpawnJunimoAtPosition(Game1.getFarm(), pos, hut, hut.getUnusedJunimoNumber());
+            SpawnJunimoAtPosition(Game1.player.currentLocation, pos, hut, hut.getUnusedJunimoNumber());
         }
 
         public static void SpawnJunimoAtPosition(GameLocation location, Vector2 pos, JunimoHut hut, int junimoNumber) {
@@ -133,8 +157,6 @@ namespace BetterJunimos.Utils {
 
             if (!Utility.isOnScreen(Utility.Vector2ToPoint(pos), 64, location)) return;
             location.playSound("junimoMeep1");
-            
-
         }
 
 /*

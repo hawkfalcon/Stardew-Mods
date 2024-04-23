@@ -215,6 +215,7 @@ namespace BetterJunimos.Utils {
         }
 
         private static bool ItemInHut(Guid id, string item) {
+            // BetterJunimos.SMonitor.Log($"Items in huts keys = ${string.Join(",", ItemsInHuts.Keys)}", LogLevel.Debug);
             return ItemsInHuts[id].TryGetValue(item, out var present) && present;
         }
 
