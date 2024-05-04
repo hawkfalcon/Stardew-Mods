@@ -35,7 +35,7 @@ namespace CustomQuestExpiration {
         // Update quests when leaving the billboard
         private void updateQuest() {
             Quest currentDailyQuest = Game1.player.questLog.FirstOrDefault(quest =>
-                quest.dailyQuest && quest.Equals(Game1.questOfTheDay)
+                quest.dailyQuest.Value && quest.Equals(Game1.questOfTheDay)
             );
             if (currentDailyQuest != null) {
                 int daysLeft = getDaysLeft(currentDailyQuest);
@@ -46,7 +46,7 @@ namespace CustomQuestExpiration {
         // Make all quests not daily temporarily to set the icon to (!)
         private void updateQuestIcons() {
             foreach (Quest quest in Game1.player.questLog) {
-                if (quest.dailyQuest) {
+                if (quest.dailyQuest.Value) {
                     dailyQuests.Add(quest);
                     quest.dailyQuest.Value = false;
                 }
@@ -68,7 +68,7 @@ namespace CustomQuestExpiration {
 
             // daily quest types
             // https://stardewvalleywiki.com/Quests#Types
-            switch (quest.questType) {
+            switch (quest.questType.Value) {
             case Quest.type_itemDelivery:
                 return Config.CategoryExpiration.ItemDelivery;
             case Quest.type_resource:
