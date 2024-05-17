@@ -239,7 +239,7 @@ namespace BetterJunimos {
 
             // opened menu
             if (e.OldMenu != null || e.NewMenu is not CarpenterMenu) return;
-            if (!Helper.Reflection.GetField<bool>(e.NewMenu, "magicalConstruction").GetValue()) return;
+            if (!Helper.Reflection.GetField<bool>(e.NewMenu, "MagicalConstruction").GetValue()) return;
             // limit to only junimo hut
             if (!Game1.MasterPlayer.mailReceived.Contains("hasPickedUpMagicInk")) {
                 OpenJunimoHutMenu();
