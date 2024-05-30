@@ -643,24 +643,30 @@ namespace BetterJunimos {
 
         private void SpawnJunimoCommand() {
             var currentLocation = Game1.player.currentLocation;
-
-            if (currentLocation.IsFarm || currentLocation.IsGreenhouse) {
-                var junimoHuts = Util.GetAllFarms()
-                    .FindAll(farm => farm.Equals(currentLocation))
-                    .SelectMany(farm => farm.buildings.OfType<JunimoHut>())
-                    .ToList();
-
-                if (!junimoHuts.Any()) {
-                    Util.SendMessage(Helper.Translation.Get("msg.cannot-spawn-without-hut"));
-                    return;
-                }
-
-                var hut = junimoHuts.ElementAt(Game1.random.Next(0, junimoHuts.Count));
-                Util.SpawnJunimoAtPosition(currentLocation, Game1.player.Position, hut, Game1.random.Next(4, 100));
+            //Util.SendMessage($"Estas en zona {currentLocation.Name} y su padre es {currentLocation.GetParentLocation()?.Name}");
+            var locationtoeval = currentLocation;
+            if (currentLocation.GetParentLocation() is not null) 
+            {
+                locationtoeval = currentLocation.GetParentLocation();
             }
-            else {
-                Util.SendMessage(Helper.Translation.Get("msg.cannot-spawn-here"));
+            var junimoHuts = Util.GetAllFarms()
+                .FindAll(farm => farm.Equals(locationtoeval))
+                .SelectMany(farm => farm.buildings.OfType<JunimoHut>())
+                .ToList();
+
+            if (!junimoHuts.Any()) {
+                Util.SendMessage(Helper.Translation.Get("msg.cannot-spawn-without-hut"));
+                return;
             }
+
+            var hut = junimoHuts.ElementAt(Game1.random.Next(0, junimoHuts.Count));
+            Util.SpawnJunimoAtPosition(currentLocation, Game1.player.Position, hut, Game1.random.Next(4, 100));
+            // if (currentLocation.IsFarm || currentLocation.IsGreenhouse) {
+                //Quitamos esta condicion en teoria solo nos interesa que haya un junimo hut en la ubicacion en la que estemos
+            // }
+            // else {
+            //     Util.SendMessage(Helper.Translation.Get("msg.cannot-spawn-here"));
+            // }
         }
 
         private static void CheckForWages(JunimoHut hut) {
