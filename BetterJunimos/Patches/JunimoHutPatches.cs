@@ -127,6 +127,63 @@ namespace BetterJunimos.Patches {
      * To allow more junimos, allow working in rain
      */
     [HarmonyPriority(Priority.Low)]
+    internal class ReplaceJunimoHutupdateWhenFarmNotCurrentLocation 
+    {
+        // This is to prevent the update function from running, other than base.Update()
+        // Capture sendOutTimer and use to stop execution
+        public static void Prefix(JunimoHut __instance, ref int ___junimoSendOutTimer, out int __state) {
+            __state = ___junimoSendOutTimer;
+            ___junimoSendOutTimer = 0;
+        }
+        public static void Postfix(JunimoHut __instance, GameTime time, ref int ___junimoSendOutTimer, int __state)
+        {
+            BetterJunimos.SMonitor.Log($"ReplaceJunimoHutupdateWhenFarmNotCurrentLocation: postfix starts v1");
+            if (__state <= 0) return;
+            if (!Context.IsMainPlayer) return;
+            BetterJunimos.SMonitor.Log($"ReplaceJunimoHutupdateWhenFarmNotCurrentLocation: postfix starts");
+
+            ___junimoSendOutTimer = __state - time.ElapsedGameTime.Milliseconds;
+            __instance.shouldSendOutJunimos.Value = true;
+            // Don't work on farmEvent days
+            // Base game work on event days
+            // if (Game1.farmEvent != null)
+            //     return;
+            // Winter
+            if (Game1.IsWinter && !Util.Progression.CanWorkInWinter) {
+                return;
+            }
+            // Rain
+            if (Game1.isRaining && !Util.Progression.CanWorkInRain){
+                BetterJunimos.SMonitor.Log($"ReplaceJunimoHutUpdate: rain");
+                return;
+            }
+            // Currently sending out a junimo
+            if (___junimoSendOutTimer > 0) {
+                BetterJunimos.SMonitor.Log($"{__instance.parentLocationName} - ReplaceJunimoHutUpdate: sending");
+                return;
+            }
+            // Already enough junimos
+            if (__instance.myJunimos.Count >= Util.Progression.MaxJunimosUnlocked){
+                BetterJunimos.SMonitor.Log($"{__instance.parentLocationName} Already {__instance.myJunimos.Count} Junimos, limit is {Util.Progression.MaxJunimosUnlocked}");
+                return;
+            }
+            // Nothing to do
+            if (!__instance.areThereMatureCropsWithinRadius()) {
+                BetterJunimos.SMonitor.Log($"{__instance.parentLocationName} No work for Junimos to do, not spawning another");
+                return;
+            }
+            // BetterJunimos.SMonitor.Log($"ReplaceJunimoHutUpdate: spawning");
+            Util.SpawnJunimoAtHut(__instance);
+            // BetterJunimos.SMonitor.Log($"ReplaceJunimoHutUpdate: postfix ends");
+            ___junimoSendOutTimer = 1000;
+        }
+    }
+
+    /* Update
+     * 
+     * To allow more junimos, allow working in rain
+     */
+    [HarmonyPriority(Priority.Low)]
     internal class ReplaceJunimoHutUpdate {
         // This is to prevent the update function from running, other than base.Update()
         // Capture sendOutTimer and use to stop execution
@@ -142,7 +199,7 @@ namespace BetterJunimos.Patches {
             // BetterJunimos.SMonitor.Log($"ReplaceJunimoHutUpdate: postfix starts");
 
             ___junimoSendOutTimer = __state - time.ElapsedGameTime.Milliseconds;
-            
+
             // Don't work on farmEvent days
             if (Game1.farmEvent != null)
                 return;
