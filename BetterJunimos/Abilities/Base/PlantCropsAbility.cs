@@ -85,10 +85,10 @@ namespace BetterJunimos.Abilities {
         private Item PlantableSeed(GameLocation location, Chest chest, string cropType=null) {
             var foundItems = chest.Items.ToList().FindAll(item =>
                 item != null
-                && (new StardewValley.Object(item.ItemId, 1)).Type == "Seeds"
+                //&& new StardewValley.Object(item.ItemId, 1).Type == "Seeds"
                 && !(BetterJunimos.Config.JunimoImprovements.AvoidPlantingCoffee && item.ParentSheetIndex == Util.CoffeeId)
             );
-            
+            foundItems = foundItems.FindAll(item => IsCrop(item, location));
             switch (cropType)
             {
                 case CropTypes.Trellis:
@@ -117,6 +117,7 @@ namespace BetterJunimos.Abilities {
                     }
                 } catch (KeyNotFoundException)
                 {
+
                     // Monitor.Log($"Cache miss: {key} {Game1.currentSeason}", LogLevel.Debug);
                     var crop = new Crop(key, 0, 0, location);
                     cropSeasons[Game1.currentSeason][key] = crop.IsInSeason(location);
@@ -133,6 +134,12 @@ namespace BetterJunimos.Abilities {
         private bool IsTrellisCrop(Item item, GameLocation location) {
             Crop crop = new Crop(item.ItemId, 0, 0, location);
             return crop.raisedSeeds.Value;
+        }
+
+        //Verify if the item is a crop seed
+        private bool IsCrop(Item item, GameLocation location) {
+            Crop crop = new Crop(item.ItemId, 0, 0, location);
+            return !crop.IsErrorCrop();
         }
 
         public List<string> RequiredItems() {
