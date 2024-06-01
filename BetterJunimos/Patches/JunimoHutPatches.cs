@@ -40,7 +40,7 @@ namespace BetterJunimos.Patches {
         private static bool SearchAroundHut(JunimoHut hut) {
             var id = Util.GetHutIdFromHut(hut);
             var radius = Util.CurrentWorkingRadius;
-            GameLocation farm = Game1.currentLocation;
+            GameLocation farm = hut.GetParentLocation();
 
             // SearchHutGrid manages hut.lastKnownCropLocation and Util.Abilities.lastKnownCropLocations
             var foundWork = SearchHutGrid(hut, radius, farm, id);
@@ -131,52 +131,63 @@ namespace BetterJunimos.Patches {
     {
         // This is to prevent the update function from running, other than base.Update()
         // Capture sendOutTimer and use to stop execution
-        public static void Prefix(JunimoHut __instance, ref int ___junimoSendOutTimer, out int __state) {
+        public static bool Prefix(JunimoHut __instance, GameTime time, ref int ___junimoSendOutTimer, out int __state) {
             __state = ___junimoSendOutTimer;
             ___junimoSendOutTimer = 0;
-        }
-        public static void Postfix(JunimoHut __instance, GameTime time, ref int ___junimoSendOutTimer, int __state)
-        {
-            BetterJunimos.SMonitor.Log($"ReplaceJunimoHutupdateWhenFarmNotCurrentLocation: postfix starts v1");
-            if (__state <= 0) return;
-            if (!Context.IsMainPlayer) return;
-            BetterJunimos.SMonitor.Log($"ReplaceJunimoHutupdateWhenFarmNotCurrentLocation: postfix starts");
+            if (__state <= 0) return true;
+            if (!Context.IsMainPlayer) return true;
+            //BetterJunimos.SMonitor.Log($"ReplaceJunimoHutupdateWhenFarmNotCurrentLocation: postfix starts", LogLevel.Debug);
 
             ___junimoSendOutTimer = __state - time.ElapsedGameTime.Milliseconds;
-            __instance.shouldSendOutJunimos.Value = true;
+            //__instance.shouldSendOutJunimos.Value = true;
             // Don't work on farmEvent days
             // Base game work on event days
             // if (Game1.farmEvent != null)
             //     return;
             // Winter
-            if (Game1.IsWinter && !Util.Progression.CanWorkInWinter) {
-                return;
+            if (__instance.GetParentLocation().IsWinterHere() && !Util.Progression.CanWorkInWinter) {
+                return true;
             }
             // Rain
-            if (Game1.isRaining && !Util.Progression.CanWorkInRain){
-                BetterJunimos.SMonitor.Log($"ReplaceJunimoHutUpdate: rain");
-                return;
+            if (__instance.GetParentLocation().IsRainingHere() && !Util.Progression.CanWorkInRain){
+                //BetterJunimos.SMonitor.Log($"ReplaceJunimoHutUpdate: rain");
+                return true;
             }
             // Currently sending out a junimo
             if (___junimoSendOutTimer > 0) {
-                BetterJunimos.SMonitor.Log($"{__instance.parentLocationName} - ReplaceJunimoHutUpdate: sending");
-                return;
+                //BetterJunimos.SMonitor.Log($"{__instance.parentLocationName} - ReplaceJunimoHutUpdate: sending");
+                return true;
             }
             // Already enough junimos
             if (__instance.myJunimos.Count >= Util.Progression.MaxJunimosUnlocked){
-                BetterJunimos.SMonitor.Log($"{__instance.parentLocationName} Already {__instance.myJunimos.Count} Junimos, limit is {Util.Progression.MaxJunimosUnlocked}");
-                return;
+                //BetterJunimos.SMonitor.Log($"{__instance.parentLocationName} Already {__instance.myJunimos.Count} Junimos, limit is {Util.Progression.MaxJunimosUnlocked}");
+                return true;
             }
             // Nothing to do
             if (!__instance.areThereMatureCropsWithinRadius()) {
-                BetterJunimos.SMonitor.Log($"{__instance.parentLocationName} No work for Junimos to do, not spawning another");
-                return;
+                //BetterJunimos.SMonitor.Log($"{__instance.parentLocationName} No work for Junimos to do, not spawning another", LogLevel.Debug);
+                return true;
             }
-            // BetterJunimos.SMonitor.Log($"ReplaceJunimoHutUpdate: spawning");
+            //BetterJunimos.SMonitor.Log($"{__instance.parentLocationName} ReplaceJunimoHutUpdate: spawning");
             Util.SpawnJunimoAtHut(__instance);
             // BetterJunimos.SMonitor.Log($"ReplaceJunimoHutUpdate: postfix ends");
             ___junimoSendOutTimer = 1000;
+            return true;
         }
+    }
+
+    /* Update
+     * 
+     * To allow more junimos, allow working
+     */
+    [HarmonyPriority(Priority.VeryHigh)]
+    internal class ReplaceJunimoHutdayUpdate 
+    {
+        public static void Postfix(JunimoHut __instance, int dayOfMonth)
+		{
+            //BetterJunimos.SMonitor.Log($"ReplaceJunimoHutdayUpdate: postfix starts", LogLevel.Debug);
+			__instance.shouldSendOutJunimos.Value = true;
+		}
     }
 
     /* Update
@@ -201,15 +212,15 @@ namespace BetterJunimos.Patches {
             ___junimoSendOutTimer = __state - time.ElapsedGameTime.Milliseconds;
 
             // Don't work on farmEvent days
-            if (Game1.farmEvent != null)
-                return;
+            // if (Game1.farmEvent != null)
+            //     return;
             // Winter
-            if (Game1.IsWinter && !Util.Progression.CanWorkInWinter) {
+            if (__instance.GetParentLocation().IsWinterHere() && !Util.Progression.CanWorkInWinter) {
                 return;
             }
             // Rain
-            if (Game1.isRaining && !Util.Progression.CanWorkInRain){
-                BetterJunimos.SMonitor.Log($"ReplaceJunimoHutUpdate: rain");
+            if (__instance.GetParentLocation().IsRainingHere() && !Util.Progression.CanWorkInRain){
+                //BetterJunimos.SMonitor.Log($"ReplaceJunimoHutUpdate: rain");
                 return;
             }
             // Currently sending out a junimo
@@ -284,13 +295,13 @@ namespace BetterJunimos.Patches {
                 __instance.myJunimos[index].pokeToHarvest();
             }
             
-            if (Game1.timeOfDay is >= 2000 and < 2400 && (!Game1.IsWinter && Game1.random.NextDouble() < 0.2))
+            if (Game1.timeOfDay is >= 2000 and < 2400 && !__instance.GetParentLocation().IsWinterHere() && Game1.random.NextDouble() < 0.2)
             {
                 __instance.wasLit.Value = true;
             }
             else
             {
-                if (Game1.timeOfDay != 2400 || Game1.IsWinter)
+                if (Game1.timeOfDay != 2400 || __instance.GetParentLocation().IsWinterHere())
                     return false;
                 __instance.wasLit.Value = false;
             }

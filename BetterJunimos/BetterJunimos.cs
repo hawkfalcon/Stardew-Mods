@@ -121,6 +121,7 @@ namespace BetterJunimos {
             replacements.Add("areThereMatureCropsWithinRadius", junimoHutType, typeof(PatchSearchAroundHut));
 
             // replacements for hardcoded max junimos
+            replacements.Add("dayUpdate", junimoHutType, typeof(ReplaceJunimoHutdayUpdate));
             replacements.Add("Update", junimoHutType, typeof(ReplaceJunimoHutUpdate));
             replacements.Add("updateWhenFarmNotCurrentLocation", junimoHutType, typeof(ReplaceJunimoHutupdateWhenFarmNotCurrentLocation));
             replacements.Add("getUnusedJunimoNumber", junimoHutType, typeof(ReplaceJunimoHutNumber));
