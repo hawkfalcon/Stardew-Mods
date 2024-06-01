@@ -199,7 +199,7 @@ namespace BetterJunimos.Patches {
                 if (__instance.controller != null)
                     return false;
 
-                if (__instance.currentLocation.GetParentLocation() is null)
+                if (__instance.currentLocation is Farm)
                     __instance.returnToJunimoHut(__instance.currentLocation);
                 else {
                     // can't walk back to the hut from here, just despawn
@@ -210,7 +210,7 @@ namespace BetterJunimos.Patches {
 
             // Prevent working when not paid
             else if (BetterJunimos.Config.JunimoPayment.WorkForWages && !Util.Payments.WereJunimosPaidToday) {
-                if (Game1.random.NextDouble() < 0.02) {
+                if (Game1.random.NextDouble() < 0.02 && __instance.currentLocation.IsFarm) {
                     __instance.pathfindToRandomSpotAroundHut();
                 }
                 else {
@@ -246,8 +246,7 @@ namespace BetterJunimos.Patches {
                     hut.tileX is not null &&
                     hut.tileY is not null &&
                     __instance.currentLocation is not null &&
-                    //__instance.currentLocation.IsFarm && 
-                    (
+                    __instance.currentLocation.NameOrUniqueName == hut.GetParentLocation().NameOrUniqueName && (
                         Math.Abs(__instance.controller.pathToEndPoint.Last().X - hut.tileX.Value - 1) > radius ||
                         Math.Abs(__instance.controller.pathToEndPoint.Last().Y - hut.tileY.Value - 1) > radius
                     );
@@ -298,10 +297,10 @@ namespace BetterJunimos.Patches {
                         // unlucky, send Junimo home
                         ___netAnimationEvent.Fire(0);
 
-                        if (__instance.currentLocation.GetParentLocation() is null){
+                        if (__instance.currentLocation is Farm) {
                             __instance.returnToJunimoHut(__instance.currentLocation);
                         }
-                        else if (__instance.currentLocation.GetParentLocation() is not null) {
+                        else if (__instance.currentLocation.IsGreenhouse) {
                             returnToGreenhouseDoor(__instance, __instance.currentLocation);
                         }
                         else {
@@ -350,7 +349,7 @@ namespace BetterJunimos.Patches {
         }
 
         private static Point GreenhouseDoor(GameLocation location) {
-            foreach (var warp in location.warps.Where(warp => warp.TargetName == location.GetParentLocation().Name))
+            foreach (var warp in location.warps.Where(warp => warp.TargetName == "Farm"))
             {
                 return new Point(warp.X, warp.Y);
             }
