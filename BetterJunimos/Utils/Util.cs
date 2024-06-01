@@ -32,7 +32,7 @@ namespace BetterJunimos.Utils {
 
         public static List<GameLocation> GetAllFarms() {
             return Game1.locations
-                //.Where(loc => loc.IsFarm && loc.IsOutdoors) //Obten todas las ubicaciones
+                //.Where(loc => loc.IsFarm && loc.IsOutdoors)
                 .ToList();
         }
 
