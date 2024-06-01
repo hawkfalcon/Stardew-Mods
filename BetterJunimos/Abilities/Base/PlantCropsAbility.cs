@@ -138,8 +138,8 @@ namespace BetterJunimos.Abilities {
 
         //Verify if the item is a crop seed
         private bool IsCrop(Item item, GameLocation location) {
-            Crop crop = new Crop(item.ItemId, 0, 0, location);
-            return !crop.IsErrorCrop();
+            var objCrop = new StardewValley.Object(item.ItemId, 1);
+            return objCrop.Category == -74 && item.ItemId != "770" && item.ItemId != "MixedFlowerSeeds";
         }
 
         public List<string> RequiredItems() {
