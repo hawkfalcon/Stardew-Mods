@@ -30,7 +30,7 @@ namespace BetterJunimos.Abilities {
             Vector2[] positions = {up, right, down, left};
             var greenhouses = positions.Select(nextPos => JunimoGreenhouse.GreenhouseBuildingAtPos(location, nextPos));
             if (!greenhouses.Any(greenhouseBuilding => greenhouseBuilding is not null)) return false;
-            var greenhouse = greenhouses.FirstOrDefault(greenhouseBuilding => greenhouseBuilding is not null).GetIndoors();
+            var greenhouse = greenhouses.FirstOrDefault(greenhouseBuilding => greenhouseBuilding is not null);
             //BetterJunimos.SMonitor.Log("Greenhouse found", LogLevel.Debug);
             if (greenhouse.characters.Count(npc => npc is JunimoHarvester) > Util.Progression.MaxJunimosUnlocked / 2) {
                 // greenhouse already kinda full

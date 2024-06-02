@@ -50,8 +50,8 @@ namespace BetterJunimos.Patches {
                 var gh = Game1.getLocationFromName("Greenhouse");
                 if (ghb != null)
                 {
-                    BetterJunimos.SMonitor.Log($"SearchAroundHut: Greenhouse find on location {hut.GetParentLocation().NameOrUniqueName}", LogLevel.Debug);
-                    gh = ghb.GetIndoors();
+                    // BetterJunimos.SMonitor.Log($"SearchAroundHut: Greenhouse find on location {hut.GetParentLocation().NameOrUniqueName}", LogLevel.Debug);
+                    gh = ghb;
                 }
 
                 if (!Util.Greenhouse.HutHasGreenhouse(id)) {

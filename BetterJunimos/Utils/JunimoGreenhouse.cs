@@ -23,33 +23,25 @@ namespace BetterJunimos.Utils {
             return GreenhouseBuildingNearHut(id) is not null;
         }
         
-        internal static GreenhouseBuilding GreenhouseBuildingAtPos(GameLocation location, Vector2 tile) {
+        internal static GameLocation GreenhouseBuildingAtPos(GameLocation location, Vector2 tile) {
             if (!location.IsBuildableLocation()) return null;
             foreach (var building in location.buildings) {
                 if (building.HasIndoors() && (building.GetIndoors()?.IsGreenhouse ?? false))
                 {
-                    if (building is not GreenhouseBuilding)
-                    {
-                        var ghb = building as GreenhouseBuilding;
-                        if (ghb != null)
-                        {
-                            if (ghb.occupiesTile(tile)) {
-                                return ghb;
-                            }
-                        }
-                        BetterJunimos.SMonitor.Log($"{building.GetIndoors()?.NameOrUniqueName} {(building as GreenhouseBuilding)?.parentLocationName}", LogLevel.Debug);
-                    }
+                    if(building.occupiesTile(tile))
+                        return building.GetIndoors();
+                    
                 }
                 if (building is not GreenhouseBuilding greenhouseBuilding) continue;
                 if (greenhouseBuilding.occupiesTile(tile)) {
-                    return greenhouseBuilding;
+                    return greenhouseBuilding.GetIndoors();
                 }
             }
 
             return null;
         }
         
-        public GreenhouseBuilding GreenhouseBuildingNearHut(Guid id) {
+        public GameLocation GreenhouseBuildingNearHut(Guid id) {
             var hut = Util.GetHutFromId(id);
             var radius = Util.CurrentWorkingRadius;
             var farm = hut.GetParentLocation();
