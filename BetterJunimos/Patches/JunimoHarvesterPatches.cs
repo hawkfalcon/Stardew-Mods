@@ -48,11 +48,11 @@ namespace BetterJunimos.Patches {
 
             int time;
             var junimoAbility = Util.Abilities.IdentifyJunimoAbility(__instance.currentLocation, pos, id);
-            if (__instance.currentLocation.IsGreenhouse)
-            {
-                BetterJunimos.SMonitor.Log($"PatchTryToHarvestHere , Is greenhouse but {__instance.controller.pathToEndPoint != null} | {junimoAbility}", LogLevel.Debug);
+            // if (__instance.currentLocation.IsGreenhouse)
+            // {
+            //     BetterJunimos.SMonitor.Log($"PatchTryToHarvestHere , Is greenhouse but {__instance.controller.pathToEndPoint != null} | {junimoAbility}", LogLevel.Debug);
                 
-            }
+            // }
             if (junimoAbility != null) {
                 // if (__instance.currentLocation.IsGreenhouse) {
                 //     BetterJunimos.SMonitor.Log(

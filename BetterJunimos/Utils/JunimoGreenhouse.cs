@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
@@ -25,6 +26,20 @@ namespace BetterJunimos.Utils {
         internal static GreenhouseBuilding GreenhouseBuildingAtPos(GameLocation location, Vector2 tile) {
             if (!location.IsBuildableLocation()) return null;
             foreach (var building in location.buildings) {
+                if (building.HasIndoors() && (building.GetIndoors()?.IsGreenhouse ?? false))
+                {
+                    if (building is not GreenhouseBuilding)
+                    {
+                        var ghb = building as GreenhouseBuilding;
+                        if (ghb != null)
+                        {
+                            if (ghb.occupiesTile(tile)) {
+                                return ghb;
+                            }
+                        }
+                        BetterJunimos.SMonitor.Log($"{building.GetIndoors()?.NameOrUniqueName} {(building as GreenhouseBuilding)?.parentLocationName}", LogLevel.Debug);
+                    }
+                }
                 if (building is not GreenhouseBuilding greenhouseBuilding) continue;
                 if (greenhouseBuilding.occupiesTile(tile)) {
                     return greenhouseBuilding;
