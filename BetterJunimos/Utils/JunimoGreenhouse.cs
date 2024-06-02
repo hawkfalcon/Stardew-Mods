@@ -37,7 +37,7 @@ namespace BetterJunimos.Utils {
         public GreenhouseBuilding GreenhouseBuildingNearHut(Guid id) {
             var hut = Util.GetHutFromId(id);
             var radius = Util.CurrentWorkingRadius;
-            var farm = Game1.getFarm();
+            var farm = hut.GetParentLocation();
         
             for (var x = hut.tileX.Value + 1 - radius; x < hut.tileX.Value + 2 + radius; ++x) {
                 for (var y = hut.tileY.Value + 1 - radius; y < hut.tileY.Value + 2 + radius; ++y) {
