@@ -246,7 +246,7 @@ namespace BetterJunimos.Patches {
                     hut.tileX is not null &&
                     hut.tileY is not null &&
                     __instance.currentLocation is not null &&
-                    __instance.currentLocation.IsFarm && (
+                    __instance.currentLocation.NameOrUniqueName == hut.GetParentLocation().NameOrUniqueName && (
                         Math.Abs(__instance.controller.pathToEndPoint.Last().X - hut.tileX.Value - 1) > radius ||
                         Math.Abs(__instance.controller.pathToEndPoint.Last().Y - hut.tileY.Value - 1) > radius
                     );
