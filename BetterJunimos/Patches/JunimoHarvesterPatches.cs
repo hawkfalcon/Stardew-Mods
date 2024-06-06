@@ -37,11 +37,9 @@ namespace BetterJunimos.Patches {
     public class PatchTryToHarvestHere {
         public static bool Prefix(JunimoHarvester __instance, ref int ___harvestTimer, ref NetGuid ___netHome) {
             if (!Context.IsMainPlayer) return true;
-            if (__instance.home is null) {
-                //BetterJunimos.SMonitor.Log($"No hut assigned");
-                return false;
-            }
-            var id = ___netHome.Value;
+            var hut = Util.GetHutFromId(__instance.HomeId);
+            if (hut is null) return false;
+            var id = __instance.HomeId;
             var pos = __instance.Tile;
 
             // if (__instance.currentLocation.IsGreenhouse) {
@@ -50,6 +48,11 @@ namespace BetterJunimos.Patches {
 
             int time;
             var junimoAbility = Util.Abilities.IdentifyJunimoAbility(__instance.currentLocation, pos, id);
+            // if (__instance.currentLocation.IsGreenhouse)
+            // {
+            //     BetterJunimos.SMonitor.Log($"PatchTryToHarvestHere , Is greenhouse but {__instance.controller.pathToEndPoint != null} | {junimoAbility}", LogLevel.Debug);
+                
+            // }
             if (junimoAbility != null) {
                 // if (__instance.currentLocation.IsGreenhouse) {
                 //     BetterJunimos.SMonitor.Log(
@@ -110,7 +113,7 @@ namespace BetterJunimos.Patches {
     // Expand radius of random pathfinding
     public class PatchPathfindToRandomSpotAroundHut {
         public static void Postfix(JunimoHarvester __instance) {
-            var hut = __instance.home;
+            var hut = Util.GetHutFromId(__instance.HomeId);
             if (hut is null) return;
 
             var radius = Util.CurrentWorkingRadius;
@@ -167,8 +170,8 @@ namespace BetterJunimos.Patches {
             var gw = jh.currentLocation.map.Layers[0].LayerWidth;
             var gh = jh.currentLocation.map.Layers[0].LayerHeight;
             return new Vector2(
-                1 + Game1.random.Next(gw - 2),
-                1 + Game1.random.Next(gh - 2)
+                gw/2 + Game1.random.Next(-(gw/2 + 2), gh/2 - 2),
+                gh/2 + Game1.random.Next(-(gw/2 + 2), gh/2 - 2)
                 ).ToPoint();
         }
 
@@ -180,6 +183,22 @@ namespace BetterJunimos.Patches {
         }
     }
 
+    [HarmonyPriority(Priority.Low)]
+    public class PatchGet_home {
+        public static void Postfix(ref JunimoHut __result, ref NetGuid ___netHome)
+        {
+            __result = Util.GetHutFromId(___netHome.Value);
+        }
+    }
+
+    [HarmonyPriority(Priority.Low)]
+    public class PatchSet_home {
+        public static void Postfix(JunimoHut value, ref NetGuid ___netHome)
+        {
+            ___netHome.Value = Util.GetHutIdFromHut(value);
+        }
+    }
+
     // pathfindToNewCrop - completely replace 
     // Remove the max distance boundary
     [HarmonyPriority(Priority.Low)]
@@ -187,8 +206,12 @@ namespace BetterJunimos.Patches {
         public static bool Prefix(JunimoHarvester __instance,
             ref NetEvent1Field<int, NetInt> ___netAnimationEvent) {
             if (!Context.IsMainPlayer) return true;
-
-            var hut = __instance.home;
+            // if (__instance.currentLocation.IsGreenhouse)
+            // {
+            //     BetterJunimos.SMonitor.Log($"PatchPathfindDoWork, Is greenhouse but {__instance.HomeId}", LogLevel.Debug);
+                
+            // }
+            var hut = Util.GetHutFromId(__instance.HomeId);
             if (hut is null) return true;
 
             var quittingTime = Util.Progression.CanWorkInEvenings ? 2400 : 1900;
@@ -202,8 +225,14 @@ namespace BetterJunimos.Patches {
                 if (__instance.controller != null)
                     return false;
 
-                if (__instance.currentLocation is Farm)
+                if (__instance.currentLocation.NameOrUniqueName == hut.GetParentLocation().NameOrUniqueName)
+                {
                     __instance.returnToJunimoHut(__instance.currentLocation);
+                }
+                if (__instance.currentLocation.IsGreenhouse)
+                {
+                    returnToGreenhouseDoor(__instance, __instance.currentLocation);
+                }
                 else {
                     // can't walk back to the hut from here, just despawn
                     __instance.junimoReachedHut(__instance, __instance.currentLocation);
@@ -213,7 +242,7 @@ namespace BetterJunimos.Patches {
 
             // Prevent working when not paid
             else if (BetterJunimos.Config.JunimoPayment.WorkForWages && !Util.Payments.WereJunimosPaidToday) {
-                if (Game1.random.NextDouble() < 0.02 && __instance.currentLocation.IsFarm) {
+                if (Game1.random.NextDouble() < 0.02) {
                     __instance.pathfindToRandomSpotAroundHut();
                 }
                 else {
@@ -227,7 +256,11 @@ namespace BetterJunimos.Patches {
                 // TODO: fix for greenhouse
                 
                 // BetterJunimos.SMonitor.Log($"PatchPathfindDoWork: {__instance.whichJunimoFromThisHut} hut noHarvest {hut.noHarvest.Value}", LogLevel.Debug);
-
+                // if (__instance.currentLocation.IsGreenhouse)
+                // {
+                //     BetterJunimos.SMonitor.Log($"PatchPathfindDoWork v2, Is greenhouse but {hut.noHarvest.Value}", LogLevel.Debug);
+                    
+                // }
                 __instance.pathfindToRandomSpotAroundHut();
             }
 
@@ -253,16 +286,24 @@ namespace BetterJunimos.Patches {
                         Math.Abs(__instance.controller.pathToEndPoint.Last().X - hut.tileX.Value - 1) > radius ||
                         Math.Abs(__instance.controller.pathToEndPoint.Last().Y - hut.tileY.Value - 1) > radius
                     );
-
+                
                 if (__instance.controller.pathToEndPoint != null && !outsideRadius) {
                     // Junimo has somewhere to be, let it happen
-                    
+                    // if (__instance.currentLocation.IsGreenhouse)
+                    // {
+                    //     BetterJunimos.SMonitor.Log($"PatchPathfindDoWork v3, Is greenhouse but {__instance.controller.pathToEndPoint != null} | {outsideRadius}", LogLevel.Debug);
+                        
+                    // }
                     // BetterJunimos.SMonitor.Log($"PatchPathfindDoWork: {__instance.whichJunimoFromThisHut} has more work", LogLevel.Debug);
                     ___netAnimationEvent.Fire(0);
                 }
                 else {
                     // Junimo has no path, or path endpoint is outside the hut radius
-
+                    // if (__instance.currentLocation.IsGreenhouse)
+                    // {
+                    //     BetterJunimos.SMonitor.Log($"PatchPathfindDoWork v4, Is greenhouse but {__instance.controller.pathToEndPoint != null} | {outsideRadius}", LogLevel.Debug);
+                        
+                    // }
                     Util.Abilities.lastKnownCropLocations.TryGetValue((hut, __instance.currentLocation), out var lkc);
 
                     // BetterJunimos.SMonitor.Log($"PatchPathfindDoWork: {__instance.whichJunimoFromThisHut} needs work", LogLevel.Debug);
@@ -331,7 +372,13 @@ namespace BetterJunimos.Patches {
             junimo.collidesWithOtherCharacters.Value = false;
 
             if (Game1.IsMasterGame) {
-                junimo.controller = new PathFindController(junimo, location, GreenhouseDoor(location), 1,
+                var door = GreenhouseDoor(junimo, location);
+                if (door == Point.Zero)
+                {
+                    junimo.junimoReachedHut(junimo, junimo.currentLocation);
+                    return;
+                }
+                junimo.controller = new PathFindController(junimo, location, door, 1,
                     junimo.junimoReachedHut);
                 if (junimo.controller.pathToEndPoint == null || junimo.controller.pathToEndPoint.Count == 0) {
                     // BetterJunimos.SMonitor.Log(
@@ -351,13 +398,14 @@ namespace BetterJunimos.Patches {
             location.playSound("junimoMeep1");
         }
 
-        private static Point GreenhouseDoor(GameLocation location) {
-            foreach (var warp in location.warps.Where(warp => warp.TargetName == "Farm"))
+        public static Point GreenhouseDoor(JunimoHarvester junimo, GameLocation location) {
+            //TryFind warp to hutlocation
+            var warp = location.warps.FirstOrDefault(warp => warp.TargetName == junimo.home.GetParentLocation().NameOrUniqueName);
+            if (warp != null)
             {
-                return new Point(warp.X, warp.Y);
+                return new Point(warp.X, warp.Y - 1);
             }
-
-            return new Point(10, 23);
+            return Point.Zero;
         }
     }
     

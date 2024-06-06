@@ -48,13 +48,18 @@ namespace BetterJunimos.Patches {
             if (BetterJunimos.Config.JunimoImprovements.CanWorkInGreenhouse) {
                 var ghb = Util.Greenhouse.GreenhouseBuildingNearHut(id);
                 var gh = Game1.getLocationFromName("Greenhouse");
+                if (ghb != null)
+                {
+                    // BetterJunimos.SMonitor.Log($"SearchAroundHut: Greenhouse find on location {hut.GetParentLocation().NameOrUniqueName}", LogLevel.Debug);
+                    gh = ghb;
+                }
 
                 if (!Util.Greenhouse.HutHasGreenhouse(id)) {
                     // BetterJunimos.SMonitor.Log($"PatchSearchAroundHut: hut has no greenhouse", LogLevel.Debug);
                     return foundWork;
                 }
                 // SearchGreenhouseGrid manages hut.lastKnownCropLocation (a hack!) and Util.Abilities.lastKnownCropLocations
-                foundWork |= SearchGreenhouseGrid(hut, id);
+                foundWork |= SearchGreenhouseGrid(hut, id, gh);
                 Util.Abilities.lastKnownCropLocations.TryGetValue((hut, gh), out var lkc);
 
                 // BetterJunimos.SMonitor.Log($"PatchSearchAroundHut: greenhouse lkc {lkc.X} {lkc.Y}", LogLevel.Trace);
@@ -73,10 +78,13 @@ namespace BetterJunimos.Patches {
         /// <param name="hut">JunimoHut to search</param>
         /// <param name="hut_guid">GUID of hut to search</param>
         /// <returns>True if there's any work to do</returns>
-        internal static bool SearchGreenhouseGrid(JunimoHut hut, Guid hut_guid)
+        internal static bool SearchGreenhouseGrid(JunimoHut hut, Guid hut_guid, GameLocation gl = null)
         {
             var gh = Game1.getLocationFromName("Greenhouse");
-
+            if (gl != null)
+            {
+                gh = gl;
+            }
             // BetterJunimos.SMonitor.Log($"SearchAroundHut: searching {gh.Name}", LogLevel.Trace);
             for (var x = 0; x < gh.map.Layers[0].LayerWidth; x++)
             {
