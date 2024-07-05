@@ -59,7 +59,7 @@ namespace BetterJunimos.Utils {
                 }
             }
             
-            BetterJunimos.SMonitor.Log($"Could not get hut from id ${id}", LogLevel.Error);
+            //BetterJunimos.SMonitor.Log($"Could not get hut from id ${id}", LogLevel.Error);
             return null;
         }
 
@@ -87,7 +87,7 @@ namespace BetterJunimos.Utils {
         public static void SpawnJunimoAtHut(JunimoHut hut) {
             // I don't know why we're multiplying by 64 here
             var pos = new Vector2((float) hut.tileX.Value + 1, (float) hut.tileY.Value + 1) * 64f + new Vector2(0.0f, 32f);
-            SpawnJunimoAtPosition(Game1.player.currentLocation, pos, hut, hut.getUnusedJunimoNumber());
+            SpawnJunimoAtPosition(hut.GetParentLocation(), pos, hut, hut.getUnusedJunimoNumber());
         }
 
         public static void SpawnJunimoAtPosition(GameLocation location, Vector2 pos, JunimoHut hut, int junimoNumber) {
@@ -128,6 +128,7 @@ namespace BetterJunimos.Utils {
             junimoHarvester.isPrismatic.Value = isPrismatic; //Added by Mizzion, Fixes the Prismatic Junimos.
             location.characters.Add(junimoHarvester);
             hut.myJunimos.Add(junimoHarvester);
+            junimoHarvester.HomeId = Util.GetHutIdFromHut(hut);
             
             if (Game1.isRaining) {
                 var alpha = Reflection.GetField<float>(junimoHarvester, "alpha");
