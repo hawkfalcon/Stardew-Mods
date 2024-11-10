@@ -12,6 +12,7 @@ using SObject = StardewValley.Object;
 namespace BetterJunimos.Abilities {
     public class FertilizeAbility : IJunimoAbility {
         private const int ItemCategory = SObject.fertilizerCategory;
+        private const string TreeFertilizer = "805";
         private List<string> _RequiredItems;
         
         public string AbilityName() {
@@ -31,7 +32,7 @@ namespace BetterJunimos.Abilities {
 
         public bool PerformAction(GameLocation location, Vector2 pos, JunimoHarvester junimo, Guid guid) {
             var chest = Util.GetHutFromId(guid).GetOutputChest();
-            var foundItem = chest.Items.FirstOrDefault(item => item is {Category: ItemCategory});
+            var foundItem = chest.Items.FirstOrDefault(item => item is {Category: ItemCategory} && item.ItemId != TreeFertilizer);
             if (foundItem == null) return false;
 
             Fertilize(location, pos, foundItem.ParentSheetIndex);
@@ -43,7 +44,7 @@ namespace BetterJunimos.Abilities {
             // this is heavy, cache it
             if (_RequiredItems is not null) return _RequiredItems;
             var fertilizers = Game1.objectData
-                    .Where(pair => pair.Value.Category == StardewValley.Object.fertilizerCategory);
+                    .Where(pair => pair.Value.Category == StardewValley.Object.fertilizerCategory && pair.Key != TreeFertilizer);
             // BetterJunimos.SMonitor.Log("RequiredItems called for Fertilize", LogLevel.Debug);
             _RequiredItems = (from kvp in fertilizers select kvp.Key).ToList();
 
