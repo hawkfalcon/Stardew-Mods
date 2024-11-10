@@ -7,6 +7,7 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Buildings;
+using StardewValley.Characters;
 using StardewValley.Locations;
 using StardewValley.Objects;
 using static System.String;
@@ -131,11 +132,23 @@ namespace BetterJunimos.Utils {
 
         public int MaxJunimosUnlocked {
             get {
-                if (!BetterJunimos.Config.Progression.Enabled) return BetterJunimos.Config.JunimoHuts.MaxJunimos;
-                if (Unlocked("UnlimitedJunimos")) return BetterJunimos.Config.JunimoHuts.MaxJunimos;
-                if (Unlocked("MoreJunimos"))
-                    return Math.Min(MoreJunimosLimit, BetterJunimos.Config.JunimoHuts.MaxJunimos);
-                return Math.Min(InitialJunimosLimit, BetterJunimos.Config.JunimoHuts.MaxJunimos);
+                if (!BetterJunimos.Config.Progression.Enabled) return BetterJunimos.Config.JunimoHuts.MaxJunimos + BonusMaxJunimos;
+                if (Unlocked("UnlimitedJunimos")) return BetterJunimos.Config.JunimoHuts.MaxJunimos + BonusMaxJunimos;
+                if (Unlocked("MoreJunimos")) return Math.Min(MoreJunimosLimit, BetterJunimos.Config.JunimoHuts.MaxJunimos + BonusMaxJunimos);
+                return Math.Min(InitialJunimosLimit, BetterJunimos.Config.JunimoHuts.MaxJunimos + BonusMaxJunimos);
+            }
+        }
+
+        public int BonusMaxJunimos {
+            get {
+                var bonusJunimos = 0;
+                foreach (var farm in Util.GetAllFarms()) {
+                    if (farm.IsGreenhouse) {
+                        bonusJunimos += farm.characters.Count(npc => npc is JunimoHarvester);
+                    }
+                }
+
+                return bonusJunimos;
             }
         }
 
