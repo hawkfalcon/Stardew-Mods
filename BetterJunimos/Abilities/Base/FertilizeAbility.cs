@@ -3,7 +3,6 @@ using System.Linq;
 using System.Collections.Generic;
 using BetterJunimos.Utils;
 using Microsoft.Xna.Framework;
-using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Characters;
 using StardewValley.TerrainFeatures;

@@ -1,11 +1,9 @@
 ﻿using System;
-using BetterJunimos.Utils;
 using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Characters;
 using StardewValley.TerrainFeatures;
 using System.Collections.Generic;
-using StardewModdingAPI;
 
 namespace BetterJunimos.Abilities {
     public class WaterAbility : IJunimoAbility {

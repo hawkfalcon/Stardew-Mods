@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using BetterJunimos.Utils;
 using Microsoft.Xna.Framework;
-using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Characters;
-using StardewValley.TerrainFeatures;
 
 namespace BetterJunimos.Abilities {
     public class VisitGreenhouseAbility : IJunimoAbility {
@@ -74,9 +71,7 @@ namespace BetterJunimos.Abilities {
             var greenhouse = Greenhouse;
             var door = Patches.PatchPathfindDoWork.GreenhouseDoor(junimo, greenhouse);
             //BetterJunimos.SMonitor.Log($"Door at {door.X}, {door.Y}", LogLevel.Debug);
-            //var spawnAt = new Vector2(door.X, door.Y);
-            var spawnAt = new Vector2((float) door.X, (float) door.Y - 1) * 64f + new Vector2(0.0f, 32f);
-            //var spawnAt = new Vector2(14 * 64 + 32, 32 * 64 + 32);
+            var spawnAt = new Vector2(door.X, (float) door.Y - 1) * 64f + new Vector2(0.0f, 32f);
 
             var junimoNumber = Game1.random.Next(4, 100);
             Util.SpawnJunimoAtPosition(greenhouse, spawnAt, hut, junimoNumber);

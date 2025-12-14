@@ -4,9 +4,7 @@ using StardewValley;
 using StardewValley.Characters;
 using StardewValley.TerrainFeatures;
 using System.Collections.Generic;
-using System.Configuration;
 using BetterJunimos.Utils;
-using SObject = StardewValley.Object;
 
 namespace BetterJunimos.Abilities {
     public class HarvestCropsAbility : IJunimoAbility {
