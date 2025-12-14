@@ -41,25 +41,9 @@ namespace BetterJunimos.Patches {
             if (hut is null) return false;
             var id = __instance.HomeId;
             var pos = __instance.Tile;
-
-            // if (__instance.currentLocation.IsGreenhouse) {
-            //     BetterJunimos.SMonitor.Log($"PatchTryToHarvestHere: #{__instance.whichJunimoFromThisHut} looking in {__instance.currentLocation.Name} at [{pos.X} {pos.Y}]", LogLevel.Trace);
-            // }
-
             int time;
             var junimoAbility = Util.Abilities.IdentifyJunimoAbility(__instance.currentLocation, pos, id);
-            // if (__instance.currentLocation.IsGreenhouse)
-            // {
-            //     BetterJunimos.SMonitor.Log($"PatchTryToHarvestHere , Is greenhouse but {__instance.controller.pathToEndPoint != null} | {junimoAbility}", LogLevel.Debug);
-                
-            // }
             if (junimoAbility != null) {
-                // if (__instance.currentLocation.IsGreenhouse) {
-                //     BetterJunimos.SMonitor.Log(
-                //         $"PatchTryToHarvestHere: #{__instance.whichJunimoFromThisHut} performing {junimoAbility.AbilityName()} at {__instance.currentLocation.Name} [{pos.X} {pos.Y}]",
-                //         LogLevel.Trace);
-                // }
-
                 if (junimoAbility is HarvestBushesAbility) {
                     // Use the update() harvesting
                     time = 2000;
@@ -130,13 +114,6 @@ namespace BetterJunimos.Patches {
                 //                            $"to [{endPoint.X} {endPoint.Y}]",
                 //     LogLevel.Debug);
 
-                // BetterJunimos.SMonitor.Log(
-                //     $"PatchPathfindToRandomSpotAroundHut: #{__instance.whichJunimoFromThisHut} current location is {__instance.currentLocation.Name}",
-                //     LogLevel.Trace);
-                // BetterJunimos.SMonitor.Log(
-                //     $"PatchPathfindToRandomSpotAroundHut: #{__instance.whichJunimoFromThisHut} want to path to [{endPoint.X} {endPoint.Y}]",
-                //     LogLevel.Trace);
-
                 __instance.controller = new PathFindController(
                     __instance,
                     __instance.currentLocation,
@@ -206,11 +183,6 @@ namespace BetterJunimos.Patches {
         public static bool Prefix(JunimoHarvester __instance,
             ref NetEvent1Field<int, NetInt> ___netAnimationEvent) {
             if (!Context.IsMainPlayer) return true;
-            // if (__instance.currentLocation.IsGreenhouse)
-            // {
-            //     BetterJunimos.SMonitor.Log($"PatchPathfindDoWork, Is greenhouse but {__instance.HomeId}", LogLevel.Debug);
-                
-            // }
             var hut = Util.GetHutFromId(__instance.HomeId);
             if (hut is null) return true;
 
@@ -220,7 +192,6 @@ namespace BetterJunimos.Patches {
 
             if (Game1.timeOfDay > quittingTime) {
                 // bedtime, all Junimos return to huts and/or despawn
-
                 Util.Progression.PromptForCanWorkInEvenings();
                 if (__instance.controller != null)
                     return false;
@@ -266,7 +237,6 @@ namespace BetterJunimos.Patches {
 
             else {
                 // walk to work?
-
                 __instance.controller = new PathFindController(
                     __instance,
                     __instance.currentLocation,
@@ -289,25 +259,12 @@ namespace BetterJunimos.Patches {
                 
                 if (__instance.controller.pathToEndPoint != null && !outsideRadius) {
                     // Junimo has somewhere to be, let it happen
-                    // if (__instance.currentLocation.IsGreenhouse)
-                    // {
-                    //     BetterJunimos.SMonitor.Log($"PatchPathfindDoWork v3, Is greenhouse but {__instance.controller.pathToEndPoint != null} | {outsideRadius}", LogLevel.Debug);
-                        
-                    // }
                     // BetterJunimos.SMonitor.Log($"PatchPathfindDoWork: {__instance.whichJunimoFromThisHut} has more work", LogLevel.Debug);
                     ___netAnimationEvent.Fire(0);
                 }
                 else {
                     // Junimo has no path, or path endpoint is outside the hut radius
-                    // if (__instance.currentLocation.IsGreenhouse)
-                    // {
-                    //     BetterJunimos.SMonitor.Log($"PatchPathfindDoWork v4, Is greenhouse but {__instance.controller.pathToEndPoint != null} | {outsideRadius}", LogLevel.Debug);
-                        
-                    // }
                     Util.Abilities.lastKnownCropLocations.TryGetValue((hut, __instance.currentLocation), out var lkc);
-
-                    // BetterJunimos.SMonitor.Log($"PatchPathfindDoWork: {__instance.whichJunimoFromThisHut} needs work", LogLevel.Debug);
-
                     // BetterJunimos.SMonitor.Log($"PatchPathfindDoWork: #{__instance.whichJunimoFromThisHut} " +
                     //                            $"has no path, trying to find more work to do, " +
                     //                            $"lkc: {__instance.currentLocation.Name} [{lkc.X} {lkc.Y}]",
@@ -324,8 +281,6 @@ namespace BetterJunimos.Patches {
                             100);
 
                         if (__instance.controller.pathToEndPoint is null) {
-                            // BetterJunimos.SMonitor.Log($"PatchPathfindDoWork: {__instance.whichJunimoFromThisHut} can't get to work at {lkc}", LogLevel.Debug);
-
                             // BetterJunimos.SMonitor.Log($"PatchPathfindDoWork: #{__instance.whichJunimoFromThisHut} " +
                             //                            $"attempted to path " +
                             //                            $"from {__instance.getTileX()} {__instance.getTileY()} " +
