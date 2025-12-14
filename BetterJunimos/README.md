@@ -8,7 +8,9 @@
 * 3.1.2 RELEASE
   * Fix performance bug with large farms (thanks to sav155)
   * Fix occasional error with MagicalConstruction
-  * Fixed Junimos Planting Tree Fertilizer
+  * Fixed Junimos Planting Tree Fertilizer wrong
+  * Powdermelons are now giant crops
+  * Other mods (Data Layers) should now be able to show proper harvest radius
 * 3.0 RELEASE
   * Update for SDV 1.6 / SMAPI 4.0
 * 2.1.2
