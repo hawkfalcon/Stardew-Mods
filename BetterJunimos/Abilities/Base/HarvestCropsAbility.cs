@@ -8,7 +8,8 @@ using BetterJunimos.Utils;
 
 namespace BetterJunimos.Abilities {
     public class HarvestCropsAbility : IJunimoAbility {
-        private List<int> giantCrops = new() { 190, 254, 276 };
+        // Pumpkin, Cauliflower, Melon, Powdermelon
+        private List<int> giantCrops = new() { 190, 254, 276, 889 };
 
         internal HarvestCropsAbility() { }
 
