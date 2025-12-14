@@ -56,7 +56,9 @@ namespace BetterJunimos.Utils {
                 }
             }
 
-            BetterJunimos.SMonitor.Log($"Could not find hut with id {id}", LogLevel.Warn);
+            if (id != Guid.Empty) {
+                BetterJunimos.SMonitor.Log($"Could not find hut with id {id}", LogLevel.Warn);
+            }
             return null;
         }
 
