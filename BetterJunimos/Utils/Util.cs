@@ -158,15 +158,10 @@ namespace BetterJunimos.Utils {
         }
 
         public static void SpawnParticles(Vector2 pos) {
-            Multiplayer multiplayer = Reflection.GetField<Multiplayer>(typeof(Game1), "multiplayer").GetValue();
-            multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite[] {
-                new TemporaryAnimatedSprite(17, new Vector2(pos.X * 64f, pos.Y * 64f), Color.White, 7,
-                    Game1.random.NextDouble() < 0.5, 125f)
-            });
-            multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite[] {
-                new TemporaryAnimatedSprite(14, new Vector2(pos.X * 64f, pos.Y * 64f), Color.White, 7,
-                    Game1.random.NextDouble() < 0.5, 50f)
-            });
+            Game1.Multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite(17, new Vector2(pos.X * 64f, pos.Y * 64f), Color.White, 7,
+                Game1.random.NextDouble() < 0.5, 125f));
+            Game1.Multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite(14, new Vector2(pos.X * 64f, pos.Y * 64f), Color.White, 7,
+                Game1.random.NextDouble() < 0.5, 50f));
         }
 
         internal static int ExperienceForCrop(Crop crop) {

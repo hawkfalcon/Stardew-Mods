@@ -208,9 +208,8 @@ namespace BetterJunimos {
 
         // BUG: player warps back to wizard hut after use
         private void OpenJunimoHutMenu() {
-            var menu = new CarpenterMenu(Game1.builder_wizard) {
-            };
-            var blueprints = Helper.Reflection.GetField<List<BlueprintEntry>>(menu, "Junimo Hut");
+            var menu = new CarpenterMenu(Game1.builder_wizard) { };
+            var blueprints = Helper.Reflection.GetField<List<BlueprintEntry>>(menu, "Blueprints");
             var newBluePrints = new List<BlueprintEntry> { };
             blueprints.SetValue(newBluePrints);
             Game1.activeClickableMenu = menu;
@@ -237,8 +236,8 @@ namespace BetterJunimos {
         }
 
         private void HandleCarpenterMenuOpened(MenuChangedEventArgs e) {
-            if (e.OldMenu != null || e.NewMenu is not CarpenterMenu) return;
-            if (!Helper.Reflection.GetField<bool>(e.NewMenu, "MagicalConstruction").GetValue()) return;
+            if (e.OldMenu != null || e.NewMenu is not CarpenterMenu menu) return;
+            if (!menu.Blueprint.MagicalConstruction) return;
             
             // limit to only junimo hut
             if (!Game1.MasterPlayer.mailReceived.Contains("hasPickedUpMagicInk")) {
