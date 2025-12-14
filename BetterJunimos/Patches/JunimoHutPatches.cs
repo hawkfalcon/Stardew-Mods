@@ -162,7 +162,7 @@ namespace BetterJunimos.Patches {
         }
     }
 
-    /* Update
+    /* dayUpdate
      *
      * To allow more junimos, allow working
      */
@@ -170,6 +170,7 @@ namespace BetterJunimos.Patches {
     internal class ReplaceJunimoHutdayUpdate {
         public static void Postfix(JunimoHut __instance, int dayOfMonth) {
             __instance.shouldSendOutJunimos.Value = true;
+            __instance.cropHarvestRadius = Util.CurrentWorkingRadius;
         }
     }
 
