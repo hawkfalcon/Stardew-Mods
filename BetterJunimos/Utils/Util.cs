@@ -8,7 +8,6 @@ using StardewValley.Buildings;
 using StardewValley.Characters;
 using StardewValley.Menus;
 using StardewValley.Objects;
-using xTile.Dimensions;
 using SObject = StardewValley.Object;
 
 namespace BetterJunimos.Utils {
@@ -31,9 +30,7 @@ namespace BetterJunimos.Utils {
         internal static JunimoGreenhouse Greenhouse;
 
         public static List<GameLocation> GetAllFarms() {
-            return Game1.locations
-                //.Where(loc => loc.IsFarm && loc.IsOutdoors)
-                .ToList();
+            return Game1.locations.ToList();
         }
 
         public static int CurrentWorkingRadius {
@@ -59,6 +56,7 @@ namespace BetterJunimos.Utils {
                 }
             }
             
+            BetterJunimos.SMonitor.Log($"Could not find hut with id {id}", LogLevel.Warn);
             return null;
         }
 

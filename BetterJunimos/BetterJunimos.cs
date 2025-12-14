@@ -47,7 +47,7 @@ namespace BetterJunimos {
             helper.Events.GameLoop.OneSecondUpdateTicked += Util.Progression.ConfigureFromWizard;
             helper.Events.Input.ButtonPressed += OnButtonPressed;
             helper.Events.Display.MenuChanged += OnMenuChanged;
-            helper.Events.GameLoop.GameLaunched += OnLaunched;
+            helper.Events.GameLoop.GameLaunched += OnGameLaunched;
             helper.Events.GameLoop.DayStarted += OnDayStarted;
             helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
             helper.Events.GameLoop.Saving += OnSaving;
@@ -138,6 +138,7 @@ namespace BetterJunimos {
 
                 if (original == null) {
                     Monitor.Log($"Missing method {replacement.Item1}", LogLevel.Error);
+                    continue;
                 }
 
                 harmony.Patch(original, prefix == null ? null : new HarmonyMethod(prefix),
@@ -342,19 +343,19 @@ namespace BetterJunimos {
             farm.modData[ModDataKeys.HarvestCropsUnlockedKey] = "1";
 
             // rebuild the GMCM menu now we know who's host/farmhand
-            setupGMCM();
+            SetupGenericModConfigMenu();
 
             if (!Context.IsMainPlayer) return;
 
             // check for old progression data stored in the save, migrate it
-            MigrateProgData();
+            MigrateProgressionData();
 
             // load crop maps from save (TODO: not MP-safe)
             CropMaps = Helper.Data.ReadSaveData<Maps>(ModDataKeys.CropMapsSaveKey) ?? new Maps();
         }
 
         // copy any progress made from the SaveData into modData
-        private void MigrateProgData() {
+        private void MigrateProgressionData() {
             var pd = Helper.Data.ReadSaveData<ProgressionData>(ModDataKeys.ProgressionDataSaveKey);
             if (pd?.Progress is null) return;
             var farm = Game1.getFarm();
@@ -364,10 +365,10 @@ namespace BetterJunimos {
             }
         }
 
-        private void OnLaunched(object sender, GameLaunchedEventArgs e) {
+        private void OnGameLaunched(object sender, GameLaunchedEventArgs e) {
             ContentPatcherAPI = Helper.ModRegistry.GetApi<IContentPatcherAPI>("Pathoschild.ContentPatcher");
             
-            setupGMCM();
+            SetupGenericModConfigMenu();
 
             // only register after the game is launched so we can query the object registry
             Util.Abilities.RegisterDefaultAbilities();
@@ -379,7 +380,7 @@ namespace BetterJunimos {
             Util.Progression.SetupHutsToken();
         }
 
-        private void setupGMCM() {
+        private void SetupGenericModConfigMenu() {
             configMenu = Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
             if (configMenu is null) return;
 
@@ -390,178 +391,151 @@ namespace BetterJunimos {
             configMenu.AddSectionTitle(ModManifest,
                 () => Helper.Translation.Get("cfg.hut-settings"));
 
-            if (Context.IsMainPlayer) {
-                configMenu.AddNumberOption(ModManifest,
-                    () => Config.JunimoHuts.MaxJunimos,
-                    val => Config.JunimoHuts.MaxJunimos = val,
-                    () => Helper.Translation.Get("cfg.max-junimos"),
-                    () => "",
-                    1,
-                    40
-                );
-                configMenu.AddNumberOption(ModManifest,
-                    () => Config.JunimoHuts.MaxRadius,
-                    val => Config.JunimoHuts.MaxRadius = val,
-                    () => Helper.Translation.Get("cfg.max-radius"),
-                    () => "",
-                    1,
-                    40
-                );
-            }
+            AddHostNumberOption(
+                () => Config.JunimoHuts.MaxJunimos,
+                val => Config.JunimoHuts.MaxJunimos = val,
+                "cfg.max-junimos",
+                1, 40
+            );
+            AddHostNumberOption(
+                () => Config.JunimoHuts.MaxRadius,
+                val => Config.JunimoHuts.MaxRadius = val,
+                "cfg.max-radius",
+                1, 40
+            );
 
-            configMenu.AddBoolOption(ModManifest,
+            AddBoolOption(
                 () => Config.JunimoHuts.AvailableAfterCommunityCenterComplete,
                 val => Config.JunimoHuts.AvailableAfterCommunityCenterComplete = val,
-                () => Helper.Translation.Get("cfg.avail-after-cc"),
-                () => Helper.Translation.Get("cfg.avail-after-cc.tooltip")
+                "cfg.avail-after-cc",
+                "cfg.avail-after-cc.tooltip"
             );
-            configMenu.AddBoolOption(ModManifest,
+            AddBoolOption(
                 () => Config.JunimoHuts.AvailableImmediately,
                 val => Config.JunimoHuts.AvailableImmediately = val,
-                () => Helper.Translation.Get("cfg.avail-immediately"),
-                () => ""
+                "cfg.avail-immediately"
             );
-            configMenu.AddBoolOption(ModManifest,
+            AddBoolOption(
                 () => Config.JunimoHuts.ReducedCostToConstruct,
                 val => Config.JunimoHuts.ReducedCostToConstruct = val,
-                () => Helper.Translation.Get("cfg.reduced-cost"),
-                () => ""
+                "cfg.reduced-cost"
             );
-            configMenu.AddBoolOption(ModManifest,
+            AddBoolOption(
                 () => Config.JunimoHuts.FreeToConstruct,
                 val => Config.JunimoHuts.FreeToConstruct = val,
-                () => Helper.Translation.Get("cfg.free"),
-                () => ""
+                "cfg.free"
             );
 
             configMenu.AddSectionTitle(ModManifest,
                 () => Helper.Translation.Get("cfg.improvements"),
                 () => ""
             );
-            configMenu.AddBoolOption(ModManifest,
+            AddBoolOption(
                 () => Config.Progression.Enabled,
                 val => Config.Progression.Enabled = val,
-                () => Helper.Translation.Get("cfg.skills-progression"),
-                () => Helper.Translation.Get("cfg.skills-progression.tooltip"));
-            if (Context.IsMainPlayer) {
-                configMenu.AddBoolOption(ModManifest,
-                    () => Config.JunimoImprovements.CanWorkInRain,
-                    val => Config.JunimoImprovements.CanWorkInRain = val,
-                    () => Helper.Translation.Get("cfg.can-work-in-rain"),
-                    () => ""
-                );
-                configMenu.AddBoolOption(ModManifest,
-                    () => Config.JunimoImprovements.CanWorkInWinter,
-                    val => Config.JunimoImprovements.CanWorkInWinter = val,
-                    () => Helper.Translation.Get("cfg.can-work-in-winter"),
-                    () => ""
-                );
-                configMenu.AddBoolOption(ModManifest,
-                    () => Config.JunimoImprovements.CanWorkInEvenings,
-                    val => Config.JunimoImprovements.CanWorkInEvenings = val,
-                    () => Helper.Translation.Get("cfg.can-work-in-evenings"),
-                    () => ""
-                );
-                configMenu.AddBoolOption(ModManifest,
-                    () => Config.JunimoImprovements.CanWorkInGreenhouse,
-                    val => Config.JunimoImprovements.CanWorkInGreenhouse = val,
-                    () => Helper.Translation.Get("cfg.can-work-in-greenhouse"),
-                    () => Helper.Translation.Get("cfg.can-work-in-greenhouse.tooltip")
-                );
-                configMenu.AddBoolOption(ModManifest,
-                    () => Config.JunimoImprovements.WorkFaster,
-                    val => Config.JunimoImprovements.WorkFaster = val,
-                    () => Helper.Translation.Get("cfg.work-faster"),
-                    () => Helper.Translation.Get("cfg.work-faster.tooltip")
-                );
-                configMenu.AddBoolOption(ModManifest,
-                    () => Config.JunimoImprovements.WorkRidiculouslyFast,
-                    val => Config.JunimoImprovements.WorkRidiculouslyFast = val,
-                    () => Helper.Translation.Get("cfg.work-ridiculously-fast"),
-                    () => Helper.Translation.Get("cfg.work-ridiculously-fast.tooltip")
-                );
+                "cfg.skills-progression",
+                "cfg.skills-progression.tooltip");
+            AddHostBoolOption(
+                () => Config.JunimoImprovements.CanWorkInRain,
+                val => Config.JunimoImprovements.CanWorkInRain = val,
+                "cfg.can-work-in-rain"
+            );
+            AddHostBoolOption(
+                () => Config.JunimoImprovements.CanWorkInWinter,
+                val => Config.JunimoImprovements.CanWorkInWinter = val,
+                "cfg.can-work-in-winter"
+            );
+            AddHostBoolOption(
+                () => Config.JunimoImprovements.CanWorkInEvenings,
+                val => Config.JunimoImprovements.CanWorkInEvenings = val,
+                "cfg.can-work-in-evenings"
+            );
+            AddHostBoolOption(
+                () => Config.JunimoImprovements.CanWorkInGreenhouse,
+                val => Config.JunimoImprovements.CanWorkInGreenhouse = val,
+                "cfg.can-work-in-greenhouse",
+                "cfg.can-work-in-greenhouse.tooltip"
+            );
+            AddHostBoolOption(
+                () => Config.JunimoImprovements.WorkFaster,
+                val => Config.JunimoImprovements.WorkFaster = val,
+                "cfg.work-faster",
+                "cfg.work-faster.tooltip"
+            );
+            AddHostBoolOption(
+                () => Config.JunimoImprovements.WorkRidiculouslyFast,
+                val => Config.JunimoImprovements.WorkRidiculouslyFast = val,
+                "cfg.work-ridiculously-fast",
+                "cfg.work-ridiculously-fast.tooltip"
+            );
 
-                configMenu.AddBoolOption(ModManifest,
-                    () => Config.JunimoImprovements.AvoidHarvestingFlowers,
-                    val => Config.JunimoImprovements.AvoidHarvestingFlowers = val,
-                    () => Helper.Translation.Get("cfg.avoid-harvesting-flowers"),
-                    () => ""
-                );
-                configMenu.AddBoolOption(ModManifest,
-                    () => Config.JunimoImprovements.AvoidHarvestingGiants,
-                    val => Config.JunimoImprovements.AvoidHarvestingGiants = val,
-                    () => Helper.Translation.Get("cfg.avoid-harvesting-giant-crops"),
-                    () => Helper.Translation.Get("cfg.avoid-harvesting-giant-crops.tooltip")
-                );
-                configMenu.AddBoolOption(ModManifest,
-                    () => Config.JunimoImprovements.HarvestEverythingOn28th,
-                    val => Config.JunimoImprovements.HarvestEverythingOn28th = val,
-                    () => Helper.Translation.Get("cfg.harvest-everything-on-28th"),
-                    () => Helper.Translation.Get("cfg.harvest-everything-on-28th.tooltip")
-                );
-                configMenu.AddBoolOption(ModManifest,
-                    () => Config.JunimoImprovements.AvoidPlantingCoffee,
-                    val => Config.JunimoImprovements.AvoidPlantingCoffee = val,
-                    () => Helper.Translation.Get("cfg.avoid-planting-coffee"),
-                    () => ""
-                );
-                configMenu.AddBoolOption(ModManifest,
-                    () => Config.JunimoImprovements.AvoidPlantingOutOfSeason,
-                    val => Config.JunimoImprovements.AvoidPlantingOutOfSeason = val,
-                    () => Helper.Translation.Get("cfg.avoid-planting-out-of-season"),
-                    () => ""
-                );
-            }
+            AddHostBoolOption(
+                () => Config.JunimoImprovements.AvoidHarvestingFlowers,
+                val => Config.JunimoImprovements.AvoidHarvestingFlowers = val,
+                "cfg.avoid-harvesting-flowers"
+            );
+            AddHostBoolOption(
+                () => Config.JunimoImprovements.AvoidHarvestingGiants,
+                val => Config.JunimoImprovements.AvoidHarvestingGiants = val,
+                "cfg.avoid-harvesting-giant-crops",
+                "cfg.avoid-harvesting-giant-crops.tooltip"
+            );
+            AddHostBoolOption(
+                () => Config.JunimoImprovements.HarvestEverythingOn28th,
+                val => Config.JunimoImprovements.HarvestEverythingOn28th = val,
+                "cfg.harvest-everything-on-28th",
+                "cfg.harvest-everything-on-28th.tooltip"
+            );
+            AddHostBoolOption(
+                () => Config.JunimoImprovements.AvoidPlantingCoffee,
+                val => Config.JunimoImprovements.AvoidPlantingCoffee = val,
+                "cfg.avoid-planting-coffee"
+            );
+            AddHostBoolOption(
+                () => Config.JunimoImprovements.AvoidPlantingOutOfSeason,
+                val => Config.JunimoImprovements.AvoidPlantingOutOfSeason = val,
+                "cfg.avoid-planting-out-of-season"
+            );
 
             configMenu.AddSectionTitle(ModManifest,
                 () => Helper.Translation.Get("cfg.payment"),
                 () => "");
-            configMenu.AddBoolOption(ModManifest,
+            AddBoolOption(
                 () => Config.JunimoPayment.WorkForWages,
                 val => Config.JunimoPayment.WorkForWages = val,
-                () => Helper.Translation.Get("cfg.work-for-wages"),
-                () => ""
+                "cfg.work-for-wages"
             );
-            configMenu.AddNumberOption(ModManifest,
+            AddNumberOption(
                 () => Config.JunimoPayment.DailyWage.ForagedItems,
                 val => Config.JunimoPayment.DailyWage.ForagedItems = val,
-                () => Helper.Translation.Get("cfg.foraged-items"),
-                () => "",
-                0,
-                20
+                "cfg.foraged-items",
+                0, 20
             );
-            configMenu.AddNumberOption(ModManifest,
+            AddNumberOption(
                 () => Config.JunimoPayment.DailyWage.Flowers,
                 val => Config.JunimoPayment.DailyWage.Flowers = val,
-                () => Helper.Translation.Get("cfg.flowers"),
-                () => "",
-                0,
-                20
+                "cfg.flowers",
+                0, 20
             );
-            configMenu.AddNumberOption(ModManifest,
+            AddNumberOption(
                 () => Config.JunimoPayment.DailyWage.Fruit,
                 val => Config.JunimoPayment.DailyWage.Fruit = val,
-                () => Helper.Translation.Get("cfg.fruit"),
-                () => "",
-                0,
-                20
+                "cfg.fruit",
+                0, 20
             );
-            configMenu.AddNumberOption(ModManifest,
+            AddNumberOption(
                 () => Config.JunimoPayment.DailyWage.Wine,
                 val => Config.JunimoPayment.DailyWage.Wine = val,
-                () => Helper.Translation.Get("cfg.wine"),
-                () => "",
-                0,
-                20
+                "cfg.wine",
+                0, 20
             );
-            if (Context.IsMainPlayer) {
-                configMenu.AddBoolOption(ModManifest,
-                    () => Config.JunimoPayment.GiveExperience,
-                    val => Config.JunimoPayment.GiveExperience = val,
-                    () => Helper.Translation.Get("cfg.give-experience"),
-                    () => Helper.Translation.Get("cfg.give-experience.tooltip")
-                );
-            }
+            
+            AddHostBoolOption(
+                () => Config.JunimoPayment.GiveExperience,
+                val => Config.JunimoPayment.GiveExperience = val,
+                "cfg.give-experience",
+                "cfg.give-experience.tooltip"
+            );
 
             configMenu.AddSectionTitle(ModManifest,
                 () => Helper.Translation.Get("cfg.other"),
@@ -574,48 +548,74 @@ namespace BetterJunimos {
                 0.0f,
                 1.0f,
                 0.05f);
-            configMenu.AddBoolOption(ModManifest,
+            AddBoolOption(
                 () => Config.FunChanges.JunimosAlwaysHaveLeafUmbrellas,
                 val => Config.FunChanges.JunimosAlwaysHaveLeafUmbrellas = val,
-                () => Helper.Translation.Get("cfg.always-have-umbrellas"),
-                () => Helper.Translation.Get("cfg.always-have-umbrellas.tooltip")
+                "cfg.always-have-umbrellas",
+                "cfg.always-have-umbrellas.tooltip"
             );
-            configMenu.AddBoolOption(ModManifest,
+            AddBoolOption(
                 () => Config.FunChanges.MoreColorfulLeafUmbrellas,
                 val => Config.FunChanges.MoreColorfulLeafUmbrellas = val,
-                () => Helper.Translation.Get("cfg.more-colorful-umbrellas"),
-                () => Helper.Translation.Get("cfg.more-colorful-umbrellas.tooltip")
+                "cfg.more-colorful-umbrellas",
+                "cfg.more-colorful-umbrellas.tooltip"
             );
-            configMenu.AddBoolOption(ModManifest,
+            AddBoolOption(
                 () => Config.FunChanges.InfiniteJunimoInventory,
                 val => Config.FunChanges.InfiniteJunimoInventory = val,
-                () => Helper.Translation.Get("cfg.infinite-inventory"),
-                () => Helper.Translation.Get("cfg.infinite-inventory.tooltip")
+                "cfg.infinite-inventory",
+                "cfg.infinite-inventory.tooltip"
             );
-            configMenu.AddKeybind(ModManifest,
+            AddKeybind(
                 () => Config.Other.SpawnJunimoKeybind,
                 val => Config.Other.SpawnJunimoKeybind = val,
-                () => Helper.Translation.Get("cfg.spawn-junimo-keybind"),
-                () => ""
+                "cfg.spawn-junimo-keybind"
             );
-            configMenu.AddKeybind(ModManifest,
+            AddKeybind(
                 () => Config.Other.HutMenuKeybind,
                 val => Config.Other.HutMenuKeybind = val,
-                () => Helper.Translation.Get("cfg.hut-menu-keybind"),
-                () => Helper.Translation.Get("cfg.hut-menu-keybind.tooltip")
+                "cfg.hut-menu-keybind",
+                "cfg.hut-menu-keybind.tooltip"
             );
-            configMenu.AddBoolOption(ModManifest,
+            AddHostBoolOption(
                 () => Config.Other.HutClickEnabled,
                 val => Config.Other.HutClickEnabled = val,
-                () => Helper.Translation.Get("cfg.hut-click-enabled"),
-                () => Helper.Translation.Get("cfg.hut-click-enabled.tooltip")
+                "cfg.hut-click-enabled",
+                "cfg.hut-click-enabled.tooltip"
             );
-            configMenu.AddBoolOption(ModManifest,
+            AddBoolOption(
                 () => Config.Other.ReceiveMessages,
                 val => Config.Other.ReceiveMessages = val,
-                () => Helper.Translation.Get("cfg.receive-messages"),
-                () => ""
+                "cfg.receive-messages"
             );
+        }
+
+        private void AddHostBoolOption(Func<bool> getValue, Action<bool> setValue, string translationKey, string tooltipKey = null) {
+            if (!Context.IsMainPlayer) return;
+            AddBoolOption(getValue, setValue, translationKey, tooltipKey);
+        }
+
+        private void AddHostNumberOption(Func<int> getValue, Action<int> setValue, string translationKey, int min, int max) {
+            if (!Context.IsMainPlayer) return;
+            AddNumberOption(getValue, setValue, translationKey, min, max);
+        }
+
+        private void AddBoolOption(Func<bool> getValue, Action<bool> setValue, string translationKey, string tooltipKey = null) {
+            configMenu.AddBoolOption(ModManifest, getValue, setValue,
+                () => Helper.Translation.Get(translationKey),
+                () => tooltipKey != null ? Helper.Translation.Get(tooltipKey) : "");
+        }
+
+        private void AddNumberOption(Func<int> getValue, Action<int> setValue, string translationKey, int min, int max) {
+            configMenu.AddNumberOption(ModManifest, getValue, setValue,
+                () => Helper.Translation.Get(translationKey),
+                () => "", min, max);
+        }
+
+        private void AddKeybind(Func<SButton> getValue, Action<SButton> setValue, string translationKey, string tooltipKey = null) {
+            configMenu.AddKeybind(ModManifest, getValue, setValue,
+                () => Helper.Translation.Get(translationKey),
+                () => tooltipKey != null ? Helper.Translation.Get(tooltipKey) : "");
         }
 
         // save config.json and invalidate caches
