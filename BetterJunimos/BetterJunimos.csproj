@@ -11,8 +11,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
-    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.1.1" />
-    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
+    <PackageReference Include="System.ValueTuple" Version="4.6.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>
 </Project>
