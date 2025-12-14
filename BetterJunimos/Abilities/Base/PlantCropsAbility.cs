@@ -39,11 +39,6 @@ namespace BetterJunimos.Abilities {
             var plantable = location.terrainFeatures.ContainsKey(pos) 
                             && location.terrainFeatures[pos] is HoeDirt {crop: null} 
                             && !location.objects.ContainsKey(pos);
-
-            if (location.IsGreenhouse) {
-                // BetterJunimos.SMonitor.Log($"{AbilityName()} looking in greenhouse at [{pos.X} {pos.Y}]: {plantable}", LogLevel.Debug);
-            }
-
             if (!plantable) return false;
             
             // todo: this section is potentially slow and might be refined
@@ -66,18 +61,11 @@ namespace BetterJunimos.Abilities {
                 return false;
             }
 
-            // BetterJunimos.SMonitor.Log(
-            //     $"PerformAction planting {foundItem.Name} in {location.Name} at at [{pos.X} {pos.Y}]", LogLevel.Debug);
             if (Plant(location, pos, foundItem.ItemId)) {
                 Util.RemoveItemFromChest(chest, foundItem);
-                // BetterJunimos.SMonitor.Log(
-                    // $"PerformAction planted {foundItem.Name} in {location.Name} at at [{pos.X} {pos.Y}]", LogLevel.Debug);
-
                 return true;
             }
-            BetterJunimos.SMonitor.Log(
-                $"PerformAction did not plant", LogLevel.Warn);
-
+            BetterJunimos.SMonitor.Log($"PerformAction did not plant", LogLevel.Warn);
             return false;
         }
 
@@ -117,15 +105,12 @@ namespace BetterJunimos.Abilities {
                     }
                 } catch (KeyNotFoundException)
                 {
-
-                    // Monitor.Log($"Cache miss: {key} {Game1.currentSeason}", LogLevel.Debug);
                     var crop = new Crop(key, 0, 0, location);
                     cropSeasons[Game1.currentSeason][key] = crop.IsInSeason(location);
                     if (cropSeasons[Game1.currentSeason][key]) {
                         return foundItem;
                     }
                 }
-                // return foundItem;
             }
 
             return null;

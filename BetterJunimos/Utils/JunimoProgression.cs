@@ -304,18 +304,15 @@ namespace BetterJunimos.Utils {
         }
 
         private bool ReceiveItems(Chest chest, int needed, string itemID) {
-            // BetterJunimos.SMonitor.Log($"ReceiveItems wants {needed} of [{index}]", LogLevel.Debug);
             if (needed <= 0) return true;
 
             var inChest = chest.Items.Where(item => item != null && item.ItemId == itemID).ToList();
 
             foreach (var itemStack in inChest) {
                 if (itemStack.Stack >= needed) {
-                    // BetterJunimos.SMonitor.Log($"    At least {itemStack.Stack} in stack, removing some and unlocking", LogLevel.Debug);
                     Util.RemoveItemFromChest(chest, itemStack, needed);
                     return true;
                 }
-                // BetterJunimos.SMonitor.Log($"    Only {itemStack.Stack} in stack, not unlocking", LogLevel.Debug);
             }
 
             return false;
@@ -326,10 +323,7 @@ namespace BetterJunimos.Utils {
             foreach (var unused in Progressions().Where(Unlocked)) {
                 unlocked++;
             }
-
             var pc = unlocked / Progressions().Count * 100;
-
-            // BetterJunimos.SMonitor.Log($"UnlockedCount {unlocked} {Progressions().Count} {pc}", LogLevel.Debug);
             return (int) Math.Round(pc);
         }
 
@@ -468,7 +462,6 @@ namespace BetterJunimos.Utils {
             }
 
             if (!Util.Greenhouse.HutHasGreenhouse(id)) {
-                // _monitor.Log($"Hut has no greenhouse", LogLevel.Debug);
                 return;
             }
             
@@ -480,14 +473,10 @@ namespace BetterJunimos.Utils {
                 for (var y = 0; y < gh.map.Layers[0].LayerHeight; y++)
                 {
                     var pos = new Vector2(x, y);
-
-                    // _monitor.Log($"    {gh.Name} [{pos.X} {pos.Y}] checking", LogLevel.Debug);
-                    
                     var ability = Util.Abilities.IdentifyJunimoAbility(gh, pos, id);
                     if (ability == null) {
                         continue;
                     }
-
                     // these 3 statements don't run unless you remove the `continue` above
                     var cooldown = JunimoAbilities.ActionCoolingDown(gh, ability, pos)
                         ? Get("debug.in-cooldown")
@@ -503,8 +492,6 @@ namespace BetterJunimos.Utils {
                         LogLevel.Debug);
                 }
             }
-
-            // Util.SendMessage(Get("debug.actions-logged"));
         }
 
         

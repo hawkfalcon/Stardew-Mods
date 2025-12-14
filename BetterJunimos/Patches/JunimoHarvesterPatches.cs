@@ -61,8 +61,6 @@ namespace BetterJunimos.Patches {
                     if (junimoAbility is HarvestCropsAbility) time = 2000;
                     else if (BetterJunimos.Config.JunimoImprovements.WorkRidiculouslyFast) time = 20;
                     else time = Util.Progression.WorkFaster ? 300 : 998;
-
-                    // BetterJunimos.SMonitor.Log($"PatchTryToHarvestHere performing {junimoAbility.AbilityName()} time {time}]", LogLevel.Trace);
                 }
             }
             else {
@@ -123,24 +121,6 @@ namespace BetterJunimos.Patches {
                     100);
                 retry++;
             } while (retry <= 5 && __instance.controller?.pathToEndPoint == null);
-
-            if (__instance.controller == null) {
-                // BetterJunimos.SMonitor.Log(
-                //     $"PatchPathfindToRandomSpotAroundHut: #{__instance.whichJunimoFromThisHut} controller is null, will be despawned",
-                //     LogLevel.Trace);
-            }
-
-            else if (__instance.controller?.pathToEndPoint == null) {
-                // BetterJunimos.SMonitor.Log(
-                //     $"PatchPathfindToRandomSpotAroundHut: #{__instance.whichJunimoFromThisHut} controller.pathToEndPoint is null, will be despawned",
-                //     LogLevel.Trace);
-            }
-
-            else {
-                // BetterJunimos.SMonitor.Log(
-                //     $"PatchPathfindToRandomSpotAroundHut: #{__instance.whichJunimoFromThisHut} has a path",
-                //     LogLevel.Trace);
-            }
         }
 
         private static Point EndPointInGreenhouse(JunimoHarvester jh) {
@@ -188,8 +168,7 @@ namespace BetterJunimos.Patches {
 
             var quittingTime = Util.Progression.CanWorkInEvenings ? 2400 : 1900;
 
-            // BetterJunimos.SMonitor.Log($"PatchPathfindDoWork: Junimo {__instance.whichJunimoFromThisHut} in {__instance.currentLocation.Name} looking for work", LogLevel.Debug);
-
+            
             if (Game1.timeOfDay > quittingTime) {
                 // bedtime, all Junimos return to huts and/or despawn
                 Util.Progression.PromptForCanWorkInEvenings();
@@ -207,7 +186,6 @@ namespace BetterJunimos.Patches {
                 else {
                     // can't walk back to the hut from here, just despawn
                     __instance.junimoReachedHut(__instance, __instance.currentLocation);
-                    // BetterJunimos.SMonitor.Log($"PatchPathfindDoWork: despawning due end of day", LogLevel.Trace);
                 }
             }
 
@@ -259,17 +237,11 @@ namespace BetterJunimos.Patches {
                 
                 if (__instance.controller.pathToEndPoint != null && !outsideRadius) {
                     // Junimo has somewhere to be, let it happen
-                    // BetterJunimos.SMonitor.Log($"PatchPathfindDoWork: {__instance.whichJunimoFromThisHut} has more work", LogLevel.Debug);
                     ___netAnimationEvent.Fire(0);
                 }
                 else {
                     // Junimo has no path, or path endpoint is outside the hut radius
                     Util.Abilities.lastKnownCropLocations.TryGetValue((hut, __instance.currentLocation), out var lkc);
-                    // BetterJunimos.SMonitor.Log($"PatchPathfindDoWork: #{__instance.whichJunimoFromThisHut} " +
-                    //                            $"has no path, trying to find more work to do, " +
-                    //                            $"lkc: {__instance.currentLocation.Name} [{lkc.X} {lkc.Y}]",
-                    //     LogLevel.Trace);
-
                     if (Game1.random.NextDouble() < 0.5 && !lkc.Equals(Point.Zero)) {
                         // hut has some work to do, send Junimo there
                         __instance.controller = new PathFindController(
@@ -279,20 +251,8 @@ namespace BetterJunimos.Patches {
                             -1,
                             __instance.reachFirstDestinationFromHut,
                             100);
-
-                        if (__instance.controller.pathToEndPoint is null) {
-                            // BetterJunimos.SMonitor.Log($"PatchPathfindDoWork: #{__instance.whichJunimoFromThisHut} " +
-                            //                            $"attempted to path " +
-                            //                            $"from {__instance.getTileX()} {__instance.getTileY()} " +
-                            //                            $"to {__instance.currentLocation} {lkc.X} {lkc.Y}, " +
-                            //                            $"no path to endpoint",
-                            //     LogLevel.Trace);
-                        }
                     }
                     else if (Game1.random.NextDouble() < 0.25) {
-                        
-                        // BetterJunimos.SMonitor.Log($"PatchPathfindDoWork: {__instance.whichJunimoFromThisHut} being sent home", LogLevel.Debug);
-
                         // unlucky, send Junimo home
                         ___netAnimationEvent.Fire(0);
 
@@ -309,8 +269,6 @@ namespace BetterJunimos.Patches {
                     }
                     else {
                         // move Junimo randomly
-                        // BetterJunimos.SMonitor.Log($"PatchPathfindDoWork: {__instance.whichJunimoFromThisHut} going for a walk", LogLevel.Debug);
-
                         __instance.pathfindToRandomSpotAroundHut();
                     }
                 }
@@ -322,8 +280,6 @@ namespace BetterJunimos.Patches {
         private static void returnToGreenhouseDoor(JunimoHarvester junimo, GameLocation location) {
             if (Utility.isOnScreen(Utility.Vector2ToPoint(junimo.position.Value / 64f), 64, junimo.currentLocation))
                 junimo.jump();
-
-            // junimo.pathfindToNextScheduleLocation;
             junimo.collidesWithOtherCharacters.Value = false;
 
             if (Game1.IsMasterGame) {
@@ -336,18 +292,10 @@ namespace BetterJunimos.Patches {
                 junimo.controller = new PathFindController(junimo, location, door, 1,
                     junimo.junimoReachedHut);
                 if (junimo.controller.pathToEndPoint == null || junimo.controller.pathToEndPoint.Count == 0) {
-                    // BetterJunimos.SMonitor.Log(
-                    //     $"returnToGreenhouseDoor: #{junimo.whichJunimoFromThisHut} could not pathfind", LogLevel.Debug);
                     junimo.junimoReachedHut(junimo, junimo.currentLocation);
                     return;
                 }
             }
-
-            // var path = string.Join(", ", junimo.controller.pathToEndPoint);
-            // BetterJunimos.SMonitor.Log(
-            //     $"returnToGreenhouseDoor: #{junimo.whichJunimoFromThisHut} pathfind {junimo.controller.pathToEndPoint.Count} path {path}",
-            //     LogLevel.Debug);
-
             if (!Utility.isOnScreen(Utility.Vector2ToPoint(junimo.position.Value / 64f), 64, junimo.currentLocation))
                 return;
             location.playSound("junimoMeep1");
@@ -372,7 +320,6 @@ namespace BetterJunimos.Patches {
             if (___destroy) return; 
             if (__instance.controller != null) return;
             if (!BetterJunimos.Config.JunimoImprovements.WorkRidiculouslyFast) return;
-            // BetterJunimos.SMonitor.Log($"PatchPokeToHarvest: Junimo {__instance.whichJunimoFromThisHut} being directed to new crop", LogLevel.Debug);
             __instance.pathfindToNewCrop();
         }
     }

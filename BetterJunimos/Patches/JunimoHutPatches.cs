@@ -22,20 +22,12 @@ namespace BetterJunimos.Patches {
 
         public static bool Prefix(JunimoHut __instance, ref bool __result) {
             if (!Context.IsMainPlayer) return true;
-
-            // BetterJunimos.SMonitor.Log($"PatchSearchAroundHut: prefix starts");
-
             // Prevent unnecessary searching when unpaid
             if (BetterJunimos.Config.JunimoPayment.WorkForWages && !Util.Payments.WereJunimosPaidToday) {
                 __instance.lastKnownCropLocation = Point.Zero;
-                // BetterJunimos.SMonitor.Log($"PatchSearchAroundHut: prefix ends (unpaid)");
                 return false;
             }
-
             __result = SearchAroundHut(__instance);
-            
-            // BetterJunimos.SMonitor.Log($"PatchSearchAroundHut: prefix ends");
-
             return false;
         }
 
@@ -53,22 +45,16 @@ namespace BetterJunimos.Patches {
                 var gh = Game1.getLocationFromName("Greenhouse");
                 if (ghb != null)
                 {
-                    // BetterJunimos.SMonitor.Log($"SearchAroundHut: Greenhouse find on location {hut.GetParentLocation().NameOrUniqueName}", LogLevel.Debug);
                     gh = ghb;
                 }
 
                 if (!Util.Greenhouse.HutHasGreenhouse(id)) {
-                    // BetterJunimos.SMonitor.Log($"PatchSearchAroundHut: hut has no greenhouse", LogLevel.Debug);
                     return foundWork;
                 }
                 // SearchGreenhouseGrid manages hut.lastKnownCropLocation (a hack!) and Util.Abilities.lastKnownCropLocations
                 foundWork |= SearchGreenhouseGrid(hut, id, gh);
                 Util.Abilities.lastKnownCropLocations.TryGetValue((hut, gh), out var lkc);
-
-                // BetterJunimos.SMonitor.Log($"PatchSearchAroundHut: greenhouse lkc {lkc.X} {lkc.Y}", LogLevel.Trace);
             }
-            
-            // BetterJunimos.SMonitor.Log($"PatchSearchAroundHut: foundWork {foundWork}", LogLevel.Trace);
             return foundWork;
         }
 
@@ -88,7 +74,6 @@ namespace BetterJunimos.Patches {
             {
                 gh = gl;
             }
-            // BetterJunimos.SMonitor.Log($"SearchAroundHut: searching {gh.Name}", LogLevel.Trace);
             for (var x = 0; x < gh.map.Layers[0].LayerWidth; x++)
             {
                 for (var y = 0; y < gh.map.Layers[0].LayerHeight; y++)
@@ -98,12 +83,9 @@ namespace BetterJunimos.Patches {
                     if (ability == null) continue;
                     hut.lastKnownCropLocation = new Point(x, y);
                     Util.Abilities.lastKnownCropLocations[(hut, gh)] = new Point(x, y);
-                    // BetterJunimos.SMonitor.Log($"PatchSearchAroundHut: work at gh ({x}, {y})", LogLevel.Trace);
                     return true;
                 }
             }
-
-            // BetterJunimos.SMonitor.Log($"PatchSearchAroundHut: no work in gh", LogLevel.Trace);
             Util.Abilities.lastKnownCropLocations[(hut, gh)] = Point.Zero;
             return false;
         }
@@ -148,41 +130,29 @@ namespace BetterJunimos.Patches {
             ___junimoSendOutTimer = 0;
             if (__state <= 0) return true;
             if (!Context.IsMainPlayer) return true;
-            //BetterJunimos.SMonitor.Log($"ReplaceJunimoHutupdateWhenFarmNotCurrentLocation: postfix starts", LogLevel.Debug);
 
             ___junimoSendOutTimer = __state - time.ElapsedGameTime.Milliseconds;
-            //__instance.shouldSendOutJunimos.Value = true;
-            // Don't work on farmEvent days
-            // Base game work on event days
-            // if (Game1.farmEvent != null)
-            //     return;
             // Winter
             if (__instance.GetParentLocation().IsWinterHere() && !Util.Progression.CanWorkInWinter) {
                 return true;
             }
             // Rain
             if (__instance.GetParentLocation().IsRainingHere() && !Util.Progression.CanWorkInRain){
-                //BetterJunimos.SMonitor.Log($"ReplaceJunimoHutUpdate: rain");
                 return true;
             }
             // Currently sending out a junimo
             if (___junimoSendOutTimer > 0) {
-                //BetterJunimos.SMonitor.Log($"{__instance.parentLocationName} - ReplaceJunimoHutUpdate: sending");
                 return true;
             }
             // Already enough junimos
             if (__instance.myJunimos.Count >= Util.Progression.MaxJunimosUnlocked){
-                //BetterJunimos.SMonitor.Log($"{__instance.parentLocationName} Already {__instance.myJunimos.Count} Junimos, limit is {Util.Progression.MaxJunimosUnlocked}");
                 return true;
             }
             // Nothing to do
             if (!__instance.areThereMatureCropsWithinRadius()) {
-                //BetterJunimos.SMonitor.Log($"{__instance.parentLocationName} No work for Junimos to do, not spawning another", LogLevel.Debug);
                 return true;
             }
-            //BetterJunimos.SMonitor.Log($"{__instance.parentLocationName} ReplaceJunimoHutUpdate: spawning");
             Util.SpawnJunimoAtHut(__instance);
-            // BetterJunimos.SMonitor.Log($"ReplaceJunimoHutUpdate: postfix ends");
             ___junimoSendOutTimer = 1000;
             return true;
         }
@@ -197,8 +167,7 @@ namespace BetterJunimos.Patches {
     {
         public static void Postfix(JunimoHut __instance, int dayOfMonth)
 		{
-            //BetterJunimos.SMonitor.Log($"ReplaceJunimoHutdayUpdate: postfix starts", LogLevel.Debug);
-			__instance.shouldSendOutJunimos.Value = true;
+            __instance.shouldSendOutJunimos.Value = true;
 		}
     }
 
@@ -218,9 +187,6 @@ namespace BetterJunimos.Patches {
         public static void Postfix(JunimoHut __instance, GameTime time, ref int ___junimoSendOutTimer, int __state) {
             if (__state <= 0) return;
             if (!Context.IsMainPlayer) return;
-
-            // BetterJunimos.SMonitor.Log($"ReplaceJunimoHutUpdate: postfix starts");
-
             ___junimoSendOutTimer = __state - time.ElapsedGameTime.Milliseconds;
 
             // Don't work on farmEvent days
@@ -232,27 +198,21 @@ namespace BetterJunimos.Patches {
             }
             // Rain
             if (__instance.GetParentLocation().IsRainingHere() && !Util.Progression.CanWorkInRain){
-                //BetterJunimos.SMonitor.Log($"ReplaceJunimoHutUpdate: rain");
                 return;
             }
             // Currently sending out a junimo
             if (___junimoSendOutTimer > 0) {
-                // BetterJunimos.SMonitor.Log($"ReplaceJunimoHutUpdate: sending");
                 return;
             }
             // Already enough junimos
             if (__instance.myJunimos.Count >= Util.Progression.MaxJunimosUnlocked){
-                // BetterJunimos.SMonitor.Log($"Already {__instance.myJunimos.Count} Junimos, limit is {Util.Progression.MaxJunimosUnlocked}");
                 return;
             }
             // Nothing to do
             if (!__instance.areThereMatureCropsWithinRadius()) {
-                // BetterJunimos.SMonitor.Log("No work for Junimos to do, not spawning another");
                 return;
             }
-            // BetterJunimos.SMonitor.Log($"ReplaceJunimoHutUpdate: spawning");
             Util.SpawnJunimoAtHut(__instance);
-            // BetterJunimos.SMonitor.Log($"ReplaceJunimoHutUpdate: postfix ends");
             ___junimoSendOutTimer = 1000;
         }
     }
@@ -337,13 +297,9 @@ namespace BetterJunimos.Patches {
     internal class ReplaceJunimoHutNumber {
         public static bool Prefix(JunimoHut __instance, ref int __result) {
             if (!Context.IsMainPlayer) return true;
-            // BetterJunimos.SMonitor.Log($"ReplaceJunimoHutNumber: prefix starts");
-
             for (var index = 0; index < Util.Progression.MaxJunimosUnlocked; ++index) {
                 if (index >= __instance.myJunimos.Count) {
                     __result = index;
-                    // BetterJunimos.SMonitor.Log($"ReplaceJunimoHutNumber: prefix ends {__result}  A");
-
                     return false;
                 }
 
@@ -351,12 +307,10 @@ namespace BetterJunimos.Patches {
 
                 if (flag) continue;
                 __result = index;
-                // BetterJunimos.SMonitor.Log($"ReplaceJunimoHutNumber: prefix ends {__result}  B");
                 return false;
             }
 
             __result = 2;
-            // BetterJunimos.SMonitor.Log($"ReplaceJunimoHutNumber: prefix ends {__result}  C");
             return false;
         }
     }

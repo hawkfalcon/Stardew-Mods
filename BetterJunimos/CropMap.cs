@@ -61,11 +61,9 @@ namespace BetterJunimos {
                 ct = Map[mx, my];
             }
             catch (IndexOutOfRangeException) {
-                // BetterJunimos.SMonitor.Log($"CropTypeAt: [{mx} {my}] out of bounds", LogLevel.Warn);
                 ct = null;
             }
 
-            // BetterJunimos.SMonitor.Log($"CropTypeAt: hut [{hut.tileX} {hut.tileY}] pos [{pos.X} {pos.Y}] radius {radius} d [{dx} {dy}] m [{mx} {my}]: {ct}", LogLevel.Debug);
             return ct;
         }
     }

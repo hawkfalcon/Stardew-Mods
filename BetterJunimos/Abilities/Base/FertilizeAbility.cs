@@ -44,7 +44,6 @@ namespace BetterJunimos.Abilities {
             if (_RequiredItems is not null) return _RequiredItems;
             var fertilizers = Game1.objectData
                     .Where(pair => pair.Value.Category == StardewValley.Object.fertilizerCategory && pair.Key != TreeFertilizer);
-            // BetterJunimos.SMonitor.Log("RequiredItems called for Fertilize", LogLevel.Debug);
             _RequiredItems = (from kvp in fertilizers select kvp.Key).ToList();
 
             return _RequiredItems;
