@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Collections.Generic;
 using BetterJunimos.Utils;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
@@ -17,6 +18,8 @@ namespace BetterJunimos.Patches {
      * Completely rewrite original function.
     */
     internal class PatchSearchAroundHut {
+        private static readonly Dictionary<JunimoHut, (bool, int)> _scanCache = new();
+
         public static bool Prefix(JunimoHut __instance, ref bool __result) {
             if (!Context.IsMainPlayer) return true;
 
@@ -105,27 +108,28 @@ namespace BetterJunimos.Patches {
             return false;
         }
 
-        private static bool SearchHutGrid(JunimoHut hut, int radius, GameLocation farm, Guid id)
-        {
-            // BetterJunimos.SMonitor.Log($"SearchAroundHut starts");
+        private static bool SearchHutGrid(JunimoHut hut, int radius, GameLocation farm, Guid id) {
+            if (_scanCache.TryGetValue(hut, out var value) && value.Item2 == radius) {
+                return value.Item1;
+            }
 
-            for (var x = hut.tileX.Value + 1 - radius; x < hut.tileX.Value + 2 + radius; ++x)
-            {
-                for (var y = hut.tileY.Value + 1 - radius; y < hut.tileY.Value + 2 + radius; ++y)
-                {
+            for (var x = hut.tileX.Value + 1 - radius; x < hut.tileX.Value + 2 + radius; ++x) {
+                for (var y = hut.tileY.Value + 1 - radius; y < hut.tileY.Value + 2 + radius; ++y) {
                     var pos = new Vector2(x, y);
                     var ability = Util.Abilities.IdentifyJunimoAbility(farm, pos, id);
                     if (ability == null) continue;
+                    
                     hut.lastKnownCropLocation = new Point(x, y);
                     Util.Abilities.lastKnownCropLocations[(hut, farm)] = new Point(x, y);
-                    // BetterJunimos.SMonitor.Log($"SearchAroundHut: work at ({x}, {y})");
-
+                    
+                    _scanCache[hut] = (true, radius);
                     return true;
                 }
             }
-            
+
             hut.lastKnownCropLocation = Point.Zero;
             Util.Abilities.lastKnownCropLocations[(hut, farm)] = Point.Zero;
+            _scanCache[hut] = (false, radius);
             return false;
         }
     }
