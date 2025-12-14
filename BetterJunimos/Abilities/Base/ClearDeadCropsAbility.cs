@@ -29,14 +29,5 @@ namespace BetterJunimos.Abilities {
         public List<string> RequiredItems() {
             return new List<string>();
         }
-
-        /* older API compat */
-        public bool IsActionAvailable(Farm farm, Vector2 pos, Guid guid) {
-            return IsActionAvailable((GameLocation) farm, pos, guid);
-        }
-
-        public bool PerformAction(Farm farm, Vector2 pos, JunimoHarvester junimo, Guid guid) {
-            return PerformAction((GameLocation) farm, pos, junimo, guid);
-        }
     }
 }

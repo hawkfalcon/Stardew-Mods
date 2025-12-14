@@ -17,20 +17,12 @@ namespace BetterJunimos.Abilities {
         /*
          * Is the action available at the position? E.g. is the crop ready to harvest
          */
-        bool IsActionAvailable(Farm farm, Vector2 pos, Guid guid);
-
-        bool IsActionAvailable(GameLocation location, Vector2 pos, Guid guid) {
-         return location is Farm farm && IsActionAvailable(farm, pos, guid);
-        }
-
+        bool IsActionAvailable(GameLocation location, Vector2 pos, Guid guid);
+        
         /*
          * Action to take if it is available, return false if action failed
          */
-        bool PerformAction(Farm farm, Vector2 pos, JunimoHarvester junimo, Guid guid);
-
-        bool PerformAction(GameLocation location, Vector2 pos, JunimoHarvester junimo, Guid guid) {
-         return location is Farm farm && PerformAction(farm, pos, junimo, guid);
-        }
+        bool PerformAction(GameLocation location, Vector2 pos, JunimoHarvester junimo, Guid guid);
 
         /*
          * Does this action require specific items (or SObject.SeedsCategory, etc)?
