@@ -12,9 +12,7 @@ using StardewValley.Characters;
 using StardewValley.Menus;
 using BetterJunimos.Utils;
 using StardewValley.Objects;
-using StardewValley.Tools;
 using static StardewValley.Menus.CarpenterMenu;
-using StardewValley.TerrainFeatures;
 
 namespace BetterJunimos {
 
@@ -182,16 +180,10 @@ namespace BetterJunimos {
 
         private static bool AlternativeTexturesActive() {
             // make sure Alternative Textures still works
-
             if (Game1.player.CurrentTool is null) return false;
-            if (Game1.player.CurrentTool.modData.ContainsKey(PAINT_BUCKET_FLAG))
-                return true;
-            if (Game1.player.CurrentTool.modData.ContainsKey(PAINT_BRUSH_FLAG))
-                return true;
-            if (Game1.player.CurrentTool.modData.ContainsKey(SCISSORS_FLAG))
-                return true;
-
-            return false;
+            
+            string[] flags = { PAINT_BUCKET_FLAG, PAINT_BRUSH_FLAG, SCISSORS_FLAG };
+            return flags.Any(flag => Game1.player.CurrentTool.modData.ContainsKey(flag));
         }
 
         private bool ShowPerfectionTracker(ButtonPressedEventArgs e) {
@@ -209,7 +201,7 @@ namespace BetterJunimos {
         /// <param name="e">The event arguments.</param>
         private void OnSaving(object sender, SavingEventArgs e) {
             if (!Context.IsMainPlayer) return;
-            Helper.Data.WriteSaveData("hawkfalcon.BetterJunimos.CropMaps", CropMaps);
+            Helper.Data.WriteSaveData(ModDataKeys.CropMapsSaveKey, CropMaps);
             SaveConfig();
         }
 
@@ -227,23 +219,26 @@ namespace BetterJunimos {
         /// <param name="sender">The event sender.</param>
         /// <param name="e">The event arguments.</param>
         void OnMenuChanged(object sender, MenuChangedEventArgs e) {
-            // closed Junimo Hut menu
-            //
+            HandleJunimoHutMenuClosed(e);
+            HandleCarpenterMenuOpened(e);
+        }
+
+        private void HandleJunimoHutMenuClosed(MenuChangedEventArgs e) {
             // check that e.NewMenu is null because this event also fires when items are added to the chest
             // caution: this runs after any chest is closed, not just Junimo huts
+            if (e.OldMenu is not ItemGrabMenu menu || e.NewMenu is not null) return;
+            if (menu.context is not (JunimoHut or Chest)) return;
+            if (menu.context is Chest chest &&
+                !chest.modData.ContainsKey(ModDataKeys.GetJunimoChestKey(ModManifest.UniqueID))) return;
+            
+            CheckHutsForWagesAndProgressionItems();
+            JunimoAbilities.ResetCooldowns();
+        }
 
-            // closed menu
-            if (e.OldMenu is ItemGrabMenu menu && e.NewMenu is null) {
-                if (menu.context is not (JunimoHut or Chest)) return;
-                if (menu.context is Chest chest &&
-                    !chest.modData.ContainsKey($"{ModManifest.UniqueID}/JunimoChest")) return;
-                CheckHutsForWagesAndProgressionItems();
-                JunimoAbilities.ResetCooldowns();
-            }
-
-            // opened menu
+        private void HandleCarpenterMenuOpened(MenuChangedEventArgs e) {
             if (e.OldMenu != null || e.NewMenu is not CarpenterMenu) return;
             if (!Helper.Reflection.GetField<bool>(e.NewMenu, "MagicalConstruction").GetValue()) return;
+            
             // limit to only junimo hut
             if (!Game1.MasterPlayer.mailReceived.Contains("hasPickedUpMagicInk")) {
                 OpenJunimoHutMenu();
@@ -258,13 +253,11 @@ namespace BetterJunimos {
                 Util.Payments.JunimoPaymentsToday.Clear();
                 Util.Payments.WereJunimosPaidToday = false;
             }
-            Monitor.Log($"On day starter",
-                        LogLevel.Debug);
             var huts = Util.GetAllHuts();
             
             // tag each hut chest so later we can tell whether a GrabMenu close is for a Junimo chest or some other chest 
             foreach (var hut in huts) {
-                hut.GetOutputChest().modData[$"{ModManifest.UniqueID}/JunimoChest"] = "true";
+                hut.GetOutputChest().modData[ModDataKeys.GetJunimoChestKey(ModManifest.UniqueID)] = "true";
             }
             
             if (huts.Any()) {
@@ -297,7 +290,6 @@ namespace BetterJunimos {
             var junimoHuts = Util.GetAllHuts();
             if (!junimoHuts.Any()) return;
 
-            // Monitor.Log("Updating hut items", LogLevel.Debug);
             foreach (var hut in junimoHuts) {
                 // this might be getting called a bit too much
                 // but since OnMenuChanged doesn't tell us reliably which hut has changed
@@ -347,8 +339,7 @@ namespace BetterJunimos {
 
             // make sure crop harvesting is on for everyone
             var farm = Game1.getFarm();
-            var k = $"hawkfalcon.BetterJunimos.ProgressionData.HarvestCrops.Unlocked";
-            farm.modData[k] = "1";
+            farm.modData[ModDataKeys.HarvestCropsUnlockedKey] = "1";
 
             // rebuild the GMCM menu now we know who's host/farmhand
             setupGMCM();
@@ -359,19 +350,17 @@ namespace BetterJunimos {
             MigrateProgData();
 
             // load crop maps from save (TODO: not MP-safe)
-            CropMaps = Helper.Data.ReadSaveData<Maps>("hawkfalcon.BetterJunimos.CropMaps") ?? new Maps();
+            CropMaps = Helper.Data.ReadSaveData<Maps>(ModDataKeys.CropMapsSaveKey) ?? new Maps();
         }
 
         // copy any progress made from the SaveData into modData
         private void MigrateProgData() {
-            var pd = Helper.Data.ReadSaveData<ProgressionData>("hawkfalcon.BetterJunimos.ProgressionData");
+            var pd = Helper.Data.ReadSaveData<ProgressionData>(ModDataKeys.ProgressionDataSaveKey);
             if (pd?.Progress is null) return;
             var farm = Game1.getFarm();
             foreach (var (key, value) in pd.Progress) {
-                var k = $"hawkfalcon.BetterJunimos.ProgressionData.{key}.Prompted";
-                if (value.Prompted) farm.modData[k] = "1";
-                k = $"hawkfalcon.BetterJunimos.ProgressionData.{key}.Unlocked";
-                if (value.Unlocked) farm.modData[k] = "1";
+                if (value.Prompted) farm.modData[ModDataKeys.GetPromptedKey(key)] = "1";
+                if (value.Unlocked) farm.modData[ModDataKeys.GetUnlockedKey(key)] = "1";
             }
         }
 

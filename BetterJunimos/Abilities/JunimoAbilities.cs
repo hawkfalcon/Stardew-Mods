@@ -76,16 +76,12 @@ namespace BetterJunimos.Utils {
         public void RegisterJunimoAbility(IJunimoAbility junimoAbility) {
             var name = junimoAbility.AbilityName();
             if (!BetterJunimos.Config.JunimoAbilities.ContainsKey(name)) {
-                // BetterJunimos.SMonitor.Log($"RegisterJunimoAbility [for {name}]: no entry in JunimoAbilities", LogLevel.Info);
                 BetterJunimos.Config.JunimoAbilities.Add(name, true);
             }
 
             if (!BetterJunimos.Config.JunimoAbilities[name]) {
-                // BetterJunimos.SMonitor.Log($"RegisterJunimoAbility [for {name}]: disabled in JunimoAbilities", LogLevel.Info);
                 return;
             }
-
-            // BetterJunimos.SMonitor.Log($"RegisterJunimoAbility [for {name}]: registering", LogLevel.Debug);
 
             _registeredJunimoAbilities.Add(junimoAbility);
             _requiredItems.UnionWith(junimoAbility.RequiredItems());
@@ -106,55 +102,20 @@ namespace BetterJunimos.Utils {
         }
 
         public IJunimoAbility IdentifyJunimoAbility(GameLocation location, Vector2 pos, Guid hutGuid) {
-            // BetterJunimos.SMonitor.Log($"IdentifyJunimoAbility at {location.Name} ({location.IsGreenhouse})", LogLevel.Debug);
-            // if (location.IsGreenhouse) {
-            //     BetterJunimos.SMonitor.Log($"IdentifyJunimoAbility at {location.Name} [{pos.X} {pos.Y}]",
-            //         LogLevel.Debug);
-            // }
-
             foreach (var ability in _registeredJunimoAbilities) {
-                // if (location.IsGreenhouse && ability.AbilityName() == "HoeAroundTrees") {
-                //     BetterJunimos.SMonitor.Log($"  {ability.AbilityName()}");
-                // }
-
                 // TODO: cooldowns for greenhouse
                 if (ActionCoolingDown(location, ability, pos)) continue;
-
                 if (!ItemInHut(hutGuid, ability.RequiredItems())) {
-                    // if (location.IsGreenhouse && ability.AbilityName() == "HoeAroundTrees") {
-                    //     BetterJunimos.SMonitor.Log($"    items not in hut");
-                    // }
-
                     continue;
                 }
-
                 if (!ability.IsActionAvailable(location, pos, hutGuid)) {
-                    // if (location.IsGreenhouse && ability.AbilityName() == "HoeAroundTrees") {
-                    //     BetterJunimos.SMonitor.Log($"    action not available");
-                    // }
-
                     continue;
                 }
-
                 if (!Util.Progression.CanUseAbility(ability)) {
-                    // if (location.IsGreenhouse && ability.AbilityName() == "HoeAroundTrees") {
-                    //     BetterJunimos.SMonitor.Log($"    progression locked");
-                    // }
-
                     continue;
                 }
-
-                // if (location.IsGreenhouse) {
-                //     BetterJunimos.SMonitor.Log(
-                //         $"    {ability.AbilityName()} available at {location.Name} [{pos.X} {pos.Y}]");
-                // }
-
                 return ability;
             }
-
-            // if (location.IsGreenhouse) {
-            //     BetterJunimos.SMonitor.Log($"  no work at {location.Name} {pos.X} {pos.Y}");
-            // }
 
             return null;
         }
@@ -165,12 +126,6 @@ namespace BetterJunimos.Utils {
             var chest = hut.GetOutputChest();
 
             var success = ability.PerformAction(location, pos, junimo, id);
-
-            // if (location.IsGreenhouse) {
-            //     BetterJunimos.SMonitor.Log(
-            //         $"    PerformAction: {ability.AbilityName()} performed at {location.Name} [{pos.X} {pos.Y}] ({success})",
-            //         LogLevel.Trace);
-            // }
 
             var requiredItems = ability.RequiredItems();
             if (requiredItems.Count > 0) {
@@ -200,10 +155,8 @@ namespace BetterJunimos.Utils {
         }
 
         public static bool ActionCoolingDown(GameLocation location, IJunimoAbility ability, Vector2 pos) {
-            
             // TODO: cooldowns for greenhouse
             if (location.IsGreenhouse) {
-                // BetterJunimos.SMonitor.Log($"ActionCoolingDown allowing {ability.AbilityName()} at [{pos.X} {pos.Y}]", LogLevel.Debug);
                 return false;
             }
 
