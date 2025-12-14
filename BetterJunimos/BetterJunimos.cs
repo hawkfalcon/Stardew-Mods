@@ -206,24 +206,10 @@ namespace BetterJunimos {
             SaveConfig();
         }
 
-        // BUG: player warps back to wizard hut after use
-        private void OpenJunimoHutMenu() {
-            var menu = new CarpenterMenu(Game1.builder_wizard) { };
-            var blueprints = Helper.Reflection.GetField<List<BlueprintEntry>>(menu, "Blueprints");
-            var newBluePrints = new List<BlueprintEntry> { };
-            blueprints.SetValue(newBluePrints);
-            Game1.activeClickableMenu = menu;
-        }
-
         /// <summary>Raised after a game menu is opened, closed, or replaced.</summary>
         /// <param name="sender">The event sender.</param>
         /// <param name="e">The event arguments.</param>
         void OnMenuChanged(object sender, MenuChangedEventArgs e) {
-            HandleJunimoHutMenuClosed(e);
-            HandleCarpenterMenuOpened(e);
-        }
-
-        private void HandleJunimoHutMenuClosed(MenuChangedEventArgs e) {
             // check that e.NewMenu is null because this event also fires when items are added to the chest
             // caution: this runs after any chest is closed, not just Junimo huts
             if (e.OldMenu is not ItemGrabMenu menu || e.NewMenu is not null) return;
@@ -233,16 +219,6 @@ namespace BetterJunimos {
             
             CheckHutsForWagesAndProgressionItems();
             JunimoAbilities.ResetCooldowns();
-        }
-
-        private void HandleCarpenterMenuOpened(MenuChangedEventArgs e) {
-            if (e.OldMenu != null || e.NewMenu is not CarpenterMenu menu) return;
-            if (!menu.Blueprint.MagicalConstruction) return;
-            
-            // limit to only junimo hut
-            if (!Game1.MasterPlayer.mailReceived.Contains("hasPickedUpMagicInk")) {
-                OpenJunimoHutMenu();
-            }
         }
 
         /// <summary>Raised after the game begins a new day (including when the player loads a save).</summary>
