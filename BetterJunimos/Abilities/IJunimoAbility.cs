@@ -5,12 +5,12 @@ using StardewValley.Characters;
 using System.Collections.Generic;
 
 namespace BetterJunimos.Abilities {
-    /* 
-     * Provides abilities for Junimos 
+    /*
+     * Provides abilities for Junimos
      */
     public interface IJunimoAbility {
         /*
-         * What is the name of this ability 
+         * What is the name of this ability
          */
         string AbilityName();
 
@@ -18,7 +18,7 @@ namespace BetterJunimos.Abilities {
          * Is the action available at the position? E.g. is the crop ready to harvest
          */
         bool IsActionAvailable(GameLocation location, Vector2 pos, Guid guid);
-        
+
         /*
          * Action to take if it is available, return false if action failed
          */

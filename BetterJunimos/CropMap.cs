@@ -49,8 +49,8 @@ namespace BetterJunimos {
 
             int radius = BetterJunimos.Config.JunimoHuts.MaxRadius;
 
-            int dx = (int) pos.X - hut.tileX.Value;
-            int dy = (int) pos.Y - hut.tileY.Value;
+            int dx = (int)pos.X - hut.tileX.Value;
+            int dy = (int)pos.Y - hut.tileY.Value;
 
             int mx = radius - 1 + dx;
             int my = radius - 1 + dy;
@@ -59,8 +59,7 @@ namespace BetterJunimos {
             string ct;
             try {
                 ct = Map[mx, my];
-            }
-            catch (IndexOutOfRangeException) {
+            } catch (IndexOutOfRangeException) {
                 ct = null;
             }
 

@@ -6,6 +6,7 @@ namespace BetterJunimos {
         public Dictionary<string, bool> JunimoAbilities { get; set; } = new();
 
         public HutSettings JunimoHuts { get; set; } = new();
+
         internal class HutSettings {
             public int MaxJunimos { get; set; } = 3;
             public int MaxRadius { get; set; } = 8;
@@ -16,6 +17,7 @@ namespace BetterJunimos {
         }
 
         public JunimoImprovement JunimoImprovements { get; set; } = new();
+
         internal class JunimoImprovement {
             public bool CanWorkInRain { get; set; } = true;
             public bool CanWorkInWinter { get; set; } = true;
@@ -31,29 +33,32 @@ namespace BetterJunimos {
         }
 
         public JunimoPayments JunimoPayment { get; set; } = new();
+
         internal class JunimoPayments {
             public bool WorkForWages { get; set; }
             public PaymentAmount DailyWage { get; set; } = new();
+
             internal class PaymentAmount {
                 public int ForagedItems { get; set; } = 1;
                 public int Flowers { get; set; }
                 public int Fruit { get; set; }
                 public int Wine { get; set; }
             }
-            
-            public bool GiveExperience { get; set; }
 
+            public bool GiveExperience { get; set; }
         }
 
         public FunSettings FunChanges { get; set; } = new();
+
         internal class FunSettings {
             public float RainyJunimoSpiritFactor = 0.7f;
-            public bool JunimosAlwaysHaveLeafUmbrellas { get; set; } 
+            public bool JunimosAlwaysHaveLeafUmbrellas { get; set; }
             public bool MoreColorfulLeafUmbrellas { get; set; }
             public bool InfiniteJunimoInventory { get; set; }
         }
 
         public OtherSettings Other { get; set; } = new();
+
         internal class OtherSettings {
             public SButton SpawnJunimoKeybind { get; set; } = SButton.J;
             public bool ReceiveMessages { get; set; } = true;
@@ -62,6 +67,7 @@ namespace BetterJunimos {
         }
 
         public JunimoProgression Progression { get; set; } = new();
+
         internal class JunimoProgression {
             public bool Enabled { get; set; } = true;
         }

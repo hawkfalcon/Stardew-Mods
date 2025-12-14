@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <AssemblyName>TillableGround</AssemblyName>
-    <RootNamespace>TillableGround</RootNamespace>
-    <LangVersion>latest</LangVersion>
-    <TargetFramework>net6.0</TargetFramework>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-  </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.1.1" />
-  </ItemGroup>
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <AssemblyName>TillableGround</AssemblyName>
+        <RootNamespace>TillableGround</RootNamespace>
+        <LangVersion>latest</LangVersion>
+        <TargetFramework>net6.0</TargetFramework>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.1.1" />
+    </ItemGroup>
 </Project>

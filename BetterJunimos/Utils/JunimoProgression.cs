@@ -15,11 +15,34 @@ using Object = System.Object;
 using SObject = StardewValley.Object;
 
 namespace BetterJunimos.Utils {
-    enum Configure { Yes, No, Rude, NotAnswered }
-    enum Progression { Yes, No, NotAnswered }
-    enum Wages { Fruit, Flowers, Forage, All, None, NotAnswered }
-    enum ShowGMCM { Yes, No, NotAnswered }
-    
+    enum Configure {
+        Yes,
+        No,
+        Rude,
+        NotAnswered
+    }
+
+    enum Progression {
+        Yes,
+        No,
+        NotAnswered
+    }
+
+    enum Wages {
+        Fruit,
+        Flowers,
+        Forage,
+        All,
+        None,
+        NotAnswered
+    }
+
+    enum ShowGMCM {
+        Yes,
+        No,
+        NotAnswered
+    }
+
     public class ProgressionItem {
         public bool Prompted;
         public bool Unlocked;
@@ -205,8 +228,7 @@ namespace BetterJunimos.Utils {
         }
 
         public void PromptForCanWorkInEvenings() {
-            if (!BetterJunimos.Config.Progression.Enabled || Unlocked("CanWorkInEvenings") ||
-                Prompted("CanWorkInEvenings")) return;
+            if (!BetterJunimos.Config.Progression.Enabled || Unlocked("CanWorkInEvenings") || Prompted("CanWorkInEvenings")) return;
             if (!BetterJunimos.Config.JunimoImprovements.CanWorkInEvenings) return;
             DisplayPromptFor("CanWorkInEvenings");
         }
@@ -214,27 +236,17 @@ namespace BetterJunimos.Utils {
         public void DayStartedProgressionPrompt(bool isWinter, bool isRaining) {
             if (!BetterJunimos.Config.Progression.Enabled) return;
 
-            if (isWinter && LockedAndNotPrompted("CanWorkInWinter") &&
-                BetterJunimos.Config.JunimoImprovements.CanWorkInWinter) {
+            if (isWinter && LockedAndNotPrompted("CanWorkInWinter") && BetterJunimos.Config.JunimoImprovements.CanWorkInWinter) {
                 DisplayPromptFor("CanWorkInWinter");
-            }
-            else if (isRaining && LockedAndNotPrompted("CanWorkInRain") &&
-                     BetterJunimos.Config.JunimoImprovements.CanWorkInRain) {
+            } else if (isRaining && LockedAndNotPrompted("CanWorkInRain") && BetterJunimos.Config.JunimoImprovements.CanWorkInRain) {
                 DisplayPromptFor("CanWorkInRain");
-            }
-            else if (BetterJunimos.Config.JunimoHuts.MaxJunimos >= MaxJunimosUnlocked &&
-                     LockedAndNotPrompted("MoreJunimos")) {
+            } else if (BetterJunimos.Config.JunimoHuts.MaxJunimos >= MaxJunimosUnlocked && LockedAndNotPrompted("MoreJunimos")) {
                 DisplayPromptFor("MoreJunimos");
-            }
-            else if (BetterJunimos.Config.JunimoHuts.MaxJunimos >= MaxJunimosUnlocked && Unlocked("MoreJunimos") &&
-                     LockedAndNotPrompted("UnlimitedJunimos")) {
+            } else if (BetterJunimos.Config.JunimoHuts.MaxJunimos >= MaxJunimosUnlocked && Unlocked("MoreJunimos") && LockedAndNotPrompted("UnlimitedJunimos")) {
                 DisplayPromptFor("UnlimitedJunimos");
-            }
-            else if (LockedAndNotPrompted("WorkFaster") && BetterJunimos.Config.JunimoImprovements.WorkFaster) {
+            } else if (LockedAndNotPrompted("WorkFaster") && BetterJunimos.Config.JunimoImprovements.WorkFaster) {
                 DisplayPromptFor("WorkFaster");
-            }
-            else if (LockedAndNotPrompted("ReducedCostToConstruct") &&
-                     BetterJunimos.Config.JunimoHuts.ReducedCostToConstruct) {
+            } else if (LockedAndNotPrompted("ReducedCostToConstruct") && BetterJunimos.Config.JunimoHuts.ReducedCostToConstruct) {
                 DisplayPromptFor("ReducedCostToConstruct");
             }
         }
@@ -288,14 +300,14 @@ namespace BetterJunimos.Utils {
         private string ItemForAbility(string ability) {
             if (UnlockCosts.ContainsKey(ability)) return UnlockCosts[ability].Item;
             _monitor.Log($"ItemForAbility got a request for unknown {ability}", LogLevel.Warn);
-            UnlockCosts[ability] = new UnlockCost {Item = "268", Stack = 1, Remarks = "Starfruit"};
+            UnlockCosts[ability] = new UnlockCost { Item = "268", Stack = 1, Remarks = "Starfruit" };
             return UnlockCosts[ability].Item;
         }
 
         private int StackForAbility(string ability) {
             if (UnlockCosts.ContainsKey(ability)) return UnlockCosts[ability].Stack;
             _monitor.Log($"StackForAbility got a request for unknown {ability}", LogLevel.Warn);
-            UnlockCosts[ability] = new UnlockCost {Item = "268", Stack = 1, Remarks = "Starfruit"};
+            UnlockCosts[ability] = new UnlockCost { Item = "268", Stack = 1, Remarks = "Starfruit" };
             return UnlockCosts[ability].Stack;
         }
 
@@ -323,22 +335,24 @@ namespace BetterJunimos.Utils {
             foreach (var unused in Progressions().Where(Unlocked)) {
                 unlocked++;
             }
+
             var pc = unlocked / Progressions().Count * 100;
-            return (int) Math.Round(pc);
+            return (int)Math.Round(pc);
         }
 
         private string ActiveQuests() {
-            var quests = (from progression in Progressions()
-                where Prompted(progression) && !Unlocked(progression)
-                select $"= {GetPromptText(progression)}").ToList();
+            var quests = (from progression in Progressions() where Prompted(progression) && !Unlocked(progression) select $"= {GetPromptText(progression)}").ToList();
             return Join("^", quests);
         }
 
         private string PaymentsDetail() {
             var detail = $"{Get("tracker.payments")}: ";
-            if (!BetterJunimos.Config.JunimoPayment.WorkForWages) detail += Get("tracker.working-for-free");
-            else if (Util.Payments.WereJunimosPaidToday) detail += Get("tracker.paid-today");
-            else detail += Get("tracker.unpaid-not-working");
+            if (!BetterJunimos.Config.JunimoPayment.WorkForWages)
+                detail += Get("tracker.working-for-free");
+            else if (Util.Payments.WereJunimosPaidToday)
+                detail += Get("tracker.paid-today");
+            else
+                detail += Get("tracker.unpaid-not-working");
             return detail;
         }
 
@@ -351,22 +365,26 @@ namespace BetterJunimos.Utils {
 
             if (!Context.IsMainPlayer) {
                 quests.Add(Get("tracker.progression-info-host-only"));
-            }
-            else {
+            } else {
                 foreach (var progression in Progressions().OrderBy(item => item)) {
                     var (configurable, enabled) = Enabled(progression);
 
                     var ps = progression.SplitCamelCase();
-                    if (configurable && !enabled) ps += $": {Get("tracker.disabled")}"; // user has disabled
-                    else if (!BetterJunimos.Config.Progression.Enabled) ps += $": {Get("tracker.enabled")}";
-                    else if (Unlocked(progression)) ps += $": {Get("tracker.unlocked")}";
-                    else if (Prompted(progression)) ps += $": {Get("tracker.prompted")}";
-                    else ps += $": {Get("tracker.not-triggered")}";
+                    if (configurable && !enabled)
+                        ps += $": {Get("tracker.disabled")}"; // user has disabled
+                    else if (!BetterJunimos.Config.Progression.Enabled)
+                        ps += $": {Get("tracker.enabled")}";
+                    else if (Unlocked(progression))
+                        ps += $": {Get("tracker.unlocked")}";
+                    else if (Prompted(progression))
+                        ps += $": {Get("tracker.prompted")}";
+                    else
+                        ps += $": {Get("tracker.not-triggered")}";
 
                     quests.Add(ps);
                 }
             }
-            
+
             return Join("^", quests);
         }
 
@@ -392,10 +410,7 @@ namespace BetterJunimos.Utils {
 
             if (quests.Length == 0) quests = Get("tracker.no-abilities-to-unlock");
 
-            var message = prompt
-                .Replace("{{percentage}}", percentage)
-                .Replace("{{quests}}", quests)
-                .Replace("{{details}}", QuestsDetail());
+            var message = prompt.Replace("{{percentage}}", percentage).Replace("{{quests}}", quests).Replace("{{details}}", QuestsDetail());
             Game1.drawLetterMessage(message);
         }
 
@@ -416,7 +431,7 @@ namespace BetterJunimos.Utils {
                 ListAvailableActions(Util.GetHutIdFromHut(hut));
             }
         }
-        
+
         internal void ListConfigurableAbilities() {
             _monitor.Log($"Configurable abilities:", LogLevel.Debug);
 
@@ -431,11 +446,9 @@ namespace BetterJunimos.Utils {
             var hut = Util.GetHutFromId(id);
             var radius = Util.CurrentWorkingRadius;
             var farm = Game1.getFarm();
-            
-            _monitor.Log(
-                $"{Get("debug.available-actions-for-hut-at")} [{hut.tileX} {hut.tileY}] ({id}):",
-                LogLevel.Debug);
-            
+
+            _monitor.Log($"{Get("debug.available-actions-for-hut-at")} [{hut.tileX} {hut.tileY}] ({id}):", LogLevel.Debug);
+
             for (var x = hut.tileX.Value + 1 - radius; x < hut.tileX.Value + 2 + radius; ++x) {
                 for (var y = hut.tileY.Value + 1 - radius; y < hut.tileY.Value + 2 + radius; ++y) {
                     var pos = new Vector2(x, y);
@@ -446,55 +459,40 @@ namespace BetterJunimos.Utils {
                     }
 
                     // these 3 statements don't run unless you remove the `continue` above
-                    var cooldown = JunimoAbilities.ActionCoolingDown(farm, ability, pos)
-                        ? Get("debug.in-cooldown")
-                        : "";
-                    var itemsAvail = JunimoAbilities.ItemInHut(id, ability.RequiredItems())
-                        ? ""
-                        : Get("debug.required-item-unavailable");
-                    var progLocked = Util.Progression.CanUseAbility(ability)
-                        ? ""
-                        : Get("debug.locked-by-progression");
+                    var cooldown = JunimoAbilities.ActionCoolingDown(farm, ability, pos) ? Get("debug.in-cooldown") : "";
+                    var itemsAvail = JunimoAbilities.ItemInHut(id, ability.RequiredItems()) ? "" : Get("debug.required-item-unavailable");
+                    var progLocked = Util.Progression.CanUseAbility(ability) ? "" : Get("debug.locked-by-progression");
 
-                    _monitor.Log($"    {farm.Name} [{pos.X} {pos.Y}] {ability.AbilityName()} {cooldown} {itemsAvail} {progLocked}",
-                        LogLevel.Debug);
+                    _monitor.Log($"    {farm.Name} [{pos.X} {pos.Y}] {ability.AbilityName()} {cooldown} {itemsAvail} {progLocked}", LogLevel.Debug);
                 }
             }
 
             if (!Util.Greenhouse.HutHasGreenhouse(id)) {
                 return;
             }
-            
+
             _monitor.Log($"{Get("debug.available-actions-for-greenhouse")}:", LogLevel.Debug);
-            
+
             var gh = Game1.getLocationFromName("Greenhouse");
-            for (var x = 0; x < gh.map.Layers[0].LayerWidth; x++)
-            {
-                for (var y = 0; y < gh.map.Layers[0].LayerHeight; y++)
-                {
+            for (var x = 0; x < gh.map.Layers[0].LayerWidth; x++) {
+                for (var y = 0; y < gh.map.Layers[0].LayerHeight; y++) {
                     var pos = new Vector2(x, y);
                     var ability = Util.Abilities.IdentifyJunimoAbility(gh, pos, id);
                     if (ability == null) {
                         continue;
                     }
-                    // these 3 statements don't run unless you remove the `continue` above
-                    var cooldown = JunimoAbilities.ActionCoolingDown(gh, ability, pos)
-                        ? Get("debug.in-cooldown")
-                        : "";
-                    var itemsAvail = JunimoAbilities.ItemInHut(id, ability.RequiredItems())
-                        ? ""
-                        : Get("debug.required-item-unavailable");
-                    var progLocked = Util.Progression.CanUseAbility(ability)
-                        ? ""
-                        : Get("debug.locked-by-progression");
 
-                    _monitor.Log($"    {gh.Name} [{pos.X} {pos.Y}] {ability.AbilityName()} {cooldown} {itemsAvail} {progLocked}",
-                        LogLevel.Debug);
+                    // these 3 statements don't run unless you remove the `continue` above
+                    var cooldown = JunimoAbilities.ActionCoolingDown(gh, ability, pos) ? Get("debug.in-cooldown") : "";
+                    var itemsAvail = JunimoAbilities.ItemInHut(id, ability.RequiredItems()) ? "" : Get("debug.required-item-unavailable");
+                    var progLocked = Util.Progression.CanUseAbility(ability) ? "" : Get("debug.locked-by-progression");
+
+                    _monitor.Log($"    {gh.Name} [{pos.X} {pos.Y}] {ability.AbilityName()} {cooldown} {itemsAvail} {progLocked}", LogLevel.Debug);
                 }
             }
         }
 
-        
+
         public static bool HutOnTile(Vector2 pos) {
             return Util.GetAllFarms().Any(farm => farm.buildings.Any(b => b is JunimoHut && b.occupiesTile(pos)));
         }
@@ -507,23 +505,21 @@ namespace BetterJunimos.Utils {
         internal void SetupHutsToken() {
             var api = BetterJunimos.ContentPatcherAPI;
 
-            api?.RegisterToken(_manifest, "JunimoHuts", () =>
-            {
+            api?.RegisterToken(_manifest, "JunimoHuts", () => {
                 // save is loaded
                 if (!Context.IsWorldReady) return null;
                 var huts = Game1.getFarm().buildings.Any(b => b is JunimoHut);
                 return new[] { huts ? "true" : "false" };
             });
         }
-        
+
         internal void ConfigureFromWizard(object o, OneSecondUpdateTickedEventArgs e) {
             // check if host
             if (!Context.IsWorldReady) return;
             if (!Context.IsMainPlayer) return;
 
             // see if event has run
-            if (! Game1.player.eventsSeen.Contains("22210001"))
-            {
+            if (!Game1.player.eventsSeen.Contains("22210001")) {
                 Game1.getFarm().modData.Remove($"{_manifest.UniqueID}/ConfigurationWizardDone");
                 return;
             }
@@ -532,16 +528,16 @@ namespace BetterJunimos.Utils {
             if (Game1.getFarm().modData.ContainsKey($"{_manifest.UniqueID}/ConfigurationWizardDone")) {
                 return;
             }
-            
+
             // set marker that config is done
             Game1.getFarm().modData[$"{_manifest.UniqueID}/ConfigurationWizardDone"] = "true";
-            
+
             // collect answers from event
             Configure c = Configure.NotAnswered;
             if (Game1.player.dialogueQuestionsAnswered.Contains("22219010")) c = Configure.Yes;
             if (Game1.player.dialogueQuestionsAnswered.Contains("22219011")) c = Configure.No;
             if (Game1.player.dialogueQuestionsAnswered.Contains("22219012")) c = Configure.Rude;
-            
+
             Progression p = Progression.NotAnswered;
             if (Game1.player.dialogueQuestionsAnswered.Contains("22219020")) p = Progression.Yes;
             if (Game1.player.dialogueQuestionsAnswered.Contains("22219021")) p = Progression.No;
@@ -552,7 +548,7 @@ namespace BetterJunimos.Utils {
             if (Game1.player.dialogueQuestionsAnswered.Contains("22219032")) w = Wages.Forage;
             if (Game1.player.dialogueQuestionsAnswered.Contains("22219033")) w = Wages.All;
             if (Game1.player.dialogueQuestionsAnswered.Contains("22219034")) w = Wages.None;
-            
+
             ShowGMCM s = ShowGMCM.NotAnswered;
             if (Game1.player.dialogueQuestionsAnswered.Contains("22219040")) s = ShowGMCM.Yes;
             if (Game1.player.dialogueQuestionsAnswered.Contains("22219041")) s = ShowGMCM.No;
@@ -562,11 +558,11 @@ namespace BetterJunimos.Utils {
                 return;
             }
 
-            if (p == Progression.No) BetterJunimos.Config.Progression.Enabled = false;
+            if (p == Progression.No)
+                BetterJunimos.Config.Progression.Enabled = false;
             else if (p == Progression.Yes) BetterJunimos.Config.Progression.Enabled = true;
 
-            switch (w)
-            {
+            switch (w) {
                 case Wages.Flowers:
                     BetterJunimos.Config.JunimoPayment.WorkForWages = true;
                     BetterJunimos.Config.JunimoPayment.DailyWage = new ModConfig.JunimoPayments.PaymentAmount { Flowers = 1, Fruit = 0, ForagedItems = 0 };
@@ -595,7 +591,7 @@ namespace BetterJunimos.Utils {
 
             // save config
             BetterJunimos.SaveConfig();
-            
+
             // pop up GMCM if requested
             if (s == ShowGMCM.Yes) {
                 var configMenu = _helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");

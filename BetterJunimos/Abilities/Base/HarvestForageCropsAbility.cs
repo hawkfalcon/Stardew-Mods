@@ -24,6 +24,7 @@ namespace BetterJunimos.Abilities {
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -47,13 +48,14 @@ namespace BetterJunimos.Abilities {
 
                     Util.SpawnParticles(nextPos);
                     location.objects.Remove(nextPos);
-                    
+
                     // calculate the forage experience from this harvest
                     if (!BetterJunimos.Config.JunimoPayment.GiveExperience) return true;
                     Game1.player.gainExperience(2, 7);
-                    
+
                     return true;
                 }
+
                 direction++;
             }
 

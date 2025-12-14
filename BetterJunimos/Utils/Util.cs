@@ -22,7 +22,7 @@ namespace BetterJunimos.Utils {
         public const int FlowerCategory = -80;
         public const int FruitCategory = -79;
         public const int WineCategory = -26;
-        
+
         internal static IReflectionHelper Reflection;
         internal static JunimoAbilities Abilities;
         internal static JunimoPayments Payments;
@@ -55,19 +55,16 @@ namespace BetterJunimos.Utils {
                     return hut as JunimoHut;
                 }
             }
-            
+
             BetterJunimos.SMonitor.Log($"Could not find hut with id {id}", LogLevel.Warn);
             return null;
         }
 
         public static void AddItemToChest(GameLocation farm, Chest chest, SObject item) {
             Item obj = chest.addItem(item);
-            if (obj == null)
-                return;
+            if (obj == null) return;
             Vector2 pos = chest.TileLocation;
-            for (int index = 0; index < obj.Stack; ++index)
-                Game1.createObjectDebris(item.ItemId, (int) pos.X + 1, (int) pos.Y + 1, -1, item.Quality, 1f,
-                    farm);
+            for (int index = 0; index < obj.Stack; ++index) Game1.createObjectDebris(item.ItemId, (int)pos.X + 1, (int)pos.Y + 1, -1, item.Quality, 1f, farm);
         }
 
         public static void RemoveItemFromChest(Chest chest, Item item, int count = 1) {
@@ -82,7 +79,7 @@ namespace BetterJunimos.Utils {
         }
 
         public static void SpawnJunimoAtHut(JunimoHut hut) {
-            var pos = new Vector2((float) hut.tileX.Value + 1, (float) hut.tileY.Value + 1) * 64f + new Vector2(0.0f, 32f);
+            var pos = new Vector2((float)hut.tileX.Value + 1, (float)hut.tileY.Value + 1) * 64f + new Vector2(0.0f, 32f);
             SpawnJunimoAtPosition(hut.GetParentLocation(), pos, hut, hut.getUnusedJunimoNumber());
         }
 
@@ -90,12 +87,12 @@ namespace BetterJunimos.Utils {
             if (hut == null) {
                 return;
             }
-            
+
             /*
              * Added by Mizzion. This will set the color of the junimos based on what gem is inside the hut.
              */
             var isPrismatic = false;
-            var gemColor = GetGemColor(ref isPrismatic, hut); 
+            var gemColor = GetGemColor(ref isPrismatic, hut);
             /*
              * End added By Mizzion
              */
@@ -110,12 +107,12 @@ namespace BetterJunimos.Utils {
                 junimoHarvester.Position = pos;
                 junimoHarvester.pathfindToRandomSpotAroundHut();
             }
-            
+
             junimoHarvester.isPrismatic.Value = isPrismatic;
             location.characters.Add(junimoHarvester);
             hut.myJunimos.Add(junimoHarvester);
             junimoHarvester.HomeId = Util.GetHutIdFromHut(hut);
-            
+
             if (Game1.isRaining) {
                 var alpha = Reflection.GetField<float>(junimoHarvester, "alpha");
                 alpha.SetValue(BetterJunimos.Config.FunChanges.RainyJunimoSpiritFactor);
@@ -128,23 +125,19 @@ namespace BetterJunimos.Utils {
 /*
  * Added by Mizzion. This method is used to get the gem color, so the junimos can be colored
  * I ripped this from SDV and edited it to work with this mod.
-*/
+ */
         private static Color? GetGemColor(ref bool isPrismatic, JunimoHut hut) {
             var colorList = new List<Color>();
             var chest = hut.GetOutputChest();
             foreach (Item dyeObject in chest.Items) {
-                if (dyeObject != null &&
-                    (dyeObject.Category == MineralCategory || dyeObject.Category == GemCategory)) {
+                if (dyeObject != null && (dyeObject.Category == MineralCategory || dyeObject.Category == GemCategory)) {
                     Color? dyeColor = TailoringMenu.GetDyeColor(dyeObject);
-                    if (dyeObject.Name == "Prismatic Shard")
-                        isPrismatic = true;
-                    if (dyeColor.HasValue)
-                        colorList.Add(dyeColor.Value);
+                    if (dyeObject.Name == "Prismatic Shard") isPrismatic = true;
+                    if (dyeColor.HasValue) colorList.Add(dyeColor.Value);
                 }
             }
 
-            if (colorList.Count > 0)
-                return colorList[Game1.random.Next(colorList.Count)];
+            if (colorList.Count > 0) return colorList[Game1.random.Next(colorList.Count)];
             return new Color?();
         }
 
@@ -158,10 +151,10 @@ namespace BetterJunimos.Utils {
         }
 
         public static void SpawnParticles(Vector2 pos) {
-            Game1.Multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite(17, new Vector2(pos.X * 64f, pos.Y * 64f), Color.White, 7,
-                Game1.random.NextDouble() < 0.5, 125f));
-            Game1.Multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite(14, new Vector2(pos.X * 64f, pos.Y * 64f), Color.White, 7,
-                Game1.random.NextDouble() < 0.5, 50f));
+            Game1.Multiplayer.broadcastSprites(Game1.currentLocation,
+                new TemporaryAnimatedSprite(17, new Vector2(pos.X * 64f, pos.Y * 64f), Color.White, 7, Game1.random.NextDouble() < 0.5, 125f));
+            Game1.Multiplayer.broadcastSprites(Game1.currentLocation,
+                new TemporaryAnimatedSprite(14, new Vector2(pos.X * 64f, pos.Y * 64f), Color.White, 7, Game1.random.NextDouble() < 0.5, 50f));
         }
 
         internal static int ExperienceForCrop(Crop crop) {
@@ -171,7 +164,7 @@ namespace BetterJunimos.Utils {
 
             var ioh = crop.indexOfHarvest.Value;
             var oi = Game1.objectData[ioh];
-            var num = Math.Round((float)(16.0 * Math.Log(0.018 * (double) oi.Price + 1.0, Math.E)));
+            var num = Math.Round((float)(16.0 * Math.Log(0.018 * (double)oi.Price + 1.0, Math.E)));
             var int32 = Convert.ToInt32(num);
 
             return int32;

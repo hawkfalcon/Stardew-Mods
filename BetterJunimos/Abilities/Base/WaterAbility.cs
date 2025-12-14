@@ -10,7 +10,7 @@ namespace BetterJunimos.Abilities {
         public string AbilityName() {
             return "Water";
         }
-        
+
         public bool IsActionAvailable(GameLocation location, Vector2 pos, Guid guid) {
             if (!location.terrainFeatures.ContainsKey(pos)) return false;
             if (location.terrainFeatures[pos] is not HoeDirt hd) return false;
@@ -26,10 +26,10 @@ namespace BetterJunimos.Abilities {
 
             hd.state.Value = HoeDirt.watered;
             if (!Utility.isOnScreen(Utility.Vector2ToPoint(pos), 64, location)) return true;
-           
-            Game1.Multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite(13,
-                new Vector2(pos.X * 64f, pos.Y * 64f), Color.White, 10, Game1.random.NextDouble() < 0.5, 70f, 0, 64,
-                (float) ((pos.Y * 64.0 + 32.0) / 10000.0 - 0.00999999977648258)));
+
+            Game1.Multiplayer.broadcastSprites(Game1.currentLocation,
+                new TemporaryAnimatedSprite(13, new Vector2(pos.X * 64f, pos.Y * 64f), Color.White, 10, Game1.random.NextDouble() < 0.5, 70f, 0, 64,
+                    (float)((pos.Y * 64.0 + 32.0) / 10000.0 - 0.00999999977648258)));
 
             return true;
         }

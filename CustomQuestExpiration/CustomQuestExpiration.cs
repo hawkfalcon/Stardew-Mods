@@ -34,9 +34,7 @@ namespace CustomQuestExpiration {
 
         // Update quests when leaving the billboard
         private void updateQuest() {
-            Quest currentDailyQuest = Game1.player.questLog.FirstOrDefault(quest =>
-                quest.dailyQuest.Value && quest.Equals(Game1.questOfTheDay)
-            );
+            Quest currentDailyQuest = Game1.player.questLog.FirstOrDefault(quest => quest.dailyQuest.Value && quest.Equals(Game1.questOfTheDay));
             if (currentDailyQuest != null) {
                 int daysLeft = getDaysLeft(currentDailyQuest);
                 currentDailyQuest.daysLeft.Value = daysLeft;
@@ -57,6 +55,7 @@ namespace CustomQuestExpiration {
             foreach (Quest quest in dailyQuests) {
                 quest.dailyQuest.Value = true;
             }
+
             dailyQuests.Clear();
         }
 
@@ -69,16 +68,16 @@ namespace CustomQuestExpiration {
             // daily quest types
             // https://stardewvalleywiki.com/Quests#Types
             switch (quest.questType.Value) {
-            case Quest.type_itemDelivery:
-                return Config.CategoryExpiration.ItemDelivery;
-            case Quest.type_resource:
-                return Config.CategoryExpiration.Gathering;
-            case Quest.type_fishing:
-                return Config.CategoryExpiration.Fishing;
-            case Quest.type_monster:
-                return Config.CategoryExpiration.SlayMonsters;
-            default:
-                return Config.DaysToExpiration;
+                case Quest.type_itemDelivery:
+                    return Config.CategoryExpiration.ItemDelivery;
+                case Quest.type_resource:
+                    return Config.CategoryExpiration.Gathering;
+                case Quest.type_fishing:
+                    return Config.CategoryExpiration.Fishing;
+                case Quest.type_monster:
+                    return Config.CategoryExpiration.SlayMonsters;
+                default:
+                    return Config.DaysToExpiration;
             }
         }
     }

@@ -48,7 +48,7 @@ namespace BetterJunimos {
         public void ShowPerfectionTracker() {
             Util.Progression.ShowPerfectionTracker();
         }
-        
+
         public void ShowConfigurationMenu() {
             Util.Progression.ShowConfigurationMenu();
         }

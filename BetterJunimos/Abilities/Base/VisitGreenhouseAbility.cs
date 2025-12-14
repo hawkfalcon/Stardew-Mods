@@ -24,7 +24,7 @@ namespace BetterJunimos.Abilities {
             var down = new Vector2(x, y - 1);
             var left = new Vector2(x - 1, y);
 
-            Vector2[] positions = {up, right, down, left};
+            Vector2[] positions = { up, right, down, left };
             var greenhouses = positions.Select(nextPos => JunimoGreenhouse.GreenhouseBuildingAtPos(location, nextPos));
             if (!greenhouses.Any(greenhouseBuilding => greenhouseBuilding is not null)) return false;
             var greenhouse = greenhouses.FirstOrDefault(greenhouseBuilding => greenhouseBuilding is not null);
@@ -39,6 +39,7 @@ namespace BetterJunimos.Abilities {
                     return false;
                 }
             }
+
             Greenhouse = greenhouse;
             return true;
         }
@@ -47,7 +48,7 @@ namespace BetterJunimos.Abilities {
             if (!IsActionAvailable(location, pos, guid)) {
                 return false;
             }
-            
+
             if (Utility.isOnScreen(Utility.Vector2ToPoint(pos), 64, location)) {
                 location.playSound("junimoMeep1");
             }
@@ -56,7 +57,7 @@ namespace BetterJunimos.Abilities {
             var hut = junimo.home;
             var greenhouse = Greenhouse;
             var door = Patches.PatchPathfindDoWork.GreenhouseDoor(junimo, greenhouse);
-            var spawnAt = new Vector2(door.X, (float) door.Y - 1) * 64f + new Vector2(0.0f, 32f);
+            var spawnAt = new Vector2(door.X, (float)door.Y - 1) * 64f + new Vector2(0.0f, 32f);
 
             var junimoNumber = Game1.random.Next(4, 100);
             Util.SpawnJunimoAtPosition(greenhouse, spawnAt, hut, junimoNumber);

@@ -17,18 +17,18 @@ namespace BetterJunimos.Utils {
 
         /* ACTION FAILURE COOLDOWNS:
          Intent: don't retry actions that failed recently (in the last game hour)
-         
+
          Rationale: if IsActionAvailable says yes but PerformAction says no, the Junimo will retry that action all day
-         and appear to be stuck on a tile. 
-         While these two functions should be as consistent as possible, it's impossible for IsActionAvailable to 
-         predict all the ways that PerformAction could fail. 
+         and appear to be stuck on a tile.
+         While these two functions should be as consistent as possible, it's impossible for IsActionAvailable to
+         predict all the ways that PerformAction could fail.
 
          Registering a failed action:
          Call ActionFailed. Currently called in the Harmony patch PatchTryToHarvestHere
-         
+
          Resetting cooldowns:
          Call ResetCooldowns. Currently called by the start-of-day event handler and the hut-menu-closed handler
-         (player may have added seeds etc so that failed actions will now succeed)           
+         (player may have added seeds etc so that failed actions will now succeed)
          */
         private static readonly Dictionary<(GameLocation, Vector2, IJunimoAbility), int> FailureCooldowns = new();
 
@@ -45,7 +45,8 @@ namespace BetterJunimos.Utils {
         private readonly List<IJunimoAbility> _registeredJunimoAbilities = new();
 
         private static readonly Dictionary<Guid, Dictionary<string, bool>> ItemsInHuts = new();
-        private readonly HashSet<string> _requiredItems = new() {SObject.fertilizerCategory.ToString(), SObject.SeedsCategory.ToString()};
+
+        private readonly HashSet<string> _requiredItems = new() { SObject.fertilizerCategory.ToString(), SObject.SeedsCategory.ToString() };
 
 
         public JunimoAbilities(Dictionary<string, bool> enabledAbilities, IMonitor monitor) {
@@ -92,7 +93,7 @@ namespace BetterJunimos.Utils {
             }
 
             if (!Util.Progression.UnlockCosts.ContainsKey(name)) {
-                Util.Progression.UnlockCosts[name] = new UnlockCost {Item = "268", Stack = 1, Remarks = "Starfruit"};
+                Util.Progression.UnlockCosts[name] = new UnlockCost { Item = "268", Stack = 1, Remarks = "Starfruit" };
             }
         }
 
@@ -108,20 +109,22 @@ namespace BetterJunimos.Utils {
                 if (!ItemInHut(hutGuid, ability.RequiredItems())) {
                     continue;
                 }
+
                 if (!ability.IsActionAvailable(location, pos, hutGuid)) {
                     continue;
                 }
+
                 if (!Util.Progression.CanUseAbility(ability)) {
                     continue;
                 }
+
                 return ability;
             }
 
             return null;
         }
 
-        public bool PerformAction(IJunimoAbility ability, Guid id, GameLocation location, Vector2 pos,
-            JunimoHarvester junimo) {
+        public bool PerformAction(IJunimoAbility ability, Guid id, GameLocation location, Vector2 pos, JunimoHarvester junimo) {
             var hut = Util.GetHutFromId(id);
             var chest = hut.GetOutputChest();
 
@@ -198,16 +201,13 @@ namespace BetterJunimos.Utils {
 
         private static void UpdateHutContainsItemId(Guid id, Chest chest, string itemId) {
             ItemsInHuts[id][itemId] = chest.Items.Any(item =>
-                item != null && item.ItemId == itemId &&
-                !(BetterJunimos.Config.JunimoImprovements.AvoidPlantingCoffee && item.ParentSheetIndex == Util.CoffeeId)
-            );
+                item != null && item.ItemId == itemId && !(BetterJunimos.Config.JunimoImprovements.AvoidPlantingCoffee && item.ParentSheetIndex == Util.CoffeeId));
         }
 
         private static void UpdateHutContainsItemCategory(Guid id, Chest chest, string itemCategory) {
             ItemsInHuts[id][itemCategory] = chest.Items.Any(item =>
                 item != null && item.Category.ToString() == itemCategory &&
-                !(BetterJunimos.Config.JunimoImprovements.AvoidPlantingCoffee && item.ParentSheetIndex == Util.CoffeeId)
-            );
+                !(BetterJunimos.Config.JunimoImprovements.AvoidPlantingCoffee && item.ParentSheetIndex == Util.CoffeeId));
         }
     }
 }

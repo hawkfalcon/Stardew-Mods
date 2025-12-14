@@ -21,7 +21,7 @@ namespace BetterJunimos {
                     } else if (Util.Progression.ReducedCostToConstruct) {
                         junimoHut.BuildCost = 10000;
                         junimoHut.BuildMaterials.Clear();
-                        
+
                         junimoHut.BuildMaterials.Add(new BuildingMaterial {
                             ItemId = "390",
                             Amount = 100

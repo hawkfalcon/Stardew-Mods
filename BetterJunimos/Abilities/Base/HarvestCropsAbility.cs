@@ -8,10 +8,9 @@ using BetterJunimos.Utils;
 
 namespace BetterJunimos.Abilities {
     public class HarvestCropsAbility : IJunimoAbility {
-        private List<int> giantCrops = new() {190, 254, 276};
+        private List<int> giantCrops = new() { 190, 254, 276 };
 
-        internal HarvestCropsAbility() {
-        }
+        internal HarvestCropsAbility() { }
 
         public string AbilityName() {
             return "HarvestCrops";
@@ -27,7 +26,7 @@ namespace BetterJunimos.Abilities {
         public bool PerformAction(GameLocation location, Vector2 pos, JunimoHarvester junimo, Guid guid) {
             // calculate the experience from this harvest
             if (!BetterJunimos.Config.JunimoPayment.GiveExperience) return true;
-            if (location.terrainFeatures.ContainsKey(pos) && location.terrainFeatures[pos] is HoeDirt {crop: { }} hd) {
+            if (location.terrainFeatures.ContainsKey(pos) && location.terrainFeatures[pos] is HoeDirt { crop: { } } hd) {
                 Game1.player.gainExperience(0, Util.ExperienceForCrop(hd.crop));
             }
 
@@ -46,19 +45,16 @@ namespace BetterJunimos.Abilities {
             if (item.ParentSheetIndex == 421) {
                 // if it's the last day of Fall, harvest sunflowers
                 if (Game1.IsFall && Game1.dayOfMonth >= 28 && BetterJunimos.Config.JunimoImprovements.HarvestEverythingOn28th) return false;
-            }
-            else {
+            } else {
                 // if it's the last day of the month, harvest whatever it is
                 if (Game1.dayOfMonth >= 28 && BetterJunimos.Config.JunimoImprovements.HarvestEverythingOn28th) return false;
             }
 
-            if (BetterJunimos.Config.JunimoImprovements.AvoidHarvestingGiants &&
-                giantCrops.Contains(item.ParentSheetIndex)) {
+            if (BetterJunimos.Config.JunimoImprovements.AvoidHarvestingGiants && giantCrops.Contains(item.ParentSheetIndex)) {
                 return true;
             }
 
-            if (BetterJunimos.Config.JunimoImprovements.AvoidHarvestingFlowers &&
-                item.Category == StardewValley.Object.flowersCategory) {
+            if (BetterJunimos.Config.JunimoImprovements.AvoidHarvestingFlowers && item.Category == StardewValley.Object.flowersCategory) {
                 return true;
             }
 

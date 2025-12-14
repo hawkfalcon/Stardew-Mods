@@ -15,6 +15,7 @@ namespace BetterJunimos.Abilities {
             if (location.terrainFeatures.ContainsKey(pos) && location.terrainFeatures[pos] is Bush bush) {
                 return bush.tileSheetOffset.Value == 1;
             }
+
             return false;
         }
 

@@ -16,7 +16,7 @@ namespace BetterJunimos.Patches {
      *
      * Search for actionable tiles
      * Completely rewrite original function.
-    */
+     */
     internal class PatchSearchAroundHut {
         private static readonly Dictionary<JunimoHut, (bool, int)> _scanCache = new();
 
@@ -27,6 +27,7 @@ namespace BetterJunimos.Patches {
                 __instance.lastKnownCropLocation = Point.Zero;
                 return false;
             }
+
             __result = SearchAroundHut(__instance);
             return false;
         }
@@ -43,18 +44,19 @@ namespace BetterJunimos.Patches {
             if (BetterJunimos.Config.JunimoImprovements.CanWorkInGreenhouse) {
                 var ghb = Util.Greenhouse.GreenhouseBuildingNearHut(id);
                 var gh = Game1.getLocationFromName("Greenhouse");
-                if (ghb != null)
-                {
+                if (ghb != null) {
                     gh = ghb;
                 }
 
                 if (!Util.Greenhouse.HutHasGreenhouse(id)) {
                     return foundWork;
                 }
+
                 // SearchGreenhouseGrid manages hut.lastKnownCropLocation (a hack!) and Util.Abilities.lastKnownCropLocations
                 foundWork |= SearchGreenhouseGrid(hut, id, gh);
                 Util.Abilities.lastKnownCropLocations.TryGetValue((hut, gh), out var lkc);
             }
+
             return foundWork;
         }
 
@@ -67,17 +69,14 @@ namespace BetterJunimos.Patches {
         /// <param name="hut">JunimoHut to search</param>
         /// <param name="hut_guid">GUID of hut to search</param>
         /// <returns>True if there's any work to do</returns>
-        internal static bool SearchGreenhouseGrid(JunimoHut hut, Guid hut_guid, GameLocation gl = null)
-        {
+        internal static bool SearchGreenhouseGrid(JunimoHut hut, Guid hut_guid, GameLocation gl = null) {
             var gh = Game1.getLocationFromName("Greenhouse");
-            if (gl != null)
-            {
+            if (gl != null) {
                 gh = gl;
             }
-            for (var x = 0; x < gh.map.Layers[0].LayerWidth; x++)
-            {
-                for (var y = 0; y < gh.map.Layers[0].LayerHeight; y++)
-                {
+
+            for (var x = 0; x < gh.map.Layers[0].LayerWidth; x++) {
+                for (var y = 0; y < gh.map.Layers[0].LayerHeight; y++) {
                     var pos = new Vector2(x, y);
                     var ability = Util.Abilities.IdentifyJunimoAbility(gh, pos, hut_guid);
                     if (ability == null) continue;
@@ -86,6 +85,7 @@ namespace BetterJunimos.Patches {
                     return true;
                 }
             }
+
             Util.Abilities.lastKnownCropLocations[(hut, gh)] = Point.Zero;
             return false;
         }
@@ -100,10 +100,10 @@ namespace BetterJunimos.Patches {
                     var pos = new Vector2(x, y);
                     var ability = Util.Abilities.IdentifyJunimoAbility(farm, pos, id);
                     if (ability == null) continue;
-                    
+
                     hut.lastKnownCropLocation = new Point(x, y);
                     Util.Abilities.lastKnownCropLocations[(hut, farm)] = new Point(x, y);
-                    
+
                     _scanCache[hut] = (true, radius);
                     return true;
                 }
@@ -117,12 +117,11 @@ namespace BetterJunimos.Patches {
     }
 
     /* Update
-     * 
+     *
      * To allow more junimos, allow working in rain
      */
     [HarmonyPriority(Priority.Low)]
-    internal class ReplaceJunimoHutupdateWhenFarmNotCurrentLocation 
-    {
+    internal class ReplaceJunimoHutupdateWhenFarmNotCurrentLocation {
         // This is to prevent the update function from running, other than base.Update()
         // Capture sendOutTimer and use to stop execution
         public static bool Prefix(JunimoHut __instance, GameTime time, ref int ___junimoSendOutTimer, out int __state) {
@@ -136,22 +135,27 @@ namespace BetterJunimos.Patches {
             if (__instance.GetParentLocation().IsWinterHere() && !Util.Progression.CanWorkInWinter) {
                 return true;
             }
+
             // Rain
-            if (__instance.GetParentLocation().IsRainingHere() && !Util.Progression.CanWorkInRain){
+            if (__instance.GetParentLocation().IsRainingHere() && !Util.Progression.CanWorkInRain) {
                 return true;
             }
+
             // Currently sending out a junimo
             if (___junimoSendOutTimer > 0) {
                 return true;
             }
+
             // Already enough junimos
-            if (__instance.myJunimos.Count >= Util.Progression.MaxJunimosUnlocked){
+            if (__instance.myJunimos.Count >= Util.Progression.MaxJunimosUnlocked) {
                 return true;
             }
+
             // Nothing to do
             if (!__instance.areThereMatureCropsWithinRadius()) {
                 return true;
             }
+
             Util.SpawnJunimoAtHut(__instance);
             ___junimoSendOutTimer = 1000;
             return true;
@@ -159,20 +163,18 @@ namespace BetterJunimos.Patches {
     }
 
     /* Update
-     * 
+     *
      * To allow more junimos, allow working
      */
     [HarmonyPriority(Priority.VeryHigh)]
-    internal class ReplaceJunimoHutdayUpdate 
-    {
-        public static void Postfix(JunimoHut __instance, int dayOfMonth)
-		{
+    internal class ReplaceJunimoHutdayUpdate {
+        public static void Postfix(JunimoHut __instance, int dayOfMonth) {
             __instance.shouldSendOutJunimos.Value = true;
-		}
+        }
     }
 
     /* Update
-     * 
+     *
      * To allow more junimos, allow working in rain
      */
     [HarmonyPriority(Priority.Low)]
@@ -196,22 +198,27 @@ namespace BetterJunimos.Patches {
             if (__instance.GetParentLocation().IsWinterHere() && !Util.Progression.CanWorkInWinter) {
                 return;
             }
+
             // Rain
-            if (__instance.GetParentLocation().IsRainingHere() && !Util.Progression.CanWorkInRain){
+            if (__instance.GetParentLocation().IsRainingHere() && !Util.Progression.CanWorkInRain) {
                 return;
             }
+
             // Currently sending out a junimo
             if (___junimoSendOutTimer > 0) {
                 return;
             }
+
             // Already enough junimos
-            if (__instance.myJunimos.Count >= Util.Progression.MaxJunimosUnlocked){
+            if (__instance.myJunimos.Count >= Util.Progression.MaxJunimosUnlocked) {
                 return;
             }
+
             // Nothing to do
             if (!__instance.areThereMatureCropsWithinRadius()) {
                 return;
             }
+
             Util.SpawnJunimoAtHut(__instance);
             ___junimoSendOutTimer = 1000;
         }
@@ -219,7 +226,7 @@ namespace BetterJunimos.Patches {
 
     /*
      * performTenMinuteAction
-     * 
+     *
      * Add the end to trigger more than 3 junimos to spawn
      */
     [HarmonyPriority(Priority.Low)]
@@ -233,13 +240,13 @@ namespace BetterJunimos.Patches {
                         if (npc is JunimoHarvester) {
                             if (!__instance.myJunimos.Contains(npc)) {
                                 __instance.myJunimos.Add(npc as JunimoHarvester);
-                                ((JunimoHarvester) npc).pokeToHarvest();
+                                ((JunimoHarvester)npc).pokeToHarvest();
                             }
                         }
                     }
                 }
             }
-            
+
             var time = Util.Progression.CanWorkInEvenings ? 2400 : 1900;
             if (Game1.timeOfDay > time) return;
 
@@ -248,7 +255,7 @@ namespace BetterJunimos.Patches {
             }
         }
     }
-    
+
     /*
      * performTenMinuteAction
      *
@@ -257,26 +264,22 @@ namespace BetterJunimos.Patches {
     internal class ReplaceTenMinuteAction {
         public static bool Prefix(int timeElapsed, JunimoHut __instance, ref int ___junimoSendOutTimer) {
             if (!Context.IsMainPlayer) return true;
-            
+
             // ((Building) __instance).performTenMinuteAction(timeElapsed);
-            for (var index = __instance.myJunimos.Count - 1; index >= 0; --index)
-            {
+            for (var index = __instance.myJunimos.Count - 1; index >= 0; --index) {
                 // if (!Game1.getFarm().characters.Contains(__instance.myJunimos[index]))
                 //     __instance.myJunimos.RemoveAt(index);
                 // else
                 __instance.myJunimos[index].pokeToHarvest();
             }
-            
-            if (Game1.timeOfDay is >= 2000 and < 2400 && !__instance.GetParentLocation().IsWinterHere() && Game1.random.NextDouble() < 0.2)
-            {
+
+            if (Game1.timeOfDay is >= 2000 and < 2400 && !__instance.GetParentLocation().IsWinterHere() && Game1.random.NextDouble() < 0.2) {
                 __instance.wasLit.Value = true;
-            }
-            else
-            {
-                if (Game1.timeOfDay != 2400 || __instance.GetParentLocation().IsWinterHere())
-                    return false;
+            } else {
+                if (Game1.timeOfDay != 2400 || __instance.GetParentLocation().IsWinterHere()) return false;
                 __instance.wasLit.Value = false;
             }
+
             var time = Util.Progression.CanWorkInEvenings ? 2400 : 1900;
             if (Game1.timeOfDay > time) return false;
 
@@ -287,12 +290,12 @@ namespace BetterJunimos.Patches {
             return false;
         }
     }
-    
+
     /* getUnusedJunimoNumber
-     * 
+     *
      * Completely rewrite method to support more than 3 junimos
      * The only difference is the use of MaxJunimos
-    */
+     */
     [HarmonyPriority(Priority.Low)]
     internal class ReplaceJunimoHutNumber {
         public static bool Prefix(JunimoHut __instance, ref int __result) {

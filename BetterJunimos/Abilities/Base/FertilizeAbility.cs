@@ -13,7 +13,7 @@ namespace BetterJunimos.Abilities {
         private const int ItemCategory = SObject.fertilizerCategory;
         private const string TreeFertilizer = "805";
         private List<string> _RequiredItems;
-        
+
         public string AbilityName() {
             return "Fertilize";
         }
@@ -31,7 +31,7 @@ namespace BetterJunimos.Abilities {
 
         public bool PerformAction(GameLocation location, Vector2 pos, JunimoHarvester junimo, Guid guid) {
             var chest = Util.GetHutFromId(guid).GetOutputChest();
-            var foundItem = chest.Items.FirstOrDefault(item => item is {Category: ItemCategory} && item.ItemId != TreeFertilizer);
+            var foundItem = chest.Items.FirstOrDefault(item => item is { Category: ItemCategory } && item.ItemId != TreeFertilizer);
             if (foundItem == null) return false;
 
             Fertilize(location, pos, foundItem.ParentSheetIndex);
@@ -42,8 +42,8 @@ namespace BetterJunimos.Abilities {
         public List<string> RequiredItems() {
             // this is heavy, cache it
             if (_RequiredItems is not null) return _RequiredItems;
-            var fertilizers = Game1.objectData
-                    .Where(pair => pair.Value.Category == StardewValley.Object.fertilizerCategory && pair.Key != TreeFertilizer);
+            var fertilizers = Game1.objectData.Where(pair => 
+                pair.Value.Category == StardewValley.Object.fertilizerCategory && pair.Key != TreeFertilizer);
             _RequiredItems = (from kvp in fertilizers select kvp.Key).ToList();
 
             return _RequiredItems;
@@ -62,7 +62,6 @@ namespace BetterJunimos.Abilities {
         private static void CheckSpeedGro(HoeDirt hd, Crop crop) {
             var fertilizer = hd.fertilizer.Value;
             var who = Game1.player;
-
             if (crop == null) {
                 return;
             }
@@ -94,7 +93,7 @@ namespace BetterJunimos.Abilities {
                 speedIncrease += 0.1f;
             }
 
-            var daysToRemove = (int) Math.Ceiling(totalDaysOfCropGrowth * speedIncrease);
+            var daysToRemove = (int)Math.Ceiling(totalDaysOfCropGrowth * speedIncrease);
             var tries = 0;
             while (daysToRemove > 0 && tries < 3) {
                 for (var i = 0; i < crop.phaseDays.Count; i++) {
