@@ -53,8 +53,9 @@ namespace BetterJunimos.Patches {
                     Util.Abilities.ActionFailed(__instance.currentLocation, junimoAbility, pos);
                 } else {
                     // succeeded, shake
-                    if (junimoAbility is HarvestCropsAbility)
+                    if (junimoAbility is HarvestCropsAbility) {
                         time = 2000;
+                    }
                     else if (BetterJunimos.Config.JunimoImprovements.WorkRidiculouslyFast)
                         time = 20;
                     else

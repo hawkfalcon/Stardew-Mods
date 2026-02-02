@@ -14,6 +14,7 @@ namespace BetterJunimos.Utils {
     public class Util {
         private const int UnpaidRadius = 3;
         public const int CoffeeId = 433;
+        public const string CoffeeItemId = "433";
 
         private const int GemCategory = -2;
         private const int MineralCategory = -12;
@@ -160,16 +161,17 @@ namespace BetterJunimos.Utils {
         }
 
         internal static int ExperienceForCrop(Crop crop) {
-            if (crop.forageCrop.Value) {
+            if (crop == null || crop.forageCrop.Value) {
                 return 3;
             }
 
-            var ioh = crop.indexOfHarvest.Value;
-            var oi = Game1.objectData[ioh];
-            var num = Math.Round((float)(16.0 * Math.Log(0.018 * (double)oi.Price + 1.0, Math.E)));
-            var int32 = Convert.ToInt32(num);
+            string ioh = crop.indexOfHarvest.Value?.ToString();
+            if (ioh != null && Game1.objectData.TryGetValue(ioh, out var oi)) {
+                double num = Math.Round(16.0 * Math.Log(0.018 * (double)oi.Price + 1.0));
+                return Convert.ToInt32(num);
+            }
 
-            return int32;
+            return 0;
         }
     }
 }

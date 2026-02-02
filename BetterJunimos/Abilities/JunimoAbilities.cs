@@ -201,13 +201,20 @@ namespace BetterJunimos.Utils {
 
         private static void UpdateHutContainsItemId(Guid id, Chest chest, string itemId) {
             ItemsInHuts[id][itemId] = chest.Items.Any(item =>
-                item != null && item.ItemId == itemId && !(BetterJunimos.Config.JunimoImprovements.AvoidPlantingCoffee && item.ParentSheetIndex == Util.CoffeeId));
+                item != null && item.ItemId == itemId && !(BetterJunimos.Config.JunimoImprovements.AvoidPlantingCoffee && item.ItemId == Util.CoffeeItemId));
         }
 
         private static void UpdateHutContainsItemCategory(Guid id, Chest chest, string itemCategory) {
-            ItemsInHuts[id][itemCategory] = chest.Items.Any(item =>
-                item != null && item.Category.ToString() == itemCategory &&
-                !(BetterJunimos.Config.JunimoImprovements.AvoidPlantingCoffee && item.ParentSheetIndex == Util.CoffeeId));
+            string coffeeItemId = Util.CoffeeItemId;
+            string seedsCategory = SObject.SeedsCategory.ToString();
+            ItemsInHuts[id][itemCategory] = chest.Items.Any(item => {
+                if (item == null) return false;
+                bool isMatch = item.Category.ToString() == itemCategory;
+                if (!isMatch && itemCategory == seedsCategory) {
+                    isMatch = item.ItemId == coffeeItemId;
+                }
+                return isMatch && !(BetterJunimos.Config.JunimoImprovements.AvoidPlantingCoffee && item.ItemId == coffeeItemId);
+            });
         }
     }
 }
