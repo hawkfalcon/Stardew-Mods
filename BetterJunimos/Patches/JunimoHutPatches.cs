@@ -19,8 +19,15 @@ namespace BetterJunimos.Patches {
      */
     internal class PatchSearchAroundHut {
         private static readonly Dictionary<JunimoHut, (bool, int)> _scanCache = new();
+        private static int _lastCacheTick = -1;
 
         public static bool Prefix(JunimoHut __instance, ref bool __result) {
+            // Invalidate cache each game tick to prevent stale results
+            if (Game1.ticks != _lastCacheTick) {
+                _scanCache.Clear();
+                _lastCacheTick = Game1.ticks;
+            }
+
             if (!Context.IsMainPlayer) return true;
             // Prevent unnecessary searching when unpaid
             if (BetterJunimos.Config.JunimoPayment.WorkForWages && !Util.Payments.WereJunimosPaidToday) {
