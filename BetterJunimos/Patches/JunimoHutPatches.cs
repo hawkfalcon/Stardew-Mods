@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using BetterJunimos.Utils;
@@ -245,10 +245,10 @@ namespace BetterJunimos.Patches {
             foreach (var location in Game1.locations) {
                 if (location.IsGreenhouse) {
                     foreach (var npc in location.characters) {
-                        if (npc is JunimoHarvester) {
-                            if (!__instance.myJunimos.Contains(npc)) {
-                                __instance.myJunimos.Add(npc as JunimoHarvester);
-                                ((JunimoHarvester)npc).pokeToHarvest();
+                        if (npc is JunimoHarvester jh && jh.home == __instance) {
+                            if (!__instance.myJunimos.Contains(jh)) {
+                                __instance.myJunimos.Add(jh);
+                                jh.pokeToHarvest();
                             }
                         }
                     }

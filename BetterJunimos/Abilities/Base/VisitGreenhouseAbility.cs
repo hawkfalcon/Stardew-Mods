@@ -28,7 +28,7 @@ namespace BetterJunimos.Abilities {
             var greenhouses = positions.Select(nextPos => JunimoGreenhouse.GreenhouseBuildingAtPos(location, nextPos));
             if (!greenhouses.Any(greenhouseBuilding => greenhouseBuilding is not null)) return false;
             var greenhouse = greenhouses.FirstOrDefault(greenhouseBuilding => greenhouseBuilding is not null);
-            if (greenhouse.characters.Count(npc => npc is JunimoHarvester) >= Util.Progression.MaxJunimosUnlocked - Util.Progression.BonusMaxJunimos) {
+            if (greenhouse.characters.Count(npc => npc is JunimoHarvester) >= Util.Progression.BaseMaxJunimos) {
                 // greenhouse already kinda full
                 return false;
             }

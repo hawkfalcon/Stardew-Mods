@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BetterJunimos.Abilities;
@@ -153,12 +153,18 @@ namespace BetterJunimos.Utils {
             }
         }
 
+        public int BaseMaxJunimos {
+            get {
+                if (!BetterJunimos.Config.Progression.Enabled) return BetterJunimos.Config.JunimoHuts.MaxJunimos;
+                if (Unlocked("UnlimitedJunimos")) return BetterJunimos.Config.JunimoHuts.MaxJunimos;
+                if (Unlocked("MoreJunimos")) return Math.Min(MoreJunimosLimit, BetterJunimos.Config.JunimoHuts.MaxJunimos);
+                return Math.Min(InitialJunimosLimit, BetterJunimos.Config.JunimoHuts.MaxJunimos);
+            }
+        }
+
         public int MaxJunimosUnlocked {
             get {
-                if (!BetterJunimos.Config.Progression.Enabled) return BetterJunimos.Config.JunimoHuts.MaxJunimos + BonusMaxJunimos;
-                if (Unlocked("UnlimitedJunimos")) return BetterJunimos.Config.JunimoHuts.MaxJunimos + BonusMaxJunimos;
-                if (Unlocked("MoreJunimos")) return Math.Min(MoreJunimosLimit, BetterJunimos.Config.JunimoHuts.MaxJunimos + BonusMaxJunimos);
-                return Math.Min(InitialJunimosLimit, BetterJunimos.Config.JunimoHuts.MaxJunimos + BonusMaxJunimos);
+                return BaseMaxJunimos + BonusMaxJunimos;
             }
         }
 
@@ -167,11 +173,11 @@ namespace BetterJunimos.Utils {
                 var bonusJunimos = 0;
                 foreach (var farm in Util.GetAllFarms()) {
                     if (farm.IsGreenhouse) {
-                        bonusJunimos += farm.characters.Count(npc => npc is JunimoHarvester);
+                        bonusJunimos += farm.characters.Count(npc => npc is JunimoHarvester jh && jh.home != null && jh.currentLocation != jh.home.GetParentLocation());
                     }
                 }
 
-                return bonusJunimos;
+                return Math.Min(BaseMaxJunimos, bonusJunimos);
             }
         }
 
