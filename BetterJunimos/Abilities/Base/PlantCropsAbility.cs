@@ -17,10 +17,6 @@ namespace BetterJunimos.Abilities {
         private readonly IMonitor Monitor;
 
         private const string SunflowerSeeds = "431";
-        private const string SpeedGro = "465";
-        private const string DeluxeSpeedGro = "466";
-        private const string HyperSpeedGro = "918";
-
         static Dictionary<string, Dictionary<string, bool>> cropSeasons = new();
 
         internal PlantCropsAbility(IMonitor Monitor) {
@@ -161,29 +157,18 @@ namespace BetterJunimos.Abilities {
             if (hd.crop == null) return;
 
             var paddyWaterCheck = hd.paddyWaterCheck();
-            var fertilizer = hd.fertilizer.Value is SpeedGro or DeluxeSpeedGro or HyperSpeedGro;
+            var fertilizerSpeedBoost = hd.GetFertilizerSpeedBoost();
             var agriculturalist = who.professions.Contains(5);
 
-            if (!(fertilizer || agriculturalist || paddyWaterCheck)) return;
+            if (fertilizerSpeedBoost <= 0 && !agriculturalist && !paddyWaterCheck) return;
 
             hd.crop.ResetPhaseDays();
             var num1 = 0;
             for (var index = 0; index < hd.crop.phaseDays.Count - 1; ++index) num1 += hd.crop.phaseDays[index];
-            var num2 = 0.0f;
-            switch (hd.fertilizer.Value) {
-                case "465":
-                    num2 += 0.1f;
-                    break;
-                case "466":
-                    num2 += 0.25f;
-                    break;
-                case "918":
-                    num2 += 0.33f;
-                    break;
-            }
+            var num2 = fertilizerSpeedBoost;
 
             if (paddyWaterCheck) num2 += 0.25f;
-            if (who.professions.Contains(5)) num2 += 0.1f;
+            if (agriculturalist) num2 += 0.1f;
             var num3 = (int)Math.Ceiling((double)num1 * num2);
             for (var index1 = 0; num3 > 0 && index1 < 3; ++index1) {
                 for (var index2 = 0; index2 < hd.crop.phaseDays.Count; ++index2) {
