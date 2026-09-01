@@ -1,0 +1,5 @@
+<Project>
+    <PropertyGroup>
+        <ModZipPath>$(MSBuildThisFileDirectory)/_releases</ModZipPath>
+    </PropertyGroup>
+</Project>
