@@ -35,7 +35,7 @@ namespace BetterJunimos.Utils {
         // the log on every `home` lookup. Reset each day.
         private static readonly HashSet<Guid> MissingHutWarnings = new();
 
-        public static List<GameLocation> GetAllFarms() {
+        public static IList<GameLocation> GetAllFarms() {
             // Note: this is the whole location list (the mod works on modded farms,
             // Ginger Island, etc), not just farms. Avoid allocating a copy; it's on a
             // hot path (every JunimoHarvester.home lookup).
