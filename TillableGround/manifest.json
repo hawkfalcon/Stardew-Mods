@@ -1,7 +1,7 @@
-﻿{
+{
   "Name": "Tillable Ground",
   "Author": "hawkfalcon",
-  "Version": "2.1.0",
+  "Version": "%ProjectVersion%",
   "Description": "Make any tile tillable (so you can use your hoe on it)",
   "UniqueID": "hawkfalcon.TillableGround",
   "EntryDll": "TillableGround.dll",

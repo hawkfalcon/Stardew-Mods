@@ -6,6 +6,7 @@
         <RootNamespace>TillableGround</RootNamespace>
         <LangVersion>latest</LangVersion>
         <TargetFramework>net6.0</TargetFramework>
+        <Version>2.1.0</Version>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     </PropertyGroup>
 
