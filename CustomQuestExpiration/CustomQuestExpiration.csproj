@@ -5,6 +5,7 @@
     <RootNamespace>CustomQuestExpiration</RootNamespace>
     <LangVersion>latest</LangVersion>
     <TargetFramework>net6.0</TargetFramework>
+    <Version>1.2.0</Version>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 

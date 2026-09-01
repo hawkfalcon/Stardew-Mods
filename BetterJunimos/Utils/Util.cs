@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
@@ -30,8 +30,16 @@ namespace BetterJunimos.Utils {
         internal static JunimoProgression Progression;
         internal static JunimoGreenhouse Greenhouse;
 
+        // Set of hut ids that we've already warned about, so orphaned junimos (e.g.
+        // from a hut that was demolished or a save from an older version) don't spam
+        // the log on every `home` lookup. Reset each day.
+        private static readonly HashSet<Guid> MissingHutWarnings = new();
+
         public static List<GameLocation> GetAllFarms() {
-            return Game1.locations.ToList();
+            // Note: this is the whole location list (the mod works on modded farms,
+            // Ginger Island, etc), not just farms. Avoid allocating a copy; it's on a
+            // hot path (every JunimoHarvester.home lookup).
+            return Game1.locations;
         }
 
         public static int CurrentWorkingRadius {
@@ -47,7 +55,13 @@ namespace BetterJunimos.Utils {
         }
 
         public static Guid GetHutIdFromHut(JunimoHut hut) {
-            return GetAllFarms().Select(farm => farm.buildings.GuidOf(hut)).ToList().Find(guid => guid != Guid.Empty);
+            if (hut is null) return Guid.Empty;
+            foreach (var farm in GetAllFarms()) {
+                var id = farm.buildings.GuidOf(hut);
+                if (id != Guid.Empty) return id;
+            }
+
+            return Guid.Empty;
         }
 
         public static JunimoHut GetHutFromId(Guid id) {
@@ -57,10 +71,14 @@ namespace BetterJunimos.Utils {
                 }
             }
 
-            if (id != Guid.Empty) {
+            if (id != Guid.Empty && MissingHutWarnings.Add(id)) {
                 BetterJunimos.SMonitor.Log($"Could not find hut with id {id}", LogLevel.Warn);
             }
             return null;
+        }
+
+        internal static void ResetMissingHutWarnings() {
+            MissingHutWarnings.Clear();
         }
 
         public static void AddItemToChest(GameLocation farm, Chest chest, SObject item) {

@@ -1,4 +1,4 @@
-﻿using StardewValley;
+using StardewValley;
 using Microsoft.Xna.Framework;
 using StardewValley.Characters;
 using HarmonyLib;
@@ -10,6 +10,7 @@ using BetterJunimos.Abilities;
 using StardewModdingAPI;
 using StardewValley.Buildings;
 using StardewValley.Pathfinding;
+using SObject = StardewValley.Object;
 
 namespace BetterJunimos.Patches {
     /* foundCropEndFunction
@@ -36,7 +37,9 @@ namespace BetterJunimos.Patches {
         public static bool Prefix(JunimoHarvester __instance, ref int ___harvestTimer, ref NetGuid ___netHome) {
             if (!Context.IsMainPlayer) return true;
             var hut = Util.GetHutFromId(__instance.HomeId);
-            if (hut is null) return false;
+            // If the hut can't be found (e.g. it was demolished), fall back to the
+            // vanilla behaviour instead of freezing the junimo in place.
+            if (hut is null) return true;
             var id = __instance.HomeId;
             var pos = __instance.Tile;
             int time;
@@ -84,6 +87,27 @@ namespace BetterJunimos.Patches {
                 ___harvestTimer = 0;
             } else if (___harvestTimer is > 500 and < 1000 || Util.Progression.WorkFaster && ___harvestTimer > 5) {
                 __instance.shake(50);
+            }
+        }
+    }
+
+    /* tryToAddItemToHut
+     *
+     * Botanist profession: forage (e.g. wild seed crops) harvested by Junimos
+     * should be iridium quality, matching what the player would get harvesting
+     * them personally. This runs before the item is placed in the hut chest, so
+     * the quality is applied to the item as stored (and to raisin double-harvest
+     * copies, which copy this item's quality).
+     *
+     * Bush yields are not affected, matching vanilla: the game only lets Junimos
+     * harvest bushes by creating item 815 (tea leaves), and bush berries (296
+     * salmonberry, 410 blackberry) never get quality from Botanist.
+     */
+    public class PatchJunimoHarvesterAddItemToHut {
+        public static void Prefix(Item i) {
+            if (!Game1.player.professions.Contains(16)) return;
+            if (i is SObject obj && obj.Category == SObject.GreensCategory && obj.ItemId is not ("815" or "296" or "410") && obj.Quality < 4) {
+                obj.Quality = 4;
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using BetterJunimos.Utils;
 using Microsoft.Xna.Framework;
@@ -113,8 +113,15 @@ namespace BetterJunimos.Abilities {
 
         //Verify if the item is a crop seed
         private bool IsCrop(Item item, GameLocation location) {
-            return (item.Category == -74 || item.ItemId == Util.CoffeeItemId) && item.ItemId != "770" && item.ItemId != "MixedFlowerSeeds" && !Tree.GetWildTreeSeedLookup().Keys.Contains(item.ItemId) &&
-                !Game1.fruitTreeData.Keys.Contains(item.ItemId);
+            if (item.Category != -74 && item.ItemId != Util.CoffeeItemId) return false;
+
+            // Mixed Seeds / Mixed Flower Seeds are only planted when enabled (they're
+            // excluded by default, matching the original behaviour)
+            if (item.ItemId is "770" or "MixedFlowerSeeds") {
+                return BetterJunimos.Config.JunimoImprovements.PlantMixedSeeds;
+            }
+
+            return !Tree.GetWildTreeSeedLookup().Keys.Contains(item.ItemId) && !Game1.fruitTreeData.Keys.Contains(item.ItemId);
         }
 
         public List<string> RequiredItems() {

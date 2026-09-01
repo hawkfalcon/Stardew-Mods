@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using StardewValley;
 using Microsoft.Xna.Framework;
 using StardewValley.Buildings;
@@ -171,7 +171,9 @@ namespace BetterJunimos.Utils {
         }
 
         private static bool ItemInHut(Guid id, string item) {
-            return ItemsInHuts[id].TryGetValue(item, out var present) && present;
+            // A hut we've never scanned (e.g. added mid-day without a menu close)
+            // must not throw here; treat it as having no items until first scan.
+            return ItemsInHuts.TryGetValue(id, out var items) && items.TryGetValue(item, out var present) && present;
         }
 
         public static bool ItemInHut(Guid id, List<string> items) {
@@ -180,7 +182,9 @@ namespace BetterJunimos.Utils {
         }
 
         internal void UpdateHutItems(Guid id) {
+            if (id == Guid.Empty) return;
             var hut = Util.GetHutFromId(id);
+            if (hut is null) return;
             var chest = hut.GetOutputChest();
             UpdateHutContainsItems(id, chest, _requiredItems.ToList<string>());
         }

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using StardewModdingAPI;
 
 namespace BetterJunimos {
@@ -30,6 +30,7 @@ namespace BetterJunimos {
             public bool HarvestEverythingOn28th { get; set; } = true;
             public bool AvoidPlantingCoffee { get; set; } = true;
             public bool AvoidPlantingOutOfSeason { get; set; } = true;
+            public bool PlantMixedSeeds { get; set; } = false;
         }
 
         public JunimoPayments JunimoPayment { get; set; } = new();

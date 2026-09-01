@@ -434,3 +434,6 @@ __pycache__/
 
 # End of https://www.gitignore.io/api/csharp,visualstudio
 .DS_Store
+
+# Build output from the GitHub Actions release workflow
+_releases/
