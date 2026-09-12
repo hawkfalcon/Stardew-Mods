@@ -188,7 +188,20 @@ namespace BetterJunimos {
         private bool ShowPerfectionTracker(ButtonPressedEventArgs e) {
             if (!Game1.player.currentLocation.IsFarm) return false;
             if (Game1.activeClickableMenu != null) return false;
-            if (!JunimoProgression.HutOnTile(e.Cursor.Tile)) return false;
+
+            // Use the same tile the game would act on (mirrors Game1.pressActionButton):
+            // the cursor tile when the mouse cursor is visible and near the player,
+            // otherwise the tile in front of the player. The old code used the raw
+            // cursor tile, which on mobile/gamepad could point at a stale cursor
+            // position (e.g. over a hut while pressing the action button far away),
+            // making the tracker pop up when clicking unrelated things.
+            var tile = Game1.currentCursorTile;
+            if (!Game1.wasMouseVisibleThisFrame || Game1.mouseCursorTransparency == 0f ||
+                !Utility.tileWithinRadiusOfPlayer((int)tile.X, (int)tile.Y, 1, Game1.player)) {
+                tile = Game1.player.GetGrabTile();
+            }
+
+            if (!JunimoProgression.HutOnTile(tile)) return false;
             if (Helper.ModRegistry.Get("ceruleandeep.BetterJunimosForestry") != null) return false;
 
             Util.Progression.ShowPerfectionTracker();
