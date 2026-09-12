@@ -622,20 +622,20 @@ namespace BetterJunimos {
         private void SpawnJunimoCommand() {
             var currentLocation = Game1.player.currentLocation;
 
-            if (currentLocation.IsFarm || currentLocation.IsGreenhouse) {
-                var junimoHuts = Util.GetAllFarms().FindAll(farm => 
-                    farm.Equals(currentLocation)).SelectMany(farm => farm.buildings.OfType<JunimoHut>()).ToList();
+            // Allow spawning anywhere the player has a Junimo hut (farm, greenhouse,
+            // Ginger Island farm, modded farms, ...)
+            var junimoHuts = Util.GetAllFarms()
+                .Where(farm => farm.Equals(currentLocation))
+                .SelectMany(farm => farm.buildings.OfType<JunimoHut>())
+                .ToList();
 
-                if (!junimoHuts.Any()) {
-                    Util.SendMessage(Helper.Translation.Get("msg.cannot-spawn-without-hut"));
-                    return;
-                }
-
-                var hut = junimoHuts.ElementAt(Game1.random.Next(0, junimoHuts.Count));
-                Util.SpawnJunimoAtPosition(currentLocation, Game1.player.Position, hut, Game1.random.Next(4, 100));
-            } else {
-                Util.SendMessage(Helper.Translation.Get("msg.cannot-spawn-here"));
+            if (!junimoHuts.Any()) {
+                Util.SendMessage(Helper.Translation.Get("msg.cannot-spawn-without-hut"));
+                return;
             }
+
+            var hut = junimoHuts.ElementAt(Game1.random.Next(0, junimoHuts.Count));
+            Util.SpawnJunimoAtPosition(currentLocation, Game1.player.Position, hut, Game1.random.Next(4, 100));
         }
 
         private static void CheckForWages(JunimoHut hut) {
