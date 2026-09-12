@@ -164,20 +164,13 @@ namespace BetterJunimos.Utils {
 
         public int MaxJunimosUnlocked {
             get {
-                return BaseMaxJunimos + BonusMaxJunimos;
-            }
-        }
-
-        public int BonusMaxJunimos {
-            get {
-                var bonusJunimos = 0;
-                foreach (var farm in Util.GetAllFarms()) {
-                    if (farm.IsGreenhouse) {
-                        bonusJunimos += farm.characters.Count(npc => npc is JunimoHarvester jh && jh.home != null && jh.currentLocation != jh.home.GetParentLocation());
-                    }
-                }
-
-                return Math.Min(BaseMaxJunimos, bonusJunimos);
+                // Note: there used to be a "bonus" of extra junimos for each junimo
+                // working in a greenhouse, but that created a feedback loop (more
+                // junimos -> more greenhouse visits -> higher limit -> more junimos)
+                // which could spawn far more junimos than configured and lag the game.
+                // Greenhouse junimos already count toward the hut's normal limit via
+                // hut.myJunimos, so the bonus is unnecessary.
+                return BaseMaxJunimos;
             }
         }
 
