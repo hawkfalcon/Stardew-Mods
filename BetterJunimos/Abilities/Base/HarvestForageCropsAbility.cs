@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using BetterJunimos.Utils;
 using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Characters;
 using StardewValley.Objects;
 using System.Collections.Generic;
+using StardewModdingAPI;
 
 namespace BetterJunimos.Abilities {
     public class HarvestForageCropsAbility : IJunimoAbility {
@@ -50,8 +51,15 @@ namespace BetterJunimos.Abilities {
                     location.objects.Remove(nextPos);
 
                     // calculate the forage experience from this harvest
-                    if (!BetterJunimos.Config.JunimoPayment.GiveExperience) return true;
-                    Game1.player.gainExperience(2, 7);
+                    if (BetterJunimos.Config.JunimoPayment.GiveExperience) {
+                        try {
+                            Game1.player.gainExperience(2, 7);
+                        } catch (Exception e) {
+                            // modded skill frameworks can throw when given experience; don't
+                            // let that break the harvest
+                            BetterJunimos.SMonitor.Log($"Could not grant foraging experience: {e.Message}", LogLevel.Trace);
+                        }
+                    }
 
                     return true;
                 }
