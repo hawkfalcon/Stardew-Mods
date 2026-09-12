@@ -230,6 +230,8 @@ namespace BetterJunimos {
 
             CheckHutsForWagesAndProgressionItems();
             JunimoAbilities.ResetCooldowns();
+            // chest contents changed, the cached work search may be out of date
+            Patches.PatchSearchAroundHut.InvalidateCache();
         }
 
         /// <summary>Raised after the game begins a new day (including when the player loads a save).</summary>
@@ -253,6 +255,10 @@ namespace BetterJunimos {
                 Util.Progression.DayStartedProgressionPrompt(Game1.IsWinter, Game1.isRaining);
                 JunimoAbilities.ResetCooldowns();
             }
+
+            // forget stale scan results and hut warnings from the previous session
+            Patches.PatchSearchAroundHut.InvalidateCache();
+            Util.ResetMissingHutWarnings();
 
             foreach (var location in Game1.locations) {
                 var toRemove = location.characters.Where(npc => npc is JunimoHarvester).ToList();
@@ -313,6 +319,10 @@ namespace BetterJunimos {
                 if (building is JunimoHut hut) {
                     Util.Abilities.UpdateHutItems(Util.GetHutIdFromHut(hut));
                 }
+            }
+
+            if (e.Added.Any() || e.Removed.Any()) {
+                Patches.PatchSearchAroundHut.InvalidateCache();
             }
         }
 

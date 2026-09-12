@@ -18,16 +18,19 @@ namespace BetterJunimos.Patches {
      * Completely rewrite original function.
      */
     internal class PatchSearchAroundHut {
-        private static readonly Dictionary<JunimoHut, (bool, int)> _scanCache = new();
-        private static int _lastCacheTick = -1;
+        /*
+         * The full search (radius grid x every ability x chest contents) is expensive,
+         * especially with large radii, and was previously re-run every frame, causing
+         * severe lag. Cache the result per hut and re-scan at most once per second.
+         * The cache is also invalidated on day start / menu close / building changes
+         * (see BetterJunimos, which calls PatchSearchAroundHut.InvalidateCache).
+         */
+        private const int ScanCooldownTicks = 60;
+
+        // keyed by hut + its tile position, so a moved hut doesn't reuse a stale scan
+        private static readonly Dictionary<JunimoHut, (bool foundWork, int radius, int scannedTick, int tileX, int tileY)> _scanCache = new();
 
         public static bool Prefix(JunimoHut __instance, ref bool __result) {
-            // Invalidate cache each game tick to prevent stale results
-            if (Game1.ticks != _lastCacheTick) {
-                _scanCache.Clear();
-                _lastCacheTick = Game1.ticks;
-            }
-
             if (!Context.IsMainPlayer) return true;
             // Prevent unnecessary searching when unpaid
             if (BetterJunimos.Config.JunimoPayment.WorkForWages && !Util.Payments.WereJunimosPaidToday) {
@@ -39,11 +42,20 @@ namespace BetterJunimos.Patches {
             return false;
         }
 
+        internal static void InvalidateCache() {
+            _scanCache.Clear();
+        }
+
         // search for crops + open plantable spots
         private static bool SearchAroundHut(JunimoHut hut) {
             var id = Util.GetHutIdFromHut(hut);
             var radius = Util.CurrentWorkingRadius;
             GameLocation farm = hut.GetParentLocation();
+
+            if (_scanCache.TryGetValue(hut, out var cached) && cached.radius == radius && cached.tileX == hut.tileX.Value &&
+                cached.tileY == hut.tileY.Value && Game1.ticks - cached.scannedTick < ScanCooldownTicks) {
+                return cached.foundWork;
+            }
 
             // SearchHutGrid manages hut.lastKnownCropLocation and Util.Abilities.lastKnownCropLocations
             var foundWork = SearchHutGrid(hut, radius, farm, id);
@@ -55,15 +67,13 @@ namespace BetterJunimos.Patches {
                     gh = ghb;
                 }
 
-                if (!Util.Greenhouse.HutHasGreenhouse(id)) {
-                    return foundWork;
+                if (Util.Greenhouse.HutHasGreenhouse(id)) {
+                    // SearchGreenhouseGrid manages hut.lastKnownCropLocation (a hack!) and Util.Abilities.lastKnownCropLocations
+                    foundWork |= SearchGreenhouseGrid(hut, id, gh);
                 }
-
-                // SearchGreenhouseGrid manages hut.lastKnownCropLocation (a hack!) and Util.Abilities.lastKnownCropLocations
-                foundWork |= SearchGreenhouseGrid(hut, id, gh);
-                Util.Abilities.lastKnownCropLocations.TryGetValue((hut, gh), out var lkc);
             }
 
+            _scanCache[hut] = (foundWork, radius, Game1.ticks, hut.tileX.Value, hut.tileY.Value);
             return foundWork;
         }
 
@@ -98,10 +108,6 @@ namespace BetterJunimos.Patches {
         }
 
         private static bool SearchHutGrid(JunimoHut hut, int radius, GameLocation farm, Guid id) {
-            if (_scanCache.TryGetValue(hut, out var value) && value.Item2 == radius) {
-                return value.Item1;
-            }
-
             for (var x = hut.tileX.Value + 1 - radius; x < hut.tileX.Value + 2 + radius; ++x) {
                 for (var y = hut.tileY.Value + 1 - radius; y < hut.tileY.Value + 2 + radius; ++y) {
                     var pos = new Vector2(x, y);
@@ -110,15 +116,12 @@ namespace BetterJunimos.Patches {
 
                     hut.lastKnownCropLocation = new Point(x, y);
                     Util.Abilities.lastKnownCropLocations[(hut, farm)] = new Point(x, y);
-
-                    _scanCache[hut] = (true, radius);
                     return true;
                 }
             }
 
             hut.lastKnownCropLocation = Point.Zero;
             Util.Abilities.lastKnownCropLocations[(hut, farm)] = Point.Zero;
-            _scanCache[hut] = (false, radius);
             return false;
         }
     }
