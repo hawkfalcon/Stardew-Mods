@@ -91,6 +91,27 @@ namespace BetterJunimos.Patches {
         }
     }
 
+    /* tryToAddItemToHut
+     *
+     * Botanist profession: forage (e.g. wild seed crops) harvested by Junimos
+     * should be iridium quality, matching what the player would get harvesting
+     * them personally. This runs before the item is placed in the hut chest, so
+     * the quality is applied to the item as stored (and to raisin double-harvest
+     * copies, which copy this item's quality).
+     *
+     * Bush yields are not affected, matching vanilla: the game only lets Junimos
+     * harvest bushes by creating item 815 (tea leaves), and bush berries (296
+     * salmonberry, 410 blackberry) never get quality from Botanist.
+     */
+    public class PatchJunimoHarvesterAddItemToHut {
+        public static void Prefix(Item i) {
+            if (!Game1.player.professions.Contains(16)) return;
+            if (i is SObject obj && obj.Category == SObject.GreensCategory && obj.ItemId is not ("815" or "296" or "410") && obj.Quality < 4) {
+                obj.Quality = 4;
+            }
+        }
+    }
+
     // pathfindToRandomSpotAroundHut
     // Expand radius of random pathfinding
     public class PatchPathfindToRandomSpotAroundHut {

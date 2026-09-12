@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley.Buildings;
@@ -108,6 +108,7 @@ namespace BetterJunimos {
             replacements.Add("tryToHarvestHere", junimoType, typeof(PatchTryToHarvestHere));
             replacements.Add("update", junimoType, typeof(PatchJunimoShake));
             replacements.Add("pokeToHarvest", junimoType, typeof(PatchPokeToHarvest));
+            replacements.Add("tryToAddItemToHut", junimoType, typeof(PatchJunimoHarvesterAddItemToHut));
             replacements.Add("get_home", junimoType, typeof(PatchGet_home));
             replacements.Add("set_home", junimoType, typeof(PatchSet_home));
 
