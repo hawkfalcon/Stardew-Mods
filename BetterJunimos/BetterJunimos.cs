@@ -479,6 +479,12 @@ namespace BetterJunimos {
                 val => Config.JunimoImprovements.AvoidPlantingOutOfSeason = val,
                 "cfg.avoid-planting-out-of-season"
             );
+            AddHostBoolOption(
+                () => Config.JunimoImprovements.PlantMixedSeeds,
+                val => Config.JunimoImprovements.PlantMixedSeeds = val,
+                "cfg.plant-mixed-seeds",
+                "cfg.plant-mixed-seeds.tooltip"
+            );
 
             configMenu.AddSectionTitle(ModManifest,
                 () => Helper.Translation.Get("cfg.payment"),
