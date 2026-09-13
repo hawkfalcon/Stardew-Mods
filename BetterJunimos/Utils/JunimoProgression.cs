@@ -493,7 +493,17 @@ namespace BetterJunimos.Utils {
 
 
         public static bool HutOnTile(Vector2 pos) {
-            return Util.GetAllFarms().Any(farm => farm.buildings.Any(b => b is JunimoHut && b.occupiesTile(pos)));
+            // Only match huts in the player's current location.
+            //
+            // Locations named *Farm*, *Coop* or *Barn* (e.g. FarmHouse, Coop, Barn
+            // interiors) also report IsFarm == true: the game sets isFarm for any
+            // location whose name contains those strings, or whose map has an IsFarm
+            // property.  Tile coordinates in those indoor maps can collide with hut
+            // positions on the farm, so scanning every location's buildings made the
+            // tracker open when clicking unrelated spots inside buildings (reported
+            // on Nexus: tracker popping up when clicking house/barn floors and
+            // furniture, blocking decoration and machine placement).
+            return Game1.player.currentLocation?.buildings.Any(b => b is JunimoHut && b.occupiesTile(pos)) == true;
         }
 
         private string Get(string key) {
