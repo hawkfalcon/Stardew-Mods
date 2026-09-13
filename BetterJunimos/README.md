@@ -1,9 +1,5 @@
 # Better Junimos
 
-## TODO
-
-* Nothing
-
 ## Changelog
 * 3.2.0 RELEASE
   * Respect MaxJunimos config strictly; fix runaway junimo spawning and lag on large/modded farms
