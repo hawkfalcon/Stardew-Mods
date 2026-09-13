@@ -17,6 +17,7 @@ namespace BetterJunimos.Abilities {
         private readonly IMonitor Monitor;
 
         private const string SunflowerSeeds = "431";
+        private const string TeaSapling = "251";
         static Dictionary<string, Dictionary<string, bool>> cropSeasons = new();
 
         internal PlantCropsAbility(IMonitor Monitor) {
@@ -120,6 +121,12 @@ namespace BetterJunimos.Abilities {
             if (item.ItemId is "770" or "MixedFlowerSeeds") {
                 return BetterJunimos.Config.JunimoImprovements.PlantMixedSeeds;
             }
+
+            // Tea Saplings are Seeds (-74) but plant a Bush, not a Crop.  They can
+            // never be planted as a crop, so junimos holding one would walk out and
+            // retry forever (reported on Nexus: junimos planting and digging up the
+            // same tea sapling over and over).
+            if (item.ItemId == TeaSapling) return false;
 
             return !Tree.GetWildTreeSeedLookup().Keys.Contains(item.ItemId) && !Game1.fruitTreeData.Keys.Contains(item.ItemId);
         }
