@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Characters;
 using StardewValley.TerrainFeatures;
 using System.Collections.Generic;
 using BetterJunimos.Utils;
+using StardewModdingAPI;
 
 namespace BetterJunimos.Abilities {
     public class HarvestCropsAbility : IJunimoAbility {
