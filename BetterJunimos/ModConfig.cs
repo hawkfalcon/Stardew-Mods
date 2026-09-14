@@ -11,9 +11,9 @@ namespace BetterJunimos {
             public int MaxJunimos { get; set; } = 3;
             public int MaxRadius { get; set; } = 8;
             public bool AvailableAfterCommunityCenterComplete { get; set; } = true;
-            public bool AvailableImmediately { get; set; }
+            public bool AvailableImmediately { get; set; } = false;
             public bool ReducedCostToConstruct { get; set; } = true;
-            public bool FreeToConstruct { get; set; }
+            public bool FreeToConstruct { get; set; } = false;
         }
 
         public JunimoImprovement JunimoImprovements { get; set; } = new();
@@ -36,26 +36,26 @@ namespace BetterJunimos {
         public JunimoPayments JunimoPayment { get; set; } = new();
 
         internal class JunimoPayments {
-            public bool WorkForWages { get; set; }
+            public bool WorkForWages { get; set; } = true;
             public PaymentAmount DailyWage { get; set; } = new();
 
             internal class PaymentAmount {
                 public int ForagedItems { get; set; } = 1;
-                public int Flowers { get; set; }
-                public int Fruit { get; set; }
-                public int Wine { get; set; }
+                public int Flowers { get; set; } = 0;
+                public int Fruit { get; set; } = 0;
+                public int Wine { get; set; } = 0;
             }
 
-            public bool GiveExperience { get; set; }
+            public bool GiveExperience { get; set; } = false;
         }
 
         public FunSettings FunChanges { get; set; } = new();
 
         internal class FunSettings {
-            public float RainyJunimoSpiritFactor = 0.7f;
-            public bool JunimosAlwaysHaveLeafUmbrellas { get; set; }
-            public bool MoreColorfulLeafUmbrellas { get; set; }
-            public bool InfiniteJunimoInventory { get; set; }
+            public float RainyJunimoSpiritFactor = 0.65f;
+            public bool JunimosAlwaysHaveLeafUmbrellas { get; set; } = false;
+            public bool MoreColorfulLeafUmbrellas { get; set; } = false;
+            public bool InfiniteJunimoInventory { get; set; } = false;
         }
 
         public OtherSettings Other { get; set; } = new();
@@ -70,7 +70,7 @@ namespace BetterJunimos {
         public JunimoProgression Progression { get; set; } = new();
 
         internal class JunimoProgression {
-            public bool Enabled { get; set; } = true;
+            public bool Enabled { get; set; } = false;
         }
     }
 }
