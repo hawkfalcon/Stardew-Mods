@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using BetterJunimos.Utils;
@@ -21,7 +21,7 @@ namespace BetterJunimos.Abilities {
         public bool IsActionAvailable(GameLocation location, Vector2 pos, Guid guid) {
             if (!location.terrainFeatures.ContainsKey(pos)) return false;
             if (location.terrainFeatures[pos] is not HoeDirt hd) return false;
-            if (hd.fertilizer.Value != null) return false;
+            if (hd.HasFertilizer()) return false;
             if (hd.crop is null) return true;
 
             // now we allow fertilizing just-planted crops
@@ -34,7 +34,7 @@ namespace BetterJunimos.Abilities {
             var foundItem = chest.Items.FirstOrDefault(item => item is { Category: ItemCategory } && item.ItemId != TreeFertilizer);
             if (foundItem == null) return false;
 
-            Fertilize(location, pos, foundItem.ParentSheetIndex);
+            Fertilize(location, pos, foundItem);
             Util.RemoveItemFromChest(chest, foundItem);
             return true;
         }
@@ -49,24 +49,28 @@ namespace BetterJunimos.Abilities {
             return _RequiredItems;
         }
 
-        private static void Fertilize(GameLocation location, Vector2 pos, int index) {
+        private static void Fertilize(GameLocation location, Vector2 pos, Item fertilizerItem) {
             if (location.terrainFeatures[pos] is not HoeDirt hd) return;
-            hd.fertilizer.Value = index.ToString();
+            // store the fertilizer the same way the game does (qualified id), so
+            // HoeDirt.GetFertilizerSpeedBoost() etc. always recognise it, including
+            // for modded fertilizers with non-numeric ids
+            hd.fertilizer.Value = ItemRegistry.QualifyItemId(fertilizerItem.ItemId) ?? fertilizerItem.ItemId;
             CheckSpeedGro(hd, hd.crop);
             if (Utility.isOnScreen(Utility.Vector2ToPoint(pos), 64, location)) {
                 location.playSound("dirtyHit");
             }
         }
 
-        // taken from SDV planting code [applySpeedIncreases()], updated for 1.5
+        // taken from SDV planting code [applySpeedIncreases()]
         private static void CheckSpeedGro(HoeDirt hd, Crop crop) {
-            var fertilizer = hd.fertilizer.Value;
             var who = Game1.player;
             if (crop == null) {
                 return;
             }
 
-            if (!(fertilizer is "465" or "466" or "918" || who.professions.Contains(5))) {
+            var paddyBonus = hd.Location != null && hd.paddyWaterCheck();
+            var speedIncrease = hd.GetFertilizerSpeedBoost();
+            if (speedIncrease <= 0f && !who.professions.Contains(5) && !paddyBonus) {
                 return;
             }
 
@@ -76,17 +80,8 @@ namespace BetterJunimos.Abilities {
                 totalDaysOfCropGrowth += crop.phaseDays[j];
             }
 
-            var speedIncrease = 0f;
-            switch (fertilizer) {
-                case "465":
-                    speedIncrease += 0.1f;
-                    break;
-                case "466":
-                    speedIncrease += 0.25f;
-                    break;
-                case "918":
-                    speedIncrease += 0.33f;
-                    break;
+            if (paddyBonus) {
+                speedIncrease += 0.25f;
             }
 
             if (who.professions.Contains(5)) {
@@ -97,7 +92,7 @@ namespace BetterJunimos.Abilities {
             var tries = 0;
             while (daysToRemove > 0 && tries < 3) {
                 for (var i = 0; i < crop.phaseDays.Count; i++) {
-                    if ((i > 0 || crop.phaseDays[i] > 1) && crop.phaseDays[i] != 99999) {
+                    if ((i > 0 || crop.phaseDays[i] > 1) && crop.phaseDays[i] != 99999 && crop.phaseDays[i] > 0) {
                         crop.phaseDays[i]--;
                         daysToRemove--;
                     }

@@ -1,10 +1,18 @@
 # Better Junimos
 
-## TODO
-
-* Nothing
-
 ## Changelog
+* 3.2.0 RELEASE
+  * Respect MaxJunimos config strictly; fix runaway junimo spawning and lag on large/modded farms
+  * Junimos spawn reliably at every hut after loading a save, without the spawn hotkey
+  * Huts work off the main farm: Ginger Island and modded/expansion farms
+  * Fertilizer fixes: player-placed and junimo-placed fertilizer both work, vanilla growth-speed formula, modded fertilizers supported
+  * Botanist profession: junimo-harvested forage is iridium quality
+  * Guard harvest XP so modded skills can't crash the harvest
+  * New PlantMixedSeeds config option (default off)
+  * Fix junimos endlessly planting and digging up Tea Saplings
+  * Progression tracker no longer opens when clicking inside buildings or away from huts
+  * Fix "Could not find hut with id" log spam; orphaned junimos are cleaned up
+  * Cache hut work scans to remove periodic lag spikes with large hut radii
 * 3.1.2 RELEASE
   * Fix performance bug with large farms (thanks to sav155)
   * Fix occasional error with MagicalConstruction

@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.Characters;
 using StardewValley.TerrainFeatures;
 using System.Collections.Generic;
 using BetterJunimos.Utils;
+using StardewModdingAPI;
 
 namespace BetterJunimos.Abilities {
     public class HarvestCropsAbility : IJunimoAbility {
@@ -26,9 +27,16 @@ namespace BetterJunimos.Abilities {
 
         public bool PerformAction(GameLocation location, Vector2 pos, JunimoHarvester junimo, Guid guid) {
             // calculate the experience from this harvest
-            if (!BetterJunimos.Config.JunimoPayment.GiveExperience) return true;
-            if (location.terrainFeatures.ContainsKey(pos) && location.terrainFeatures[pos] is HoeDirt { crop: { } } hd) {
-                Game1.player.gainExperience(0, Util.ExperienceForCrop(hd.crop));
+            if (BetterJunimos.Config.JunimoPayment.GiveExperience) {
+                try {
+                    if (location.terrainFeatures.ContainsKey(pos) && location.terrainFeatures[pos] is HoeDirt { crop: { } } hd) {
+                        Game1.player.gainExperience(0, Util.ExperienceForCrop(hd.crop));
+                    }
+                } catch (Exception e) {
+                    // modded skill frameworks can throw when given experience; don't
+                    // let that break the harvest
+                    BetterJunimos.SMonitor.Log($"Could not grant farming experience: {e.Message}", LogLevel.Trace);
+                }
             }
 
             // Don't do anything, as the base junimo handles this already (see PatchTryToHarvestHere)

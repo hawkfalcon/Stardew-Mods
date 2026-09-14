@@ -57,6 +57,8 @@
   "cfg.harvest-everything-on-28th.tooltip": "If avoiding harvest of flowers or giant crops, harvest them on the last day of the month before they die",
   "cfg.avoid-planting-coffee": "Avoid Planting Coffee",
   "cfg.avoid-planting-out-of-season": "Avoid Planting Out Of Season",
+  "cfg.plant-mixed-seeds": "Plant Mixed Seeds",
+  "cfg.plant-mixed-seeds.tooltip": "Allow Junimos to plant Mixed Seeds and Mixed Flower Seeds",
   "cfg.payment": "Payment",
   "cfg.work-for-wages": "Work For Wages",
   "cfg.foraged-items": "Foraged items",

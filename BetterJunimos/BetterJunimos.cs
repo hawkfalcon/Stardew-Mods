@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley.Buildings;
@@ -108,6 +108,7 @@ namespace BetterJunimos {
             replacements.Add("tryToHarvestHere", junimoType, typeof(PatchTryToHarvestHere));
             replacements.Add("update", junimoType, typeof(PatchJunimoShake));
             replacements.Add("pokeToHarvest", junimoType, typeof(PatchPokeToHarvest));
+            replacements.Add("tryToAddItemToHut", junimoType, typeof(PatchJunimoHarvesterAddItemToHut));
             replacements.Add("get_home", junimoType, typeof(PatchGet_home));
             replacements.Add("set_home", junimoType, typeof(PatchSet_home));
 
@@ -188,7 +189,20 @@ namespace BetterJunimos {
         private bool ShowPerfectionTracker(ButtonPressedEventArgs e) {
             if (!Game1.player.currentLocation.IsFarm) return false;
             if (Game1.activeClickableMenu != null) return false;
-            if (!JunimoProgression.HutOnTile(e.Cursor.Tile)) return false;
+
+            // Use the same tile the game would act on (mirrors Game1.pressActionButton):
+            // the cursor tile when the mouse cursor is visible and near the player,
+            // otherwise the tile in front of the player. The old code used the raw
+            // cursor tile, which on mobile/gamepad could point at a stale cursor
+            // position (e.g. over a hut while pressing the action button far away),
+            // making the tracker pop up when clicking unrelated things.
+            var tile = Game1.currentCursorTile;
+            if (!Game1.wasMouseVisibleThisFrame || Game1.mouseCursorTransparency == 0f ||
+                !Utility.tileWithinRadiusOfPlayer((int)tile.X, (int)tile.Y, 1, Game1.player)) {
+                tile = Game1.player.GetGrabTile();
+            }
+
+            if (!JunimoProgression.HutOnTile(tile)) return false;
             if (Helper.ModRegistry.Get("ceruleandeep.BetterJunimosForestry") != null) return false;
 
             Util.Progression.ShowPerfectionTracker();
@@ -216,6 +230,8 @@ namespace BetterJunimos {
 
             CheckHutsForWagesAndProgressionItems();
             JunimoAbilities.ResetCooldowns();
+            // chest contents changed, the cached work search may be out of date
+            Patches.PatchSearchAroundHut.InvalidateCache();
         }
 
         /// <summary>Raised after the game begins a new day (including when the player loads a save).</summary>
@@ -239,6 +255,10 @@ namespace BetterJunimos {
                 Util.Progression.DayStartedProgressionPrompt(Game1.IsWinter, Game1.isRaining);
                 JunimoAbilities.ResetCooldowns();
             }
+
+            // forget stale scan results and hut warnings from the previous session
+            Patches.PatchSearchAroundHut.InvalidateCache();
+            Util.ResetMissingHutWarnings();
 
             foreach (var location in Game1.locations) {
                 var toRemove = location.characters.Where(npc => npc is JunimoHarvester).ToList();
@@ -299,6 +319,10 @@ namespace BetterJunimos {
                 if (building is JunimoHut hut) {
                     Util.Abilities.UpdateHutItems(Util.GetHutIdFromHut(hut));
                 }
+            }
+
+            if (e.Added.Any() || e.Removed.Any()) {
+                Patches.PatchSearchAroundHut.InvalidateCache();
             }
         }
 
@@ -466,6 +490,12 @@ namespace BetterJunimos {
                 val => Config.JunimoImprovements.AvoidPlantingOutOfSeason = val,
                 "cfg.avoid-planting-out-of-season"
             );
+            AddHostBoolOption(
+                () => Config.JunimoImprovements.PlantMixedSeeds,
+                val => Config.JunimoImprovements.PlantMixedSeeds = val,
+                "cfg.plant-mixed-seeds",
+                "cfg.plant-mixed-seeds.tooltip"
+            );
 
             configMenu.AddSectionTitle(ModManifest,
                 () => Helper.Translation.Get("cfg.payment"),
@@ -602,20 +632,20 @@ namespace BetterJunimos {
         private void SpawnJunimoCommand() {
             var currentLocation = Game1.player.currentLocation;
 
-            if (currentLocation.IsFarm || currentLocation.IsGreenhouse) {
-                var junimoHuts = Util.GetAllFarms().FindAll(farm => 
-                    farm.Equals(currentLocation)).SelectMany(farm => farm.buildings.OfType<JunimoHut>()).ToList();
+            // Allow spawning anywhere the player has a Junimo hut (farm, greenhouse,
+            // Ginger Island farm, modded farms, ...)
+            var junimoHuts = Util.GetAllFarms()
+                .Where(farm => farm.Equals(currentLocation))
+                .SelectMany(farm => farm.buildings.OfType<JunimoHut>())
+                .ToList();
 
-                if (!junimoHuts.Any()) {
-                    Util.SendMessage(Helper.Translation.Get("msg.cannot-spawn-without-hut"));
-                    return;
-                }
-
-                var hut = junimoHuts.ElementAt(Game1.random.Next(0, junimoHuts.Count));
-                Util.SpawnJunimoAtPosition(currentLocation, Game1.player.Position, hut, Game1.random.Next(4, 100));
-            } else {
-                Util.SendMessage(Helper.Translation.Get("msg.cannot-spawn-here"));
+            if (!junimoHuts.Any()) {
+                Util.SendMessage(Helper.Translation.Get("msg.cannot-spawn-without-hut"));
+                return;
             }
+
+            var hut = junimoHuts.ElementAt(Game1.random.Next(0, junimoHuts.Count));
+            Util.SpawnJunimoAtPosition(currentLocation, Game1.player.Position, hut, Game1.random.Next(4, 100));
         }
 
         private static void CheckForWages(JunimoHut hut) {
