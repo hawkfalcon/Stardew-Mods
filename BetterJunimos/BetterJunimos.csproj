@@ -10,6 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- bundle the Content Patcher pack with the mod, so it ends up in the release zip -->
+    <ContentPacks Include="[CP] Better Junimos Config Wizard" Version="$(Version)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
     <PackageReference Include="System.ValueTuple" Version="4.6.1" />
