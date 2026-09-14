@@ -86,6 +86,10 @@ namespace BetterJunimos.Utils {
 
         private bool Unlocked(string progression) {
             try {
+                // Game1.getFarm() throws a KeyNotFoundException rather than 
+                // returning null before a save is loaded
+                if (!Context.IsWorldReady) return false;
+
                 var farm = Game1.getFarm();
 
                 if (farm == null) return false;
