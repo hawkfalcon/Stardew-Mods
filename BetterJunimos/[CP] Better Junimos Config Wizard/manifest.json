@@ -1,8 +1,8 @@
 {
     "Name": "[CP] Better Junimos Config Wizard",
     "Author": "ceruleandeep",
-    "Version": "1.0.0",
-    "Description": "One or two sentences about the mod.",
+    "Version": "%ProjectVersion%",
+    "Description": "Adds a one-off setup event where the Wizard asks how you want your Junimos configured.",
     "UniqueID": "ceruleandeep.BetterJunimos.CP",
     "UpdateKeys": [],
     "ContentPackFor": {
