@@ -88,6 +88,7 @@ namespace BetterJunimos.Utils {
             for (int index = 0; index < obj.Stack; ++index) Game1.createObjectDebris(item.ItemId, (int)pos.X + 1, (int)pos.Y + 1, -1, item.Quality, 1f, farm);
         }
 
+        // Every item the Junimos use up is removed here; the infinite inventory cheat skips this.
         public static void RemoveItemFromChest(Chest chest, Item item, int count = 1) {
             if (BetterJunimos.Config.FunChanges.InfiniteJunimoInventory) {
                 return;

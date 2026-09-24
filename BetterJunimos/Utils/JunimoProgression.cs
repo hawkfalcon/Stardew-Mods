@@ -366,6 +366,11 @@ namespace BetterJunimos.Utils {
                 $"{Get("tracker.working-radius")}: {Util.CurrentWorkingRadius} {Get("tracker.current")}, {BetterJunimos.Config.JunimoHuts.MaxRadius} {Get("tracker.configured")}"
             };
 
+            // easy to turn on by mistake; show it here where players look when troubleshooting
+            if (BetterJunimos.Config.FunChanges.InfiniteJunimoInventory) {
+                quests.Add(Get("cfg.infinite-inventory"));
+            }
+
             if (!Context.IsMainPlayer) {
                 quests.Add(Get("tracker.progression-info-host-only"));
             } else {
