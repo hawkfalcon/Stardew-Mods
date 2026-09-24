@@ -251,6 +251,14 @@ namespace BetterJunimos {
             }
 
             if (huts.Any()) {
+                // players regularly turn this cheat on by mistake (it reads like "more
+                // chest space") and then report seeds etc. not being used up
+                if (Config.FunChanges.InfiniteJunimoInventory) {
+                    Monitor.LogOnce("The 'Junimos never use up items' cheat (FunChanges.InfiniteJunimoInventory) is on: " +
+                                    "seeds, fertilizer, wages and ability unlock items will stay in the hut chests. " +
+                                    "Turn it off in Generic Mod Config Menu or config.json if that's not intended.", LogLevel.Info);
+                }
+
                 CheckHutsForWagesAndProgressionItems();
                 Util.Progression.DayStartedProgressionPrompt(Game1.IsWinter, Game1.isRaining);
                 JunimoAbilities.ResetCooldowns();

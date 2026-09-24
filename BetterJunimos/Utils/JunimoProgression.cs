@@ -366,6 +366,12 @@ namespace BetterJunimos.Utils {
                 $"{Get("tracker.working-radius")}: {Util.CurrentWorkingRadius} {Get("tracker.current")}, {BetterJunimos.Config.JunimoHuts.MaxRadius} {Get("tracker.configured")}"
             };
 
+            // this cheat stops Junimos using up any items, and is easy to turn on by
+            // mistake, so make it visible here where players look when troubleshooting
+            if (BetterJunimos.Config.FunChanges.InfiniteJunimoInventory) {
+                quests.Add($"{Get("cfg.infinite-inventory")}: {Get("tracker.enabled")}");
+            }
+
             if (!Context.IsMainPlayer) {
                 quests.Add(Get("tracker.progression-info-host-only"));
             } else {

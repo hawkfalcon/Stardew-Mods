@@ -55,6 +55,9 @@ namespace BetterJunimos {
             public float RainyJunimoSpiritFactor = 0.65f;
             public bool JunimosAlwaysHaveLeafUmbrellas { get; set; } = false;
             public bool MoreColorfulLeafUmbrellas { get; set; } = false;
+            // Cheat: Junimos never use up items from the hut chest (seeds, fertilizer,
+            // wages, ability unlock items). It does not add chest space. The name is
+            // kept for existing config.json files; see Util.RemoveItemFromChest.
             public bool InfiniteJunimoInventory { get; set; } = false;
         }
 

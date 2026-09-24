@@ -63,8 +63,8 @@
   "cfg.always-have-umbrellas.tooltip": "주니모들은 항상 잎 우산을 가지고 있습니다.",
   "cfg.more-colorful-umbrellas": "더 다체로운 우산",
   "cfg.more-colorful-umbrellas.tooltip": "더 다채로운 잎 우산",
-  "cfg.infinite-inventory": "무한 인벤토리",
-  "cfg.infinite-inventory.tooltip": "무한 주니모 인벤토리",
+  "cfg.infinite-inventory": "주니모가 아이템을 소모하지 않음",
+  "cfg.infinite-inventory.tooltip": "치트: 씨앗, 비료, 임금, 기술 잠금 해제에 필요한 아이템이 소모되지 않고 오두막 상자에 그대로 남습니다. 오두막의 보관 공간이 늘어나지는 않습니다.",
   "cfg.spawn-junimo-keybind": "주니모 단축기 활성화",
   "cfg.receive-messages": "메세지 수신",
   

@@ -88,6 +88,8 @@ namespace BetterJunimos.Utils {
             for (int index = 0; index < obj.Stack; ++index) Game1.createObjectDebris(item.ItemId, (int)pos.X + 1, (int)pos.Y + 1, -1, item.Quality, 1f, farm);
         }
 
+        // Every item Junimos use up (seeds, fertilizer, wages, ability unlock items)
+        // is removed here, so if items "aren't being consumed", check this cheat first.
         public static void RemoveItemFromChest(Chest chest, Item item, int count = 1) {
             if (BetterJunimos.Config.FunChanges.InfiniteJunimoInventory) {
                 return;
