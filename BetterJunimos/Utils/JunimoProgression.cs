@@ -254,6 +254,25 @@ namespace BetterJunimos.Utils {
             }
         }
 
+        // The prompt for working in winter or in the rain is only shown once, at the
+        // start of the first winter or rainy day. After that the Junimos just stay
+        // home on those days, which players report as a bug, so remind them what the
+        // Junimos need (like the unpaid wages message). Same order as the checks in
+        // JunimoSpawnHelper.TrySpawnJunimo.
+        public void RemindAboutLockedWeather(bool isWinter, bool isRaining) {
+            if (!Context.IsMainPlayer || !BetterJunimos.Config.Progression.Enabled) return;
+
+            if (isWinter && !CanWorkInWinter) {
+                if (BetterJunimos.Config.JunimoImprovements.CanWorkInWinter && Prompted("CanWorkInWinter")) {
+                    Util.SendMessage(GetPromptText("CanWorkInWinter"));
+                }
+            } else if (isRaining && !CanWorkInRain) {
+                if (BetterJunimos.Config.JunimoImprovements.CanWorkInRain && Prompted("CanWorkInRain")) {
+                    Util.SendMessage(GetPromptText("CanWorkInRain"));
+                }
+            }
+        }
+
         private void DisplayPromptFor(string progression) {
             var prompt = GetPromptText(progression);
             if (prompt.Length == 0) {

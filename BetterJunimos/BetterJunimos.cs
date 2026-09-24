@@ -308,6 +308,9 @@ namespace BetterJunimos {
                 Util.Abilities.UpdateHutItems(Util.GetHutIdFromHut(hut));
             }
 
+            // after the huts are checked, so items that were just delivered count
+            Util.Progression.RemindAboutLockedWeather(Game1.IsWinter, Game1.isRaining);
+
             if (!Config.JunimoPayment.WorkForWages) return;
             switch (Util.Payments.WereJunimosPaidToday) {
                 case false:
@@ -440,17 +443,20 @@ namespace BetterJunimos {
             AddHostBoolOption(
                 () => Config.JunimoImprovements.CanWorkInRain,
                 val => Config.JunimoImprovements.CanWorkInRain = val,
-                "cfg.can-work-in-rain"
+                "cfg.can-work-in-rain",
+                "cfg.can-work-in-rain.tooltip"
             );
             AddHostBoolOption(
                 () => Config.JunimoImprovements.CanWorkInWinter,
                 val => Config.JunimoImprovements.CanWorkInWinter = val,
-                "cfg.can-work-in-winter"
+                "cfg.can-work-in-winter",
+                "cfg.can-work-in-winter.tooltip"
             );
             AddHostBoolOption(
                 () => Config.JunimoImprovements.CanWorkInEvenings,
                 val => Config.JunimoImprovements.CanWorkInEvenings = val,
-                "cfg.can-work-in-evenings"
+                "cfg.can-work-in-evenings",
+                "cfg.can-work-in-evenings.tooltip"
             );
             AddHostBoolOption(
                 () => Config.JunimoImprovements.CanWorkInGreenhouse,
@@ -511,7 +517,8 @@ namespace BetterJunimos {
             AddBoolOption(
                 () => Config.JunimoPayment.WorkForWages,
                 val => Config.JunimoPayment.WorkForWages = val,
-                "cfg.work-for-wages"
+                "cfg.work-for-wages",
+                "cfg.work-for-wages.tooltip"
             );
             AddNumberOption(
                 () => Config.JunimoPayment.DailyWage.ForagedItems,

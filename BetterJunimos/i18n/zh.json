@@ -83,7 +83,7 @@
   "tracker.disabled": "已取消设置",
   "tracker.enabled": "允许",
   "tracker.unlocked": "已解锁",
-  "tracker.prompted": "已完成",
+  "tracker.prompted": "等待物品",
   "tracker.not-triggered": "未触发",
   "debug.prompting-all-quests": "完成所有任务",
   "debug.available-actions-for-hut-at": "有可完成的小屋任务",

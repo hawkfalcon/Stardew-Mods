@@ -81,7 +81,7 @@
   "tracker.disabled": "구성에 의해 비활성화됨",
   "tracker.enabled": "활성화",
   "tracker.unlocked": "잠금 해제",
-  "tracker.prompted": "즉각적인",
+  "tracker.prompted": "아이템 대기 중",
   "tracker.not-triggered": "트리거되지 않음",
 
   "debug.prompting-all-quests": "모든 퀘스트 확인",
