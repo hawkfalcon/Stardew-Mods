@@ -251,6 +251,12 @@ namespace BetterJunimos {
             }
 
             if (huts.Any()) {
+                // players turn this on by mistake and then report items not being used up
+                if (Config.FunChanges.InfiniteJunimoInventory) {
+                    Monitor.LogOnce("FunChanges.InfiniteJunimoInventory is on: Junimos don't use up seeds, " +
+                                    "fertilizer, wages or ability items.", LogLevel.Info);
+                }
+
                 CheckHutsForWagesAndProgressionItems();
                 Util.Progression.DayStartedProgressionPrompt(Game1.IsWinter, Game1.isRaining);
                 JunimoAbilities.ResetCooldowns();
