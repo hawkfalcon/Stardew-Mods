@@ -503,7 +503,8 @@ namespace BetterJunimos {
             AddBoolOption(
                 () => Config.JunimoPayment.WorkForWages,
                 val => Config.JunimoPayment.WorkForWages = val,
-                "cfg.work-for-wages"
+                "cfg.work-for-wages",
+                "cfg.work-for-wages.tooltip"
             );
             AddNumberOption(
                 () => Config.JunimoPayment.DailyWage.ForagedItems,
